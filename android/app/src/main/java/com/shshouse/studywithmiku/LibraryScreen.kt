@@ -206,7 +206,7 @@ import kotlinx.coroutines.withContext
     }
 }
 
-@Composable fun PlayerSheet(library: Library,state: PlaybackState,store: MikuStore,music: MusicConnection,onDismiss: () -> Unit) {
+@Composable fun PlayerSheet(library: Library,state: PlaybackState,store: MikuStore,music: MusicConnection,onShare: (Song) -> Unit,onDismiss: () -> Unit) {
     val song = library.songs.find { it.id == state.songId }
     var drag by remember { mutableStateOf<Float?>(null) }
     var queue by remember { mutableStateOf(false) }
@@ -253,6 +253,7 @@ import kotlinx.coroutines.withContext
                 Slider(state.volume,{ music.volume(it) },modifier = Modifier.weight(1f))
                 Icon(Icons.Rounded.VolumeUp,null)
             }
+            if (song != null && song.playlistId.isNotBlank()) FilledTonalButton(onClick = { onShare(song) }) { Icon(Icons.Rounded.Share,null); Spacer(Modifier.width(8.dp)); Text("分享到聊天室") }
             TextButton(onClick = { queue = !queue }) { Text("播放队列 · ${state.queueIds.size} 首") }
             if (queue) LazyColumn(Modifier.fillMaxWidth().heightIn(max = 240.dp)) {
                 items(state.queueIds,key = { it }) { id ->

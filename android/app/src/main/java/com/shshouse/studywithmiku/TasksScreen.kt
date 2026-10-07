@@ -18,16 +18,27 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import java.time.*
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
-@Composable fun TasksScreen(todos: List<Todo>,store: MikuStore) {
+@Composable fun TasksScreen(todos: List<Todo>,store: MikuStore,onShare: (String)->Unit) {
     var selectedKey by rememberSaveable { mutableStateOf(LocalDate.now().toString()) }
+    var global by rememberSaveable { mutableStateOf(true) }
+    val countdowns by store.countdowns.collectAsStateWithLifecycle()
+    var addDay by remember { mutableStateOf(false) }
     val selected = LocalDate.parse(selectedKey)
     var calendar by remember { mutableStateOf(false) }
     var add by remember { mutableStateOf(false) }
+    var editing by remember { mutableStateOf<Todo?>(null) }
+    var color by remember { mutableStateOf("#39c5bb") }
     var text by rememberSaveable { mutableStateOf("") }
-    val tasks = todos.filter { it.date == selectedKey }.sortedBy { it.done }
+    val tasks = todos.filter { it.date == if (global) "" else selectedKey }.sortedWith(compareBy<Todo> { it.done }.thenByDescending { it.pinned })
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 24.dp),verticalArrangement = Arrangement.spacedBy(16.dp)) {
         PageHeading("ONE LITTLE STEP AT A TIME","一件一件，\n慢慢来就好。","把想做的事写下来，给今天一点方向。")
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            FilterChip(global,{ global = true },label = { Text("待办事项") })
+            FilterChip(!global,{ global = false },label = { Text("日历计划") })
+        }
+        if (!global) {
         Row(Modifier.fillMaxWidth(),verticalAlignment = Alignment.CenterVertically) {
             Text("${selected.monthValue} 月 ${selected.dayOfMonth} 日",style = MaterialTheme.typography.titleLarge,modifier = Modifier.weight(1f))
             TextButton(onClick = { selectedKey = LocalDate.now().toString() }) { Text("今天") }
@@ -46,8 +57,9 @@ import java.time.*
                 }
             }
         }
+        }
         Row(Modifier.fillMaxWidth(),verticalAlignment = Alignment.CenterVertically) {
-            Text("当天计划",style = MaterialTheme.typography.titleMedium,modifier = Modifier.weight(1f))
+            Text(if (global) "待办事项" else "当天计划",style = MaterialTheme.typography.titleMedium,modifier = Modifier.weight(1f))
             Text("${tasks.count { it.done }} / ${tasks.size} 已完成",style = MaterialTheme.typography.labelMedium,color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
         if (tasks.isNotEmpty()) LinearProgressIndicator(progress = { tasks.count { it.done }.toFloat()/tasks.size },modifier = Modifier.fillMaxWidth().height(8.dp))
@@ -57,18 +69,32 @@ import java.time.*
                 Surface(shape = listItemShape(i,tasks.size),color = MaterialTheme.colorScheme.surfaceContainerLow) {
                     Row(Modifier.fillMaxWidth().padding(start = 8.dp,end = 8.dp,top = 9.dp,bottom = 9.dp),verticalAlignment = Alignment.CenterVertically) {
                         Checkbox(todo.done,{ store.toggleTodo(todo.id) })
-                        Text(todo.text,Modifier.weight(1f),style = MaterialTheme.typography.bodyLarge,
+                        Text(todo.text,Modifier.weight(1f).clickable { editing = todo; text = todo.text; color = todo.color; add = true },style = MaterialTheme.typography.bodyLarge,
                             textDecoration = if (todo.done) TextDecoration.LineThrough else TextDecoration.None,
                             color = if (todo.done) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface)
+                        if (global) IconButton(onClick = { store.pinTodo(todo.id) }) { Icon(if (todo.pinned) Icons.Rounded.PushPin else Icons.Rounded.PushPin,"置顶到专注页",tint = if (todo.pinned) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant) }
                         IconButton(onClick = { store.deleteTodo(todo.id) }) { Icon(Icons.Rounded.Close,"删除计划",Modifier.size(19.dp)) }
                     }
                 }
             }
         }
-        FilledTonalButton(onClick = { add = true },modifier = Modifier.fillMaxWidth().height(56.dp)) {
+        FilledTonalButton(onClick = { editing = null; text = ""; color = "#39c5bb"; add = true },modifier = Modifier.fillMaxWidth().height(56.dp)) {
             Icon(Icons.Rounded.Add,null); Spacer(Modifier.width(8.dp)); Text("添加一个小目标")
         }
         Text("完成多少都没关系，开始就已经很棒了。",style = MaterialTheme.typography.bodySmall,color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Row(Modifier.fillMaxWidth(),verticalAlignment = Alignment.CenterVertically) {
+            Text("倒数日",Modifier.weight(1f),style = MaterialTheme.typography.titleLarge)
+            TextButton(onClick = { addDay = true },enabled = countdowns.size < 20) { Text("添加 · ${countdowns.size}/20") }
+        }
+        countdowns.forEach { day ->
+            Surface(shape = RoundedCornerShape(24.dp),color = MaterialTheme.colorScheme.secondaryContainer) {
+                Row(Modifier.fillMaxWidth().padding(14.dp),verticalAlignment = Alignment.CenterVertically) {
+                    Column(Modifier.weight(1f)) { Text(day.title,style = MaterialTheme.typography.titleMedium); Text("${day.date} · ${countdownLabel(day.date)}",style = MaterialTheme.typography.bodySmall) }
+                    IconButton(onClick = { onShare(StudyProtocol.countdownShare(day)) }) { Icon(Icons.Rounded.Share,"分享倒数日") }
+                    IconButton(onClick = { store.deleteCountdown(day.id) }) { Icon(Icons.Rounded.Close,"删除倒数日") }
+                }
+            }
+        }
         Spacer(Modifier.height(24.dp))
     }
     if (calendar) {
@@ -78,10 +104,17 @@ import java.time.*
         },dismissButton = { TextButton(onClick = { calendar = false }) { Text("取消") } }) { DatePicker(picker) }
     }
     if (add) AlertDialog(onDismissRequest = { add = false },icon = { Icon(Icons.Rounded.EditNote,null) },title = { Text("一个小目标") },
-        text = { OutlinedTextField(value = text,onValueChange = { if (it.length <= 200) text = it },label = { Text("想在这一天完成什么？") },
-            supportingText = { Text("${selected.monthValue} 月 ${selected.dayOfMonth} 日 · ${text.length}/200") },minLines = 2,maxLines = 4) },
-        confirmButton = { TextButton(onClick = { store.addTodo(text,selected); text = ""; add = false },enabled = text.isNotBlank()) { Text("添加") } },
+        text = { Column(verticalArrangement = Arrangement.spacedBy(12.dp)) { OutlinedTextField(value = text,onValueChange = { if (it.length <= 200) text = it },label = { Text(if (global) "想完成什么？" else "想在这一天完成什么？") },
+            supportingText = { Text("${selected.monthValue} 月 ${selected.dayOfMonth} 日 · ${text.length}/200") },minLines = 2,maxLines = 4)
+            if (!global) Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                listOf("#39c5bb","#f06292","#ffb74d","#7986cb").forEach { value ->
+                    FilterChip(color == value,{ color = value },label = { Text("●",color = androidx.compose.ui.graphics.Color(android.graphics.Color.parseColor(value))) })
+                }
+            }
+        } },
+        confirmButton = { TextButton(onClick = { val todo = editing; if (todo == null) { store.addTodo(text,if (global) null else selected); if (!global) store.todos.value.lastOrNull()?.let { store.editTodo(it.id,it.text,color) } } else store.editTodo(todo.id,text,color); text = ""; editing = null; add = false },enabled = text.isNotBlank()) { Text("添加") } },
         dismissButton = { TextButton(onClick = { add = false }) { Text("取消") } })
+    if (addDay) CountdownDialog(onDismiss = { addDay = false }) { title,date -> store.addCountdown(title,date); addDay = false }
 }
 
 fun listItemShape(index: Int,size: Int) = RoundedCornerShape(
@@ -96,5 +129,22 @@ fun listItemShape(index: Int,size: Int) = RoundedCornerShape(
             Text(subtitle,style = MaterialTheme.typography.bodyMedium,color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = androidx.compose.ui.text.style.TextAlign.Center)
         }
+    }
+}
+
+@Composable private fun CountdownDialog(onDismiss: ()->Unit,onSave: (String,String)->Unit) {
+    var title by remember { mutableStateOf("") }; var date by remember { mutableStateOf(LocalDate.now().toString()) }
+    var pickerOpen by remember { mutableStateOf(false) }
+    AlertDialog(onDismissRequest = onDismiss,title = { Text("添加倒数日") },text = {
+        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            OutlinedTextField(title,{ title = it.take(40) },label = { Text("标题") },singleLine = true)
+            OutlinedButton(onClick = { pickerOpen = true }) { Icon(Icons.Rounded.CalendarMonth,null); Text(date) }
+        }
+    },confirmButton = { TextButton(onClick = { onSave(title,date) },enabled = title.isNotBlank()) { Text("保存") } },dismissButton = { TextButton(onClick = onDismiss) { Text("取消") } })
+    if (pickerOpen) {
+        val picker = rememberDatePickerState(initialSelectedDateMillis = LocalDate.parse(date).atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli())
+        DatePickerDialog(onDismissRequest = { pickerOpen = false },confirmButton = { TextButton(onClick = {
+            picker.selectedDateMillis?.let { date = Instant.ofEpochMilli(it).atZone(ZoneOffset.UTC).toLocalDate().toString() }; pickerOpen = false
+        }) { Text("确定") } },dismissButton = { TextButton(onClick = { pickerOpen = false }) { Text("取消") } }) { DatePicker(picker) }
     }
 }

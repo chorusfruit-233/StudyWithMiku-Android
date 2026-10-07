@@ -7,13 +7,22 @@ data class Preferences(
     val countdownMinutes: Int = 30, val dailyGoalMinutes: Int = 120,
     val scene: Int = 0, val theme: Int = 0, val dynamicColor: Boolean = false,
     val animateScene: Boolean = true, val keepScreenOn: Boolean = false,
-    val completionSound: Boolean = true
+    val completionSound: Boolean = true, val showHitokoto: Boolean = true,
+    val pauseMusicDuringBreak: Boolean = true, val pomodoroCount: Int = 4,
+    val notificationVolume: Float = 0.6f, val autoAdvance: Boolean = false,
+    val hidePomodoroOnIdle: Boolean = false, val crossfade: Boolean = true,
+    val focusSeconds: Int = focusMinutes * 60, val breakSeconds: Int = breakMinutes * 60, val countdownSeconds: Int = countdownMinutes * 60,
+    val longBreakSeconds: Int = longBreakMinutes * 60,
+    val timerMode: String = "pomodoro", val overlayOpacity: Float = 0.3f
 )
-data class Todo(val id: String, val text: String, val date: String, val done: Boolean = false)
+data class Todo(val id: String, val text: String, val date: String = "", val done: Boolean = false,
+    val pinned: Boolean = false, val color: String = "#39c5bb")
+data class CountdownDay(val id: String, val title: String, val date: String)
 data class DayLog(val millis: Long = 0, val sessions: Int = 0)
 data class Song(val id: String, val title: String, val artist: String, val uri: String,
                 val cover: String = "", val builtin: Boolean = false,
-                val platform: String = "", val lyrics: String = "") {
+                val platform: String = "", val lyrics: String = "", val playlistId: String = "",
+                val playlistIndex: Int = -1, val playlistName: String = "", val publicCover: String = "", val webTitle: String = "") {
     val online get() = platform.isNotEmpty()
 }
 data class Playlist(val id: String, val name: String, val songIds: List<String>)
@@ -39,17 +48,17 @@ data class FocusClock(
         val rounds = round + if (completed) 1 else 0
         val nextPhase = if (mode != TimerMode.POMODORO) Phase.FOCUS
             else if (phase != Phase.FOCUS) Phase.FOCUS
-            else if (rounds % 4 == 0) Phase.LONG_BREAK else Phase.BREAK
+            else if (rounds % prefs.pomodoroCount.coerceAtLeast(1) == 0) Phase.LONG_BREAK else Phase.BREAK
         return ClockTick(updated.copy(running = false, phase = nextPhase, round = rounds,
             remainingMs = duration(mode, nextPhase, prefs), elapsedMs = 0), credit, completed, true)
     }
     companion object {
         fun duration(mode: TimerMode, phase: Phase, prefs: Preferences): Long = when {
             mode == TimerMode.STOPWATCH -> 0L
-            mode == TimerMode.COUNTDOWN -> prefs.countdownMinutes * 60_000L
-            phase == Phase.BREAK -> prefs.breakMinutes * 60_000L
-            phase == Phase.LONG_BREAK -> prefs.longBreakMinutes * 60_000L
-            else -> prefs.focusMinutes * 60_000L
+            mode == TimerMode.COUNTDOWN -> prefs.countdownSeconds * 1000L
+            phase == Phase.BREAK -> prefs.breakSeconds * 1000L
+            phase == Phase.LONG_BREAK -> prefs.longBreakSeconds * 1000L
+            else -> prefs.focusSeconds * 1000L
         }
     }
 }

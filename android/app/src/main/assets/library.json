@@ -5,7 +5,9 @@
     "artist": "Snail’s House",
     "uri": "asset:///music/track_0.mp3",
     "cover": "asset:///covers/cover_0.jpg",
-    "builtin": true
+    "builtin": true,
+    "webTitle": "雪の日 (snowy day)",
+    "publicCover": "/SpecialMusic/06 - 雪の日 (snowy day).cover.png"
   },
   {
     "id": "builtin_1",
@@ -13,7 +15,9 @@
     "artist": "Snail’s House",
     "uri": "asset:///music/track_1.mp3",
     "cover": "asset:///covers/cover_1.jpg",
-    "builtin": true
+    "builtin": true,
+    "webTitle": "あなたと (with you)",
+    "publicCover": "/SpecialMusic/13 - あなたと (with you).cover.png"
   },
   {
     "id": "builtin_2",
@@ -21,7 +25,9 @@
     "artist": "Alice In Cradle",
     "uri": "asset:///music/track_2.mp3",
     "cover": "asset:///covers/cover_2.jpg",
-    "builtin": true
+    "builtin": true,
+    "webTitle": "45度だけ開けた世界 (degree45)",
+    "publicCover": "/SpecialMusic/45度だけ開けた世界 (degree45) - Alice In Cradle.cover.jpg"
   },
   {
     "id": "builtin_3",
@@ -29,7 +35,9 @@
     "artist": "和未来一起喝茶",
     "uri": "asset:///music/track_3.mp3",
     "cover": "asset:///covers/cover_3.jpg",
-    "builtin": true
+    "builtin": true,
+    "webTitle": "Chiling Cappuccino（悠闲的卡布奇诺）",
+    "publicCover": "/SpecialMusic/Chiling Cappuccino（悠闲的卡布奇诺）.cover.jpg"
   },
   {
     "id": "builtin_4",
@@ -37,7 +45,9 @@
     "artist": "和未来一起喝茶",
     "uri": "asset:///music/track_4.mp3",
     "cover": "asset:///covers/cover_4.jpg",
-    "builtin": true
+    "builtin": true,
+    "webTitle": "MIKU休息了　这是P主做的曲子",
+    "publicCover": "/SpecialMusic/MIKU休息了 - 和未来一起喝茶.cover.jpg"
   },
   {
     "id": "builtin_5",
@@ -45,7 +55,9 @@
     "artist": "和未来一起喝茶",
     "uri": "asset:///music/track_5.mp3",
     "cover": "asset:///covers/cover_5.jpg",
-    "builtin": true
+    "builtin": true,
+    "webTitle": "果然Miku 喜欢休息",
+    "publicCover": "/SpecialMusic/Miku 喜欢休息 - 和未来一起喝茶.cover.jpg"
   },
   {
     "id": "builtin_6",
@@ -53,7 +65,9 @@
     "artist": "Alice In Cradle",
     "uri": "asset:///music/track_6.mp3",
     "cover": "asset:///covers/cover_6.jpg",
-    "builtin": true
+    "builtin": true,
+    "webTitle": "luminous_particle",
+    "publicCover": "/SpecialMusic/luminous_particle - Alice In Cradle.cover.jpg"
   },
   {
     "id": "builtin_7",
@@ -61,7 +75,9 @@
     "artist": "Snail’s House",
     "uri": "asset:///music/track_7.mp3",
     "cover": "asset:///covers/cover_7.jpg",
-    "builtin": true
+    "builtin": true,
+    "webTitle": "药",
+    "publicCover": "/SpecialMusic/medicine - Snail House.cover.jpg"
   },
   {
     "id": "builtin_8",
@@ -69,7 +85,9 @@
     "artist": "Alice In Cradle",
     "uri": "asset:///music/track_8.mp3",
     "cover": "asset:///covers/cover_8.jpg",
-    "builtin": true
+    "builtin": true,
+    "webTitle": "tuuzyou",
+    "publicCover": "/SpecialMusic/tuuzyou - Alice In Cradle.cover.jpg"
   },
   {
     "id": "builtin_9",
@@ -77,7 +95,9 @@
     "artist": "Alice In Cradle",
     "uri": "asset:///music/track_9.mp3",
     "cover": "asset:///covers/cover_9.jpg",
-    "builtin": true
+    "builtin": true,
+    "webTitle": "タイトル (title)",
+    "publicCover": "/SpecialMusic/タイトル (title).cover.jpg"
   },
   {
     "id": "builtin_10",
@@ -85,6 +105,8 @@
     "artist": "和未来一起喝茶",
     "uri": "asset:///music/track_10.mp3",
     "cover": "asset:///covers/cover_10.jpg",
-    "builtin": true
+    "builtin": true,
+    "webTitle": "正在为跳舞做心理准备的Miku",
+    "publicCover": "/SpecialMusic/正在为跳舞做心理准备的Miku - 和未来一起喝茶.cover.jpg"
   }
 ]

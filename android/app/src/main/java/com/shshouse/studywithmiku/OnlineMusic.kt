@@ -52,9 +52,10 @@ class OnlineMusic(context: Context, private val store: MikuStore) {
     private var job: Job? = null
     private var attempted = _state.value.config
     private var initialized = false
+    private val specialOrder = JSONArray(context.assets.open("special-song-order.json").bufferedReader().use { it.readText() }).strings()
     fun ensureLoaded() { if (!initialized) { initialized = true; load(_state.value.config) } }
     fun retry() = load(attempted)
-    fun load(config: MusicConfig = _state.value.config) {
+    fun load(config: MusicConfig = _state.value.config, onLoaded: (List<Song>) -> Unit = {}) {
         job?.cancel()
         attempted = config
         _state.value = _state.value.copy(loading = true,loadingName = config.name,error = null)
@@ -63,12 +64,16 @@ class OnlineMusic(context: Context, private val store: MikuStore) {
                 val songs = withContext(Dispatchers.IO) {
                     val fetched = MusicProtocol.songs(MusicHttp.text(MusicProtocol.playlistUrl(config)),config,names)
                     check(fetched.isNotEmpty()) { "歌单为空或暂不可用，请检查歌单 ID、平台或稍后重试" }
-                    if (config.platform == "netease" && config.id == "8894040639") fetched + store.library.value.songs.filter { it.builtin }
+                    if (config.platform == "netease" && config.id == "8894040639") fetched + specialOrder.mapIndexedNotNull { i,id ->
+                        store.library.value.songs.find { it.id == id }?.let { it.copy(title = it.webTitle.ifBlank { it.title },
+                            playlistId = config.id,playlistIndex = fetched.size+i,playlistName = config.name) }
+                    }
                     else fetched
                 }
                 ensureActive()
                 withContext(Dispatchers.IO) { store.cacheOnline(config,songs) }
                 _state.value = OnlineMusicState(config,songs.map { it.id })
+                onLoaded(songs)
             } catch (e: CancellationException) { throw e }
             catch (e: Exception) {
                 _state.value = _state.value.copy(loading = false,error = "${config.name}加载失败：${e.message ?: "请检查网络连接"}")

@@ -49,9 +49,10 @@ class MainActivity : ComponentActivity() {
     }
     override fun onStart() {
         super.onStart()
+        app.chat.start(); app.extras.start()
         if (app.timer.state.value.running) ContextCompat.startForegroundService(this,Intent(this,FocusService::class.java))
     }
-    override fun onStop() { app.timer.flush(); super.onStop() }
+    override fun onStop() { app.timer.flush(); app.chat.stop(); app.extras.stop(); super.onStop() }
 }
 
 @Composable private fun MikuApp(app: MikuApplication) {
@@ -67,6 +68,8 @@ class MainActivity : ComponentActivity() {
     var tab by rememberSaveable { mutableIntStateOf(0) }
     var settings by remember { mutableStateOf(false) }
     var player by remember { mutableStateOf(false) }
+    var chatSheet by remember { mutableStateOf(false) }
+    val chat by app.chat.state.collectAsStateWithLifecycle()
     val snackbar = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     fun message(text: String) { scope.launch { snackbar.showSnackbar(text) } }
@@ -80,8 +83,8 @@ class MainActivity : ComponentActivity() {
             permission.launch(Manifest.permission.POST_NOTIFICATIONS)
         } else app.timer.toggle()
     }
-    val icons = listOf(Icons.Rounded.Timer,Icons.Rounded.Headphones,Icons.Rounded.Checklist,Icons.Rounded.BarChart)
-    val labels = listOf("专注","音乐","计划","记录")
+    val icons = listOf(Icons.Rounded.Timer,Icons.Rounded.Headphones,Icons.Rounded.Checklist,Icons.Rounded.BarChart,Icons.Rounded.Forum)
+    val labels = listOf("专注","音乐","计划","记录","社区")
     Scaffold(containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             Row(Modifier.fillMaxWidth().statusBarsPadding().padding(horizontal = 24.dp,vertical = 8.dp),
@@ -92,9 +95,10 @@ class MainActivity : ComponentActivity() {
                     }
                     Column {
                         Text("STUDY WITH MIKU",fontSize = 12.sp,fontWeight = FontWeight.ExtraBold,letterSpacing = 1.4.sp)
-                        Text("和 Miku 一起，慢慢变好",fontSize = 10.sp,color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text(if (chat.connected) "${chat.online} 人正在一起学习${if (chat.adminOnline) " · 管理员在线" else ""}" else "和 Miku 一起，慢慢变好",fontSize = 10.sp,color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 }
+                IconButton(onClick = { chatSheet = true }) { Icon(Icons.Rounded.ChatBubbleOutline,"打开聊天室") }
                 IconButton(onClick = { settings = true }) { Icon(Icons.Rounded.Tune,"设置") }
             }
         },
@@ -114,16 +118,25 @@ class MainActivity : ComponentActivity() {
         Box(Modifier.fillMaxSize().padding(insets)) {
             AnimatedContent(targetState = tab,transitionSpec = { fadeIn() togetherWith fadeOut() },label = "页面切换") { selected ->
                 when (selected) {
-                    0 -> FocusScreen(prefs,timer,logs,todos,app.store,app.timer,::toggleTimer)
+                    0 -> FocusScreen(prefs,timer,logs,todos,app.store,app.timer,app.extras,::toggleTimer)
                     1 -> LibraryScreen(library,playback,app.store,music,app.onlineMusic,::message) { player = true }
-                    2 -> TasksScreen(todos,app.store)
-                    else -> RecordsScreen(logs,todos)
+                    2 -> TasksScreen(todos,app.store) { content -> if (!app.auth.state.value.loggedIn) app.openLogin() else if (app.chat.sendChat(content,app.extras.messageLocation())) { tab = 4; message("已分享到聊天室") } else message("连接成功后再分享") }
+                    3 -> RecordsScreen(logs,todos)
+                    else -> CommunityScreen(app,music,::message) { player = true }
                 }
             }
         }
     }
     if (settings) SettingsSheet(prefs,app.store,app.timer) { settings = false }
-    if (player) PlayerSheet(library,playback,app.store,music) { player = false }
+    if (player) PlayerSheet(library,playback,app.store,music,onShare = { song ->
+        if (!app.auth.state.value.loggedIn) app.openLogin()
+        else if (app.chat.sendChat(StudyProtocol.songShare(song) ?: "",app.extras.messageLocation())) { player = false; tab = 4; message("已分享到聊天室") }
+        else message("连接成功后再分享")
+    }) { player = false }
+    if (chatSheet) ModalBottomSheet(onDismissRequest = { chatSheet = false },sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)) {
+        Box(Modifier.fillMaxWidth().heightIn(min = 300.dp,max = 620.dp).padding(16.dp)) { ChatPane(app,music,::message) { player = true } }
+    }
+    SyncChoiceDialog(app)
 }
 
 @Composable fun PageHeading(eyebrow: String, title: String, subtitle: String? = null) {

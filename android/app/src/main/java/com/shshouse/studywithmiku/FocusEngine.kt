@@ -14,11 +14,14 @@ import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 
 class FocusEngine(private val context: Context, private val store: MikuStore) {
     private val boot = Settings.Global.getInt(context.contentResolver,Settings.Global.BOOT_COUNT,0)
     private val _state = MutableStateFlow(store.readClock(boot))
     val state = _state.asStateFlow()
+    private val _completions = kotlinx.coroutines.flow.MutableSharedFlow<Unit>(extraBufferCapacity = 4)
+    val completions = _completions.asSharedFlow()
     private val handler = Handler(Looper.getMainLooper())
     private var ticksSinceSave = 0
     private val loop = object : Runnable {
@@ -29,19 +32,26 @@ class FocusEngine(private val context: Context, private val store: MikuStore) {
     }
     init { if (_state.value.running) { sync(); if (_state.value.running) handler.post(loop) } }
     fun sync() {
-        val before = _state.value
-        if (!before.running) return
         val now = SystemClock.elapsedRealtime()
+        var finishedAny = false
+        var turns = 0
+        while (_state.value.running && turns++ < 10000) {
+        val before = _state.value
         val result = before.tick(now,store.prefs.value)
-        _state.value = result.clock
+        finishedAny = finishedAny || result.finished
+        val completedAt = if (result.finished) before.lastTickMs + before.remainingMs else now
+        _state.value = if (result.finished && before.mode == TimerMode.POMODORO && store.prefs.value.autoAdvance)
+            result.clock.copy(running = true,lastTickMs = completedAt) else result.clock
         if (result.studiedMs > 0 || result.completedFocus) {
             // A resumed process may span multiple days. Credit only actual timer duration.
             val ending = System.currentTimeMillis() - ((now - before.lastTickMs).coerceAtLeast(0) - result.studiedMs).coerceAtLeast(0)
             store.record(result.studiedMs,result.completedFocus,ending)
         }
+        if (result.finished && now-completedAt < 2000) notifyCompletion(before)
+        if (!result.finished || !_state.value.running || _state.value.lastTickMs >= now) break
+        }
         ticksSinceSave++
-        if (ticksSinceSave >= 15 || result.finished) checkpoint()
-        if (result.finished) notifyCompletion(before)
+        if (finishedAny || ticksSinceSave >= 15) checkpoint()
     }
     private fun checkpoint() { ticksSinceSave = 0; store.saveClock(_state.value,boot) }
     fun toggle() {
@@ -60,15 +70,22 @@ class FocusEngine(private val context: Context, private val store: MikuStore) {
         _state.value = _state.value.copy(running = false)
         handler.removeCallbacks(loop)
         checkpoint()
+        store.markLearningChanged()
     }
     fun reset(mode: TimerMode = _state.value.mode, phase: Phase = _state.value.phase) {
         pause()
         _state.value = FocusClock(mode = mode,phase = if (mode == TimerMode.POMODORO) phase else Phase.FOCUS,
             remainingMs = FocusClock.duration(mode,if (mode == TimerMode.POMODORO) phase else Phase.FOCUS,store.prefs.value),round = _state.value.round)
         checkpoint()
+        store.updatePreferences(store.prefs.value.copy(timerMode = mode.name.lowercase()))
     }
     fun skipBreak() { if (_state.value.phase != Phase.FOCUS) reset(phase = Phase.FOCUS) }
     fun flush() { sync(); checkpoint() }
+    fun restoreFromStore() {
+        handler.removeCallbacks(loop)
+        _state.value = store.readClock(boot).copy(running = false)
+        checkpoint()
+    }
     private fun notifyCompletion(before: FocusClock) {
         val manager = context.getSystemService(NotificationManager::class.java)
         manager.createNotificationChannel(NotificationChannel("focus_done","专注完成",NotificationManager.IMPORTANCE_DEFAULT))
@@ -79,8 +96,10 @@ class FocusEngine(private val context: Context, private val store: MikuStore) {
             .setContentIntent(intent).setAutoCancel(true).build()
         runCatching { manager.notify(39,notification) }
         if (store.prefs.value.completionSound) {
+            _completions.tryEmit(Unit)
             runCatching {
                 MediaPlayer.create(context,R.raw.completion)?.apply {
+                    setVolume(store.prefs.value.notificationVolume,store.prefs.value.notificationVolume)
                     setOnCompletionListener { it.release() }
                     setOnErrorListener { player,_,_ -> player.release(); true }
                     start()

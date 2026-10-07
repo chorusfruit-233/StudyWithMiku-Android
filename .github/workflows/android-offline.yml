@@ -36,7 +36,7 @@ jobs:
         run: |
           "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify app/build/outputs/apk/debug/app-debug.apk
           mkdir -p ../artifacts
-          cp app/build/outputs/apk/debug/app-debug.apk "../artifacts/StudyWithMiku-Android-1.1.0-${GITHUB_SHA:0:7}.apk"
+          cp app/build/outputs/apk/debug/app-debug.apk "../artifacts/StudyWithMiku-Android-1.2.0-${GITHUB_SHA:0:7}.apk"
           cd ../artifacts
           sha256sum *.apk > SHA256SUMS.txt
       - name: Save APK and reports to a private release draft
@@ -51,7 +51,7 @@ jobs:
             gh release upload "$release_tag" artifacts/* --clobber
           else
             gh release create "$release_tag" artifacts/* --draft --prerelease \
-              --target "$GITHUB_SHA" --title "Android APK 1.1.0 ${GITHUB_SHA:0:7}" \
+              --target "$GITHUB_SHA" --title "Android APK 1.2.0 ${GITHUB_SHA:0:7}" \
               --notes-file .github/ci-release-notes.md
           fi
           gh release view "$release_tag" --json url --jq '.url' >> "$GITHUB_STEP_SUMMARY"

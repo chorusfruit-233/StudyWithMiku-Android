@@ -34,10 +34,16 @@ import kotlin.math.roundToInt
             Text("按自己的节奏，调整一点点。",style = MaterialTheme.typography.bodyMedium,color = MaterialTheme.colorScheme.onSurfaceVariant)
             SettingSection("专注节奏") {
                 if (clock.running) Text("暂停计时后，可以调整本轮时长。",style = MaterialTheme.typography.bodySmall,color = MaterialTheme.colorScheme.primary)
-                MinuteSlider("专注时长",prefs.focusMinutes,1..120,!clock.running) { update(prefs.copy(focusMinutes = it),true) }
-                MinuteSlider("短休息",prefs.breakMinutes,1..30,!clock.running) { update(prefs.copy(breakMinutes = it),true) }
-                MinuteSlider("长休息 · 每四轮一次",prefs.longBreakMinutes,1..60,!clock.running) { update(prefs.copy(longBreakMinutes = it),true) }
-                MinuteSlider("倒计时时长",prefs.countdownMinutes,1..180,!clock.running) { update(prefs.copy(countdownMinutes = it),true) }
+                DurationField("专注时长",prefs.focusSeconds,100,!clock.running) { update(prefs.copy(focusSeconds = it,focusMinutes = it/60),true) }
+                DurationField("短休息",prefs.breakSeconds,100,!clock.running) { update(prefs.copy(breakSeconds = it,breakMinutes = it/60,longBreakSeconds = it*2,longBreakMinutes = it/30),true) }
+                DurationField("长休息",prefs.longBreakSeconds,200,!clock.running) { update(prefs.copy(longBreakSeconds = it,longBreakMinutes = it/60),true) }
+                DurationField("倒计时时长",prefs.countdownSeconds,600,!clock.running) { update(prefs.copy(countdownSeconds = it,countdownMinutes = it/60),true) }
+                MinuteSlider("长休息间隔（轮）",prefs.pomodoroCount,1..20,!clock.running) { update(prefs.copy(pomodoroCount = it),true) }
+                SettingSwitch("自动进入下一阶段","番茄钟连续专注和休息",prefs.autoAdvance) { update(prefs.copy(autoAdvance = it)) }
+                SettingSwitch("休息时暂停音乐","淡出后暂停，专注开始时恢复",prefs.pauseMusicDuringBreak) { update(prefs.copy(pauseMusicDuringBreak = it)) }
+                Text("完成提示音量",style = MaterialTheme.typography.bodyMedium)
+                Slider(prefs.notificationVolume,{ update(prefs.copy(notificationVolume = it)) })
+                SettingSwitch("音乐交叉淡入淡出","提前缓冲下一首，平滑衔接",prefs.crossfade) { update(prefs.copy(crossfade = it)) }
                 MinuteSlider("每日专注目标",prefs.dailyGoalMinutes,15..360,true) { update(prefs.copy(dailyGoalMinutes = it)) }
                 SettingSwitch("Miku 完成语音","计时结束时，听到一声鼓励",prefs.completionSound) { update(prefs.copy(completionSound = it)) }
             }
@@ -50,6 +56,10 @@ import kotlin.math.roundToInt
                 }
                 if (Build.VERSION.SDK_INT >= 31) SettingSwitch("壁纸取色","使用系统壁纸的颜色",prefs.dynamicColor) { update(prefs.copy(dynamicColor = it)) }
                 SettingSwitch("动态陪伴场景","关闭后显示静态画面，减少耗电",prefs.animateScene) { update(prefs.copy(animateScene = it)) }
+                SettingSwitch("显示一言","点击语录换一句，每五分钟自动更新",prefs.showHitokoto) { update(prefs.copy(showHitokoto = it)) }
+                SettingSwitch("空闲时隐藏沉浸计时器","点击场景显示控制按钮",prefs.hidePomodoroOnIdle) { update(prefs.copy(hidePomodoroOnIdle = it)) }
+                Text("场景遮罩",style = MaterialTheme.typography.bodyMedium)
+                Slider(prefs.overlayOpacity,{ update(prefs.copy(overlayOpacity = it)) },valueRange = 0f..0.8f)
                 SettingSwitch("保持屏幕常亮","应用打开时，让 Miku 留在屏幕上",prefs.keepScreenOn) { update(prefs.copy(keepScreenOn = it)) }
             }
             Surface(shape = RoundedCornerShape(28.dp),color = MaterialTheme.colorScheme.primaryContainer) {
@@ -57,12 +67,12 @@ import kotlin.math.roundToInt
                     Icon(Icons.Rounded.OfflinePin,null,Modifier.size(30.dp),tint = MaterialTheme.colorScheme.primary)
                     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                         Text("音乐在线，专注在当下。",style = MaterialTheme.typography.titleMedium)
-                        Text("无需账户，所有学习记录和导入音乐\n只保存在这台设备。",style = MaterialTheme.typography.bodySmall)
+                        Text("使用原站账号可同步学习记录与设置。\n在社区页登录、管理云端数据。",style = MaterialTheme.typography.bodySmall)
                     }
                 }
             }
             Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                Text("Study With Miku · 1.0.0",style = MaterialTheme.typography.titleMedium)
+                Text("Study With Miku · 1.2.0",style = MaterialTheme.typography.titleMedium)
                 Text("原作：shshouse / StudyWithMiku\nAndroid 版 · Material 3 Expressive\n场景、音乐、语音和贴图沿用原项目，创作者署名见内置资源说明。",
                     style = MaterialTheme.typography.bodySmall,color = MaterialTheme.colorScheme.onSurfaceVariant)
                 TextButton(onClick = { license = true }) { Text("开源许可与资源说明") }
@@ -105,5 +115,18 @@ import kotlin.math.roundToInt
             Text(subtitle,style = MaterialTheme.typography.bodySmall,color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
         Switch(checked,onChange)
+    }
+}
+
+@Composable private fun DurationField(label: String,seconds: Int,maxMinutes: Int,enabled: Boolean,onSave: (Int)->Unit) {
+    var text by remember(seconds) { mutableStateOf("%.1f".format(java.util.Locale.US,seconds/60.0)) }
+    val minutes = text.toDoubleOrNull()
+    val valid = minutes != null && minutes.isFinite() && minutes in 0.1..maxMinutes.toDouble()
+    Row(verticalAlignment = Alignment.CenterVertically,horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        OutlinedTextField(text,{ text = it.take(8) },Modifier.weight(1f),label = { Text("$label（分钟）") },
+            singleLine = true,enabled = enabled,isError = !valid,
+            keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Decimal),
+            supportingText = { Text("0.1–$maxMinutes 分钟，支持小数") })
+        TextButton(onClick = { if (valid) onSave((minutes!!*60).roundToInt()) },enabled = enabled && valid) { Text("保存") }
     }
 }

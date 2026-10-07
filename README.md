@@ -2,27 +2,31 @@
 
 [![Android APK](https://github.com/chorusfruit-233/StudyWithMiku-Android/actions/workflows/android-offline.yml/badge.svg)](https://github.com/chorusfruit-233/StudyWithMiku-Android/actions/workflows/android-offline.yml)
 
-基于 [shshouse/StudyWithMiku](https://github.com/shshouse/StudyWithMiku) 的原生 Android 移植，使用 Kotlin、Jetpack Compose 和 Material 3 Expressive。
+基于 [shshouse/StudyWithMiku](https://github.com/shshouse/StudyWithMiku) 的原生 Android 移植，使用 Kotlin、Jetpack Compose 和 Material 3 Expressive。1.2.0 接入原项目的完整在线功能：网易云／QQ 音乐、全部推荐歌单、MikuMod 官方账号、学习数据与日历云同步、在线人数、管理员在线状态、实时聊天室、历史消息、头像、表情包、歌曲和倒数日分享、一言与 IP 地区。
 
-保留番茄钟、倒计时、正计时、Miku 场景、计划和学习记录，以及播放器、收藏、本地音乐导入和自建歌单。支持原站的网易云 / QQ 音乐网络播放器、默认歌单、10 个推荐歌单、自定义歌单 ID 或链接、高音质 / 标准音质、在线封面和同步歌词。安装包仍内置 3 段视频场景和 11 首音乐；学习记录保存在本机，不包含在线人数、聊天室、登录或云同步。
+番茄钟、倒计时、正计时、计划、记录、三段场景和十一首内置音乐可离线使用。网络功能沿用原站服务，无需修改后端。
 
 ## 下载 APK
 
-打开 [Releases](https://github.com/chorusfruit-233/StudyWithMiku-Android/releases)，选择最新的 `Android APK` 草稿，下载附件中的 `.apk` 直接安装。支持 Android 8.0 及以上。草稿仅对有仓库写入权限的用户可见，仓库保持私有。
+打开 [Releases](https://github.com/chorusfruit-233/StudyWithMiku-Android/releases)，选择最新的 `Android APK 1.2.0` 草稿，下载 `.apk`。支持 Android 8.0 及以上。仓库保持私有；草稿仅对有仓库写入权限的用户可见。
 
-由于账户的 GitHub Actions 产物存储额度已满，工作流使用私有 Release 草稿保存 APK，不依赖 Actions Artifacts 额度，也不会自动公开发布。
+向 `main` 推送 Android 源码会自动编译、测试、运行 Lint 和验证 APK 签名，输出 APK、SHA-256 校验值和检查报告。也可在 Actions 中手动运行。由于账户的 Actions 产物存储额度已满，产物保存到私有 Release 草稿。
 
-向 `main` 推送 Android 源码会自动构建；也可以在 Actions 页面点击 **Run workflow** 手动构建。每次构建包含编译、单元测试、Android Lint 和 APK 签名校验，输出 APK、SHA-256 校验值和检查报告。
+APK 使用每次构建自动生成的调试签名。已安装不同签名版本时，需要先卸载再安装；卸载会删除本机数据。工程不包含私有签名密钥，正式发布应配置固定发行签名。
 
-APK 使用 GitHub Actions 构建环境自动生成的调试签名；源码不包含签名密钥，也不需要设置签名 Secret。该签名与此前本地交付的 APK 不同，各次云端构建也可能使用不同签名。如果手机已安装不同签名的版本，需要先卸载才能安装，卸载会删除应用内数据。正式发布请配置自己的固定发行签名。
+## 使用账号与同步
+
+在“社区 → 账号”进入 MikuMod 官方网页登录，完成登录后自动返回应用。认证与权限由原站处理。首次遇到本地／云端均有记录时，选择使用云端、上传本地或合并；合并采用原作的逐日最大值和 ID 去重规则。切换账号时分别保存各账号和访客记录。
+
+官方账号端到端登录、真实发言和云端读写仍需用户在手机上验收；不提供开发者代登录，不收集用户密码。具体验证范围见 [验证记录](android/VALIDATION.md)。
 
 ## 开发
 
-在 Android Studio 中打开 [android](android/) 目录，使用 JDK 17 和 Android SDK 35。
+Android Studio 打开 [android](android/)，使用 JDK 17、Android SDK 35：
 
 ```sh
 cd android
 ./gradlew assembleDebug testDebugUnitTest lintDebug
 ```
 
-完整功能、架构和资源说明见 [Android 工程文档](android/README.md)，本地验证结果见 [验证记录](android/VALIDATION.md)。本仓库保留原作署名和 [GPL-3.0 许可](LICENSE)。
+功能映射、接口和原生适配见 [工程说明](android/README.md)。保留原作署名与 [GPL-3.0 许可](LICENSE)。

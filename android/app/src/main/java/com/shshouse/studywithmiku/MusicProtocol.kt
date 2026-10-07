@@ -57,7 +57,8 @@ object MusicProtocol {
             val display = if (config.id == DEFAULT_MUSIC_PLAYLIST) names[clean] ?: title else title
             Song("online_${config.platform}_$key",display,artist,url,
                 httpUrl(o.optString("pic").ifBlank { o.optString("cover") },config.api),
-                platform = config.platform,lyrics = o.optString("lrc").let { if (it.startsWith("[")) it else httpUrl(it,config.api) })
+                platform = config.platform,lyrics = o.optString("lrc").let { if (it.startsWith("[")) it else httpUrl(it,config.api) },
+                playlistId = config.id,playlistIndex = i,playlistName = config.name)
         }.distinctBy { it.id }
     }
     fun lyrics(text: String): List<LyricLine> {

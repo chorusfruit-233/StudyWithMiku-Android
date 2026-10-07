@@ -5,6 +5,9 @@ import android.view.LayoutInflater
 import android.os.Looper
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.*
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.ui.input.pointer.pointerInput
+import kotlinx.coroutines.delay
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -43,18 +46,22 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.awaitCancellation
 import kotlin.math.*
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
 private val sceneNames = listOf("午后咖啡馆","深夜工作室","安静的书桌")
 private val sceneResources = listOf(R.drawable.scene_1,R.drawable.scene_2,R.drawable.scene_3)
 
 @Composable fun FocusScreen(prefs: Preferences, clock: FocusClock, logs: Map<String,DayLog>,
-    todos: List<Todo>,store: MikuStore,engine: FocusEngine,toggle: () -> Unit) {
+    todos: List<Todo>,store: MikuStore,engine: FocusEngine,extras: OnlineExtras,toggle: () -> Unit) {
     var confirmReset by remember { mutableStateOf(false) }
     var pendingMode by remember { mutableStateOf<TimerMode?>(null) }
     var fullScene by rememberSaveable { mutableStateOf(false) }
+    var sceneControls by remember { mutableStateOf(true) }
+    LaunchedEffect(fullScene,sceneControls) { if (fullScene && sceneControls) { delay(3000); sceneControls = false } }
+    val quote by extras.quote.collectAsStateWithLifecycle()
     val today = LocalDate.now()
     val daily = logs[today.toString()] ?: DayLog()
-    val todayTodos = todos.filter { it.date == today.toString() }
+    val todayTodos = todos.filter { it.date == today.toString() || (it.date.isEmpty() && it.pinned) }.sortedBy { it.done }
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 24.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)) {
         PageHeading("MAKE ROOM FOR YOURSELF","专注当下，\n未来慢慢发光。")
@@ -99,7 +106,7 @@ private val sceneResources = listOf(R.drawable.scene_1,R.drawable.scene_2,R.draw
                         Text(timeLabel(if (clock.mode == TimerMode.STOPWATCH) clock.elapsedMs else clock.remainingMs),
                             style = MaterialTheme.typography.displayLarge.copy(fontSize = if (clock.elapsedMs > 3_600_000L) 54.sp else 68.sp),
                             maxLines = 1)
-                        Text(if (clock.mode == TimerMode.POMODORO) "第 ${(clock.round+1).toString().padStart(2,'0')} 轮 · ${prefs.focusMinutes} / ${prefs.breakMinutes} 分钟"
+                        Text(if (clock.mode == TimerMode.POMODORO) "第 ${(clock.round+1).toString().padStart(2,'0')} 轮 · ${prefs.focusSeconds / 60.0} / ${prefs.breakSeconds / 60.0} 分钟"
                             else if (clock.mode == TimerMode.STOPWATCH) "按自己的节奏，向前一点点" else "只做眼前这一件事",
                             style = MaterialTheme.typography.bodySmall,color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
@@ -115,6 +122,12 @@ private val sceneResources = listOf(R.drawable.scene_1,R.drawable.scene_2,R.draw
                     }
                 }
                 if (clock.phase != Phase.FOCUS) TextButton(onClick = { engine.skipBreak() }) { Text("跳过休息，回到专注") }
+            }
+        }
+        if (prefs.showHitokoto) Surface(onClick = { extras.refreshQuote() },shape = RoundedCornerShape(24.dp),color = MaterialTheme.colorScheme.secondaryContainer) {
+            Column(Modifier.fillMaxWidth().padding(18.dp),verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(quote.text,style = MaterialTheme.typography.bodyLarge)
+                Text(quote.source,style = MaterialTheme.typography.labelSmall,color = MaterialTheme.colorScheme.onSecondaryContainer)
             }
         }
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -156,14 +169,14 @@ private val sceneResources = listOf(R.drawable.scene_1,R.drawable.scene_2,R.draw
         confirmButton = { TextButton(onClick = { engine.reset(pendingMode ?: clock.mode,if (pendingMode != null) Phase.FOCUS else clock.phase); confirmReset = false; pendingMode = null }) { Text("确定") } },
         dismissButton = { TextButton(onClick = { confirmReset = false; pendingMode = null }) { Text("继续当前计时") } })
     if (fullScene) Dialog(onDismissRequest = { fullScene = false },properties = DialogProperties(usePlatformDefaultWidth = false,decorFitsSystemWindows = false)) {
-        Box(Modifier.fillMaxSize().background(Color.Black)) {
+        Box(Modifier.fillMaxSize().background(Color.Black).pointerInput(Unit) { detectTapGestures { sceneControls = !sceneControls } }) {
             MikuScene(prefs.scene,prefs.animateScene,Modifier.fillMaxSize())
-            Box(Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(Color.Black.copy(alpha = 0.25f),Color.Transparent,Color.Black.copy(alpha = 0.65f)))))
-            IconButton(onClick = { fullScene = false },modifier = Modifier.align(Alignment.TopEnd).statusBarsPadding().padding(16.dp)) { Icon(Icons.Rounded.Close,"退出沉浸",tint = Color.White) }
-            Column(Modifier.align(Alignment.BottomCenter).navigationBarsPadding().padding(32.dp),horizontalAlignment = Alignment.CenterHorizontally) {
+            Box(Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(Color.Black.copy(alpha = prefs.overlayOpacity),Color.Transparent,Color.Black.copy(alpha = (prefs.overlayOpacity+.25f).coerceAtMost(1f))))))
+            if (sceneControls) IconButton(onClick = { fullScene = false },modifier = Modifier.align(Alignment.TopEnd).statusBarsPadding().padding(16.dp)) { Icon(Icons.Rounded.Close,"退出沉浸",tint = Color.White) }
+            if (!prefs.hidePomodoroOnIdle || clock.running || sceneControls) Column(Modifier.align(Alignment.BottomCenter).navigationBarsPadding().padding(32.dp),horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(clock.phase.label,color = Color.White)
                 Text(timeLabel(if (clock.mode == TimerMode.STOPWATCH) clock.elapsedMs else clock.remainingMs),style = MaterialTheme.typography.displayLarge,color = Color.White)
-                FilledTonalButton(onClick = toggle) { Icon(if (clock.running) Icons.Rounded.Pause else Icons.Rounded.PlayArrow,null); Text(if (clock.running) "暂停" else "开始") }
+                if (sceneControls) FilledTonalButton(onClick = toggle) { Icon(if (clock.running) Icons.Rounded.Pause else Icons.Rounded.PlayArrow,null); Text(if (clock.running) "暂停" else "开始") }
             }
         }
     }
