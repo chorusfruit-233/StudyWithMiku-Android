@@ -62,6 +62,7 @@ class MainActivity : ComponentActivity() {
     val todos by app.store.todos.collectAsStateWithLifecycle()
     val music = remember { MusicConnection(app) }
     val playback by music.state.collectAsStateWithLifecycle()
+    LaunchedEffect(library.songs,playback.connected) { music.syncLibrary(library.songs) }
     DisposableEffect(music) { onDispose { music.close() } }
     var tab by rememberSaveable { mutableIntStateOf(0) }
     var settings by remember { mutableStateOf(false) }
@@ -114,7 +115,7 @@ class MainActivity : ComponentActivity() {
             AnimatedContent(targetState = tab,transitionSpec = { fadeIn() togetherWith fadeOut() },label = "页面切换") { selected ->
                 when (selected) {
                     0 -> FocusScreen(prefs,timer,logs,todos,app.store,app.timer,::toggleTimer)
-                    1 -> LibraryScreen(library,playback,app.store,music,::message) { player = true }
+                    1 -> LibraryScreen(library,playback,app.store,music,app.onlineMusic,::message) { player = true }
                     2 -> TasksScreen(todos,app.store)
                     else -> RecordsScreen(logs,todos)
                 }

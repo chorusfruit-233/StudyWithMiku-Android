@@ -12,7 +12,10 @@ data class Preferences(
 data class Todo(val id: String, val text: String, val date: String, val done: Boolean = false)
 data class DayLog(val millis: Long = 0, val sessions: Int = 0)
 data class Song(val id: String, val title: String, val artist: String, val uri: String,
-                val cover: String = "", val builtin: Boolean = false)
+                val cover: String = "", val builtin: Boolean = false,
+                val platform: String = "", val lyrics: String = "") {
+    val online get() = platform.isNotEmpty()
+}
 data class Playlist(val id: String, val name: String, val songIds: List<String>)
 data class Library(val songs: List<Song> = emptyList(), val favorites: Set<String> = emptySet(),
                    val playlists: List<Playlist> = emptyList())

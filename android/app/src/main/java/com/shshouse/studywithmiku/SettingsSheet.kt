@@ -56,14 +56,14 @@ import kotlin.math.roundToInt
                 Row(Modifier.padding(18.dp),verticalAlignment = Alignment.CenterVertically,horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     Icon(Icons.Rounded.OfflinePin,null,Modifier.size(30.dp),tint = MaterialTheme.colorScheme.primary)
                     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                        Text("陪伴，也可以完全离线。",style = MaterialTheme.typography.titleMedium)
+                        Text("音乐在线，专注在当下。",style = MaterialTheme.typography.titleMedium)
                         Text("无需账户，所有学习记录和导入音乐\n只保存在这台设备。",style = MaterialTheme.typography.bodySmall)
                     }
                 }
             }
             Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 Text("Study With Miku · 1.0.0",style = MaterialTheme.typography.titleMedium)
-                Text("原作：shshouse / StudyWithMiku\nAndroid 离线版 · Material 3 Expressive\n场景、音乐、语音和贴图沿用原项目，创作者署名见内置资源说明。",
+                Text("原作：shshouse / StudyWithMiku\nAndroid 版 · Material 3 Expressive\n场景、音乐、语音和贴图沿用原项目，创作者署名见内置资源说明。",
                     style = MaterialTheme.typography.bodySmall,color = MaterialTheme.colorScheme.onSurfaceVariant)
                 TextButton(onClick = { license = true }) { Text("开源许可与资源说明") }
             }

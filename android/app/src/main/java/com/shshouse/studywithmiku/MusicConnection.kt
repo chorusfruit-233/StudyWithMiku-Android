@@ -14,7 +14,7 @@ import kotlinx.coroutines.flow.asStateFlow
 data class PlaybackState(val connected: Boolean = false, val songId: String? = null,
     val playing: Boolean = false, val loading: Boolean = false, val position: Long = 0,
     val duration: Long = 0, val shuffle: Boolean = false, val repeat: Int = Player.REPEAT_MODE_ALL,
-    val error: String? = null)
+    val error: String? = null, val queueIds: List<String> = emptyList(), val volume: Float = 1f)
 class MusicConnection(context: Context) {
     private val _state = MutableStateFlow(PlaybackState())
     val state = _state.asStateFlow()
@@ -30,7 +30,7 @@ class MusicConnection(context: Context) {
             if (!closed) runCatching { controller = future.get() }.onSuccess {
                 controller?.addListener(object : Player.Listener {
                     override fun onEvents(player: Player, events: Player.Events) { update() }
-                    override fun onPlayerError(error: PlaybackException) { _state.value = _state.value.copy(error = "这首音乐无法播放，请尝试下一首") }
+                    override fun onPlayerError(error: PlaybackException) { _state.value = _state.value.copy(error = "这首音乐无法播放，请检查网络、重试播放或选择下一首") }
                 })
                 handler.post(loop)
             }.onFailure { _state.value = _state.value.copy(error = "播放器连接失败，请重新打开应用") }
@@ -40,7 +40,8 @@ class MusicConnection(context: Context) {
         val p = controller ?: return
         _state.value = PlaybackState(true,p.currentMediaItem?.mediaId,p.isPlaying,
             p.playbackState == Player.STATE_BUFFERING,p.currentPosition,p.duration.coerceAtLeast(0),
-            p.shuffleModeEnabled,p.repeatMode,if (p.playerError == null) null else _state.value.error)
+            p.shuffleModeEnabled,p.repeatMode,if (p.playerError == null) null else _state.value.error,
+            (0 until p.mediaItemCount).map { p.getMediaItemAt(it).mediaId },p.volume)
     }
     fun play(songs: List<Song>, id: String? = songs.firstOrNull()?.id) {
         val p = controller ?: return
@@ -52,6 +53,19 @@ class MusicConnection(context: Context) {
     fun previous() { controller?.seekToPreviousMediaItem() }
     fun next() { controller?.seekToNextMediaItem() }
     fun seek(position: Long) { controller?.seekTo(position) }
+    fun volume(value: Float) { controller?.volume = value.coerceIn(0f,1f) }
+    fun select(id: String) { controller?.let { p ->
+        val index = (0 until p.mediaItemCount).find { p.getMediaItemAt(it).mediaId == id } ?: return
+        p.seekTo(index,0); p.prepare(); p.play()
+    } }
+    fun syncLibrary(songs: List<Song>) { controller?.let { p ->
+        val byId = songs.associateBy { it.id }
+        for (i in 0 until p.mediaItemCount) {
+            val item = p.getMediaItemAt(i)
+            val song = byId[item.mediaId] ?: continue
+            if (song.online && item.localConfiguration?.uri.toString() != song.uri) p.replaceMediaItem(i,song.mediaItem())
+        }
+    } }
     fun shuffle() { controller?.let { it.shuffleModeEnabled = !it.shuffleModeEnabled } }
     fun repeat() { controller?.let { it.repeatMode = if (it.repeatMode == Player.REPEAT_MODE_ALL) Player.REPEAT_MODE_ONE else if (it.repeatMode == Player.REPEAT_MODE_ONE) Player.REPEAT_MODE_OFF else Player.REPEAT_MODE_ALL } }
     fun remove(id: String) { controller?.let { p -> for (i in p.mediaItemCount-1 downTo 0) if (p.getMediaItemAt(i).mediaId == id) p.removeMediaItem(i) } }

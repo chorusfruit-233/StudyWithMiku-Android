@@ -28,13 +28,16 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.media3.common.Player
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 @Composable fun LibraryScreen(library: Library,playback: PlaybackState,store: MikuStore,music: MusicConnection,
-    message: (String) -> Unit,openPlayer: () -> Unit) {
-    var filter by rememberSaveable { mutableStateOf("all") }
+    online: OnlineMusic,message: (String) -> Unit,openPlayer: () -> Unit) {
+    var filter by rememberSaveable { mutableStateOf("online") }
+    val network by online.state.collectAsStateWithLifecycle()
+    LaunchedEffect(online) { online.ensureLoaded() }
     var query by rememberSaveable { mutableStateOf("") }
     var editor by remember { mutableStateOf(false) }
     var editing by remember { mutableStateOf<Playlist?>(null) }
@@ -53,17 +56,19 @@ import kotlinx.coroutines.withContext
             message(if (failed == 0) "已导入 $ok 首音乐" else "已导入 $ok 首，$failed 个文件无法读取或不是有效音频")
         }
     }
-    val options = listOf("all" to "全部音乐","builtin" to "内置精选","favorites" to "我的收藏","imported" to "我的导入") + library.playlists.map { it.id to it.name }
+    val options = listOf("online" to "在线歌单","all" to "全部音乐","builtin" to "内置精选","favorites" to "我的收藏","imported" to "我的导入") + library.playlists.map { it.id to it.name }
     val currentList = when (filter) {
         "builtin" -> library.songs.filter { it.builtin }
         "favorites" -> library.songs.filter { it.id in library.favorites }
-        "imported" -> library.songs.filterNot { it.builtin }
+        "imported" -> library.songs.filter { !it.builtin && !it.online }
+        "online" -> network.ids.mapNotNull { id -> library.songs.find { it.id == id } }
         "all" -> library.songs
         else -> library.playlists.find { it.id == filter }?.songIds?.mapNotNull { id -> library.songs.find { it.id == id } } ?: library.songs
     }
     val visible = currentList.filter { it.title.contains(query,true) || it.artist.contains(query,true) }
     LazyColumn(Modifier.fillMaxSize(),contentPadding = PaddingValues(start = 24.dp,end = 24.dp,bottom = 24.dp),verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        item { PageHeading("A SOUNDTRACK FOR YOUR DAY","把世界调成\n喜欢的音量。","${library.songs.size} 首音乐，随时陪你进入状态。") }
+        item { PageHeading("A SOUNDTRACK FOR YOUR DAY","把世界调成\n喜欢的音量。","在线歌单与本地音乐，随时陪你进入状态。") }
+        item { NetworkMusicPanel(network,online,onSelect = { filter = "online" }) }
         item {
             Surface(onClick = { if (playback.connected) { music.play(library.songs.filter { it.builtin }); openPlayer() } },
                 shape = RoundedCornerShape(32.dp),color = MaterialTheme.colorScheme.primaryContainer) {
@@ -107,7 +112,8 @@ import kotlinx.coroutines.withContext
                 IconButton(onClick = { music.play(visible) },enabled = visible.isNotEmpty() && playback.connected) { Icon(Icons.Rounded.PlayArrow,"播放此歌单") }
             }
         }
-        if (visible.isEmpty()) item { EmptyState("还没有音乐在这里。",if (query.isNotBlank()) "试试换一个搜索词。" else "导入喜欢的音乐，或把一首歌加入收藏。",Icons.Rounded.MusicNote) }
+        if (visible.isEmpty()) item { EmptyState(if (filter == "online" && network.loading) "正在加载网络歌单…" else "还没有音乐在这里。",
+            if (query.isNotBlank()) "试试换一个搜索词。" else if (filter == "online") "选择推荐歌单或输入歌单 ID，也可以切换到内置精选。" else "导入喜欢的音乐，或把一首歌加入收藏。",Icons.Rounded.MusicNote) }
         items(visible,key = { it.id }) { song ->
             val selected = playback.songId == song.id
             Surface(onClick = { if (selected) openPlayer() else music.play(visible,song.id) },shape = RoundedCornerShape(22.dp),
@@ -123,7 +129,7 @@ import kotlinx.coroutines.withContext
                         Icon(if (song.id in library.favorites) Icons.Rounded.Favorite else Icons.Rounded.FavoriteBorder,
                             if (song.id in library.favorites) "取消收藏" else "收藏",Modifier.size(20.dp),tint = if (song.id in library.favorites) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.onSurfaceVariant)
                     }
-                    if (!song.builtin) {
+                    if (!song.builtin && !song.online) {
                         var menu by remember { mutableStateOf(false) }
                         Box {
                             IconButton(onClick = { menu = true },modifier = Modifier.size(32.dp)) { Icon(Icons.Rounded.MoreVert,"更多") }
@@ -135,7 +141,7 @@ import kotlinx.coroutines.withContext
                 }
             }
         }
-        item { Text("音乐与歌单保存在这台设备，陪伴无需联网。",style = MaterialTheme.typography.bodySmall,color = MaterialTheme.colorScheme.onSurfaceVariant,modifier = Modifier.padding(top = 8.dp)) }
+        item { Text(if (filter == "online") "${network.config.name} · 在线歌曲需要网络；收藏和歌单保存在这台设备。" else "内置曲目和已导入音乐无需联网播放。",style = MaterialTheme.typography.bodySmall,color = MaterialTheme.colorScheme.onSurfaceVariant,modifier = Modifier.padding(top = 8.dp)) }
     }
     if (editor) PlaylistEditor(library,editing,onSave = { name,ids -> store.savePlaylist(name,ids,editing?.id); editor = false },
         onDelete = editing?.let { { store.deletePlaylist(it.id); filter = "all"; editor = false } },onDismiss = { editor = false })
@@ -169,8 +175,11 @@ import kotlinx.coroutines.withContext
     val context = LocalContext.current
     val bitmap by produceState<androidx.compose.ui.graphics.ImageBitmap?>(null,song?.cover) {
         value = withContext(Dispatchers.IO) {
-            runCatching { if (song?.cover?.startsWith("asset:///") == true)
-                context.assets.open(song.cover.removePrefix("asset:///")).use { BitmapFactory.decodeStream(it)?.asImageBitmap() } else null }.getOrNull()
+            runCatching { when {
+                song?.cover?.startsWith("asset:///") == true -> context.assets.open(song.cover.removePrefix("asset:///")).use { BitmapFactory.decodeStream(it)?.asImageBitmap() }
+                song?.cover?.startsWith("http") == true -> RemoteCovers.get(song.cover)?.asImageBitmap()
+                else -> null
+            } }.getOrNull()
         }
     }
     Box(modifier.background(Brush.linearGradient(listOf(MaterialTheme.colorScheme.primaryContainer,MaterialTheme.colorScheme.tertiaryContainer))),contentAlignment = Alignment.Center) {
@@ -200,11 +209,12 @@ import kotlinx.coroutines.withContext
 @Composable fun PlayerSheet(library: Library,state: PlaybackState,store: MikuStore,music: MusicConnection,onDismiss: () -> Unit) {
     val song = library.songs.find { it.id == state.songId }
     var drag by remember { mutableStateOf<Float?>(null) }
+    var queue by remember { mutableStateOf(false) }
     val sheet = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     ModalBottomSheet(onDismissRequest = onDismiss,sheetState = sheet,containerColor = MaterialTheme.colorScheme.surface,
         dragHandle = { BottomSheetDefaults.DragHandle() }) {
         Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(horizontal = 28.dp).padding(bottom = 32.dp),horizontalAlignment = Alignment.CenterHorizontally,verticalArrangement = Arrangement.spacedBy(18.dp)) {
-            Text("NOW PLAYING · 离线播放",style = MaterialTheme.typography.labelMedium,letterSpacing = 2.sp,color = MaterialTheme.colorScheme.primary)
+            Text("NOW PLAYING · ${if (song?.online == true) platformName(song.platform) else "本地播放"}",style = MaterialTheme.typography.labelMedium,letterSpacing = 2.sp,color = MaterialTheme.colorScheme.primary)
             Cover(song,Modifier.fillMaxWidth(0.85f).aspectRatio(1f).clip(RoundedCornerShape(48.dp)))
             Row(Modifier.fillMaxWidth(),verticalAlignment = Alignment.CenterVertically) {
                 Column(Modifier.weight(1f),verticalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -238,7 +248,23 @@ import kotlinx.coroutines.withContext
             }
             Text(if (state.shuffle) "随机播放" else if (state.repeat == Player.REPEAT_MODE_ONE) "单曲循环" else if (state.repeat == Player.REPEAT_MODE_ALL) "列表循环" else "顺序播放",
                 style = MaterialTheme.typography.labelMedium,color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Row(Modifier.fillMaxWidth(),verticalAlignment = Alignment.CenterVertically) {
+                Icon(Icons.Rounded.VolumeDown,"音量")
+                Slider(state.volume,{ music.volume(it) },modifier = Modifier.weight(1f))
+                Icon(Icons.Rounded.VolumeUp,null)
+            }
+            TextButton(onClick = { queue = !queue }) { Text("播放队列 · ${state.queueIds.size} 首") }
+            if (queue) LazyColumn(Modifier.fillMaxWidth().heightIn(max = 240.dp)) {
+                items(state.queueIds,key = { it }) { id ->
+                    val queued = library.songs.find { it.id == id }
+                    ListItem(headlineContent = { Text(queued?.title ?: "音乐",maxLines = 1,overflow = TextOverflow.Ellipsis) },
+                        supportingContent = { Text(queued?.artist ?: "",maxLines = 1) },
+                        leadingContent = { Icon(if (id == state.songId) Icons.Rounded.GraphicEq else Icons.Rounded.MusicNote,null) },
+                        modifier = Modifier.clickable { music.select(id) })
+                }
+            }
             state.error?.let { Text(it,color = MaterialTheme.colorScheme.error,style = MaterialTheme.typography.bodyMedium) }
+            LyricsPanel(song,state.position)
         }
     }
 }

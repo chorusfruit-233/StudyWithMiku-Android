@@ -95,10 +95,10 @@ class MikuStore(private val context: Context) {
             c.optLong("elapsed"),c.optLong("last"),c.optInt("round"))
     }.getOrDefault(FocusClock())
     private fun song(o: JSONObject) = Song(o.getString("id"),o.getString("title"),o.getString("artist"),
-        o.getString("uri"),o.optString("cover"),o.optBoolean("builtin"))
+        o.getString("uri"),o.optString("cover"),o.optBoolean("builtin"),o.optString("platform"),o.optString("lyrics"))
     private fun readLibrary(): Library {
         val builtins = JSONArray(context.assets.open("library.json").bufferedReader().use { it.readText() }).objects().map(::song)
-        val imported = arr("songs").objects().map(::song).filter { File(Uri.parse(it.uri).path ?: "").exists() }
+        val imported = arr("songs").objects().map(::song).filter { it.online || File(Uri.parse(it.uri).path ?: "").exists() }
         val favorites = arr("favorites").strings().toSet()
         val playlists = arr("playlists").objects().map { Playlist(it.getString("id"),it.getString("name"),it.getJSONArray("songs").strings()) }
         return Library(builtins + imported,favorites,playlists)
@@ -106,7 +106,8 @@ class MikuStore(private val context: Context) {
     @Synchronized private fun saveLibrary(l: Library) {
         _library.value = l
         disk.edit().putString("songs",JSONArray().apply { l.songs.filterNot { it.builtin }.forEach {
-            put(JSONObject().put("id",it.id).put("title",it.title).put("artist",it.artist).put("uri",it.uri).put("cover",it.cover)) } }.toString())
+            put(JSONObject().put("id",it.id).put("title",it.title).put("artist",it.artist).put("uri",it.uri).put("cover",it.cover)
+                .put("platform",it.platform).put("lyrics",it.lyrics)) } }.toString())
             .putString("favorites",JSONArray(l.favorites.toList()).toString())
             .putString("playlists",JSONArray().apply { l.playlists.forEach {
                 put(JSONObject().put("id",it.id).put("name",it.name).put("songs",JSONArray(it.songIds))) } }.toString()).apply()
@@ -123,7 +124,7 @@ class MikuStore(private val context: Context) {
     @Synchronized fun deletePlaylist(id: String) = saveLibrary(_library.value.let { it.copy(playlists = it.playlists.filterNot { p -> p.id == id }) })
     @Synchronized fun removeSong(id: String) {
         val l = _library.value
-        val s = l.songs.find { it.id == id && !it.builtin } ?: return
+        val s = l.songs.find { it.id == id && !it.builtin && !it.online } ?: return
         File(Uri.parse(s.uri).path!!).delete()
         saveLibrary(l.copy(songs = l.songs.filterNot { it.id == id },favorites = l.favorites - id,
             playlists = l.playlists.map { it.copy(songIds = it.songIds - id) }))
@@ -154,11 +155,25 @@ class MikuStore(private val context: Context) {
             return result
         } catch (e: Exception) { file.delete(); throw e }
     }
-    fun saveQueue(ids: List<String>, index: Int, position: Long, repeat: Int, shuffle: Boolean) {
+    fun saveQueue(ids: List<String>, index: Int, position: Long, repeat: Int, shuffle: Boolean, volume: Float = 1f) {
         disk.edit().putString("queue",JSONObject().put("ids",JSONArray(ids)).put("index",index)
-            .put("position",position).put("repeat",repeat).put("shuffle",shuffle).toString()).apply()
+            .put("position",position).put("repeat",repeat).put("shuffle",shuffle).put("volume",volume).toString()).apply()
     }
     fun readQueue() = obj("queue")
+    fun readMusicConfig(): MusicConfig {
+        val o = obj("network_music")
+        return MusicConfig(o.optString("api",DEFAULT_MUSIC_API),o.optString("platform","netease"),
+            o.optString("id",DEFAULT_MUSIC_PLAYLIST),o.optString("bitrate","2000"),o.optString("name","Study With Miku 默认歌单"))
+    }
+    fun readOnlineIds() = arr("network_ids").strings()
+    @Synchronized fun cacheOnline(config: MusicConfig, songs: List<Song>) {
+        val ids = songs.map { it.id }.toSet()
+        val l = _library.value
+        saveLibrary(l.copy(songs = l.songs.filterNot { it.id in ids } + songs))
+        disk.edit().putString("network_music",JSONObject().put("api",config.api).put("platform",config.platform)
+            .put("id",config.id).put("bitrate",config.bitrate).put("name",config.name).toString())
+            .putString("network_ids",JSONArray(songs.map { it.id }).toString()).apply()
+    }
 }
 fun JSONArray.objects() = (0 until length()).map { getJSONObject(it) }
 fun JSONArray.strings() = (0 until length()).map { getString(it) }

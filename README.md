@@ -1,14 +1,14 @@
-# Study With Miku · Android 离线版
+# Study With Miku · Android 版
 
 [![Android APK](https://github.com/chorusfruit-233/StudyWithMiku-Android/actions/workflows/android-offline.yml/badge.svg)](https://github.com/chorusfruit-233/StudyWithMiku-Android/actions/workflows/android-offline.yml)
 
-基于 [shshouse/StudyWithMiku](https://github.com/shshouse/StudyWithMiku) 的原生 Android 离线移植，使用 Kotlin、Jetpack Compose 和 Material 3 Expressive。
+基于 [shshouse/StudyWithMiku](https://github.com/shshouse/StudyWithMiku) 的原生 Android 移植，使用 Kotlin、Jetpack Compose 和 Material 3 Expressive。
 
-保留番茄钟、倒计时、正计时、Miku 场景、计划和学习记录，以及播放器、收藏、本地音乐导入和自建歌单。安装包内置 3 段视频场景和 11 首音乐，不申请网络权限，不包含在线人数、聊天室、登录或云同步。
+保留番茄钟、倒计时、正计时、Miku 场景、计划和学习记录，以及播放器、收藏、本地音乐导入和自建歌单。支持原站的网易云 / QQ 音乐网络播放器、默认歌单、10 个推荐歌单、自定义歌单 ID 或链接、高音质 / 标准音质、在线封面和同步歌词。安装包仍内置 3 段视频场景和 11 首音乐；学习记录保存在本机，不包含在线人数、聊天室、登录或云同步。
 
 ## 下载 APK
 
-打开 [Releases](https://github.com/chorusfruit-233/StudyWithMiku-Android/releases)，选择最新的 `Android offline APK` 草稿，下载附件中的 `.apk` 直接安装。支持 Android 8.0 及以上。草稿仅对有仓库写入权限的用户可见，仓库保持私有。
+打开 [Releases](https://github.com/chorusfruit-233/StudyWithMiku-Android/releases)，选择最新的 `Android APK` 草稿，下载附件中的 `.apk` 直接安装。支持 Android 8.0 及以上。草稿仅对有仓库写入权限的用户可见，仓库保持私有。
 
 由于账户的 GitHub Actions 产物存储额度已满，工作流使用私有 Release 草稿保存 APK，不依赖 Actions Artifacts 额度，也不会自动公开发布。
 
