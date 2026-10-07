@@ -5,7 +5,10 @@
 - Android 15／API 35 离线 Compose 手势测试 2 项通过：滚至最后一条后反复快速上滑，逐帧检查面板位置（3 次手势、135 帧、误差不超过 1 像素）；再检查可以反向阅读历史，以及在首条消息处下拉关闭面板。测试使用 50 条合成消息，不向真实聊天室发言。
 - 对照实验使用原来的 ModalBottomSheet 实现执行相同测试，捕捉到顶部从 814 像素跳至 655 像素（159 像素位移）；修复版通过相同的位置稳定性检查。对照实现仅存在于临时测试包，未保留在工程中。
 - 软件模拟器首次启动测试进程出现启动超时；重试后实际完成上述两项测试。手势测试通过不等同于所有 Android 版本或真机的完整视觉验收。
-- 版本为 1.2.1，versionCode=4。固定源码构建与 APK 校验结果在交付后补充；调试签名升级限制仍见 README。
+- [手势测试原始报告](validation/chat-scroll-1.2.1/README.txt) 保留修复版通过记录和旧实现预期失败记录；旧实现的失败是对照实验结果。
+- 最终源码构建提交 `e9e5e3d8039461546c78a5514a2a3feb65e40e4b`；[GitHub Actions 37691896786](https://github.com/chorusfruit-233/StudyWithMiku-Android/actions/runs/37691896786) 成功。下载后的报告确认 33 项测试、0 失败／错误，Lint 0 错误；CI 编译手势测试包，设备运行结果为上述本地测试。
+- 下载的云端 APK 为 1.2.1（versionCode=4），最低 API 26、target API 35；SHA-256 与 CI 校验值一致，APK v2 签名验证通过。调试签名升级限制仍见 README。
+- [私有 APK 草稿](https://github.com/chorusfruit-233/StudyWithMiku-Android/releases/tag/untagged-1676b2b22506684fadbf) 包含 APK、SHA256SUMS.txt 与 Android-check-reports.zip；保持私有草稿，不公开发布。
 
 # 1.2.0 全部在线功能验证记录
 

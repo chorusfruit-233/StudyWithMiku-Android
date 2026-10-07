@@ -1,0 +1,21 @@
+
+com.shshouse.studywithmiku.ChatSheetGestureTest:
+Error in repeatedUpwardSwipesAtLastMessageKeepSheetStillAndHistoryScrollable(com.shshouse.studywithmiku.ChatSheetGestureTest):
+java.lang.AssertionError: Sheet moved at the list's bottom: 814.0 -> 655.0
+	at org.junit.Assert.fail(Assert.java:89)
+	at org.junit.Assert.assertTrue(Assert.java:42)
+	at com.shshouse.studywithmiku.ChatSheetGestureTest.repeatedUpwardSwipesAtLastMessageKeepSheetStillAndHistoryScrollable(ChatSheetGestureTest.kt:45)
+
+
+Time: 39.893
+There was 1 failure:
+1) repeatedUpwardSwipesAtLastMessageKeepSheetStillAndHistoryScrollable(com.shshouse.studywithmiku.ChatSheetGestureTest)
+java.lang.AssertionError: Sheet moved at the list's bottom: 814.0 -> 655.0
+	at org.junit.Assert.fail(Assert.java:89)
+	at org.junit.Assert.assertTrue(Assert.java:42)
+	at com.shshouse.studywithmiku.ChatSheetGestureTest.repeatedUpwardSwipesAtLastMessageKeepSheetStillAndHistoryScrollable(ChatSheetGestureTest.kt:45)
+
+FAILURES!!!
+Tests run: 1,  Failures: 1
+
+
