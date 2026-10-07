@@ -63,11 +63,9 @@ class CloudSync(private val store: MikuStore,private val timer: FocusEngine,priv
     fun resolve(choice: Int) {
         val conflict = _state.value.conflict ?: return
         val selected = when (choice) { 1 -> conflict.remote; 2 -> conflict.local; else -> StudyProtocol.merged(conflict.local,conflict.remote) }
-        task = scope.launch {
-            try { adopt(selected); if (choice != 1) syncNow() } catch (e: CancellationException) { throw e } catch (e: Exception) { failure(e) }
-        }
+        try { adopt(selected); if (choice != 1) syncNow() } catch (e: Exception) { failure(e) }
     }
-    private suspend fun adopt(selected: CloudStudy) {
+    private fun adopt(selected: CloudStudy) {
         _state.value = _state.value.copy(busy = true,conflict = null,error = null)
         timer.pause()
         store.switchStudyOwner(activeUser)
@@ -80,6 +78,7 @@ class CloudSync(private val store: MikuStore,private val timer: FocusEngine,priv
     fun syncNow() {
         if (!_state.value.ready) { pull(); return }
         if (_state.value.busy || activeUser.isBlank()) return
+        val user = activeUser
         task = scope.launch {
             _state.value = _state.value.copy(busy = true,error = null)
             try {
@@ -89,6 +88,8 @@ class CloudSync(private val store: MikuStore,private val timer: FocusEngine,priv
                 val token = auth.token(); check(token.isNotBlank()) { "请重新登录" }
                 withContext(Dispatchers.IO) { api.push(token,snapshot) }
                 ensureActive()
+                // A completed old request must never update the next account or guest profile.
+                if (activeUser != user || auth.state.value.userId != user || store.studyOwner != user) return@launch
                 store.rememberCloud(snapshot)
                 lastRevision = revision
                 _state.value = SyncState(ready = true,lastSync = Instant.now().toEpochMilli())
