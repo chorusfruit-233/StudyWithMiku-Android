@@ -133,8 +133,8 @@ class MainActivity : ComponentActivity() {
         else if (app.chat.sendChat(StudyProtocol.songShare(song) ?: "",app.extras.messageLocation())) { player = false; tab = 4; message("已分享到聊天室") }
         else message("连接成功后再分享")
     }) { player = false }
-    if (chatSheet) ModalBottomSheet(onDismissRequest = { chatSheet = false },sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)) {
-        Box(Modifier.fillMaxWidth().heightIn(min = 300.dp,max = 620.dp).padding(16.dp)) { ChatPane(app,music,::message) { player = true } }
+    if (chatSheet) FocusChatSheet(onDismiss = { chatSheet = false }) {
+        ChatPane(app,music,::message) { player = true }
     }
     SyncChoiceDialog(app)
 }

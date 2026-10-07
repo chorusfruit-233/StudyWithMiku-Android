@@ -72,7 +72,7 @@ import kotlin.math.roundToInt
                 }
             }
             Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                Text("Study With Miku · 1.2.0",style = MaterialTheme.typography.titleMedium)
+                Text("Study With Miku · 1.2.1",style = MaterialTheme.typography.titleMedium)
                 Text("原作：shshouse / StudyWithMiku\nAndroid 版 · Material 3 Expressive\n场景、音乐、语音和贴图沿用原项目，创作者署名见内置资源说明。",
                     style = MaterialTheme.typography.bodySmall,color = MaterialTheme.colorScheme.onSurfaceVariant)
                 TextButton(onClick = { license = true }) { Text("开源许可与资源说明") }

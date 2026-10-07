@@ -1,4 +1,6 @@
-原生 Android 1.2.0，支持 Android 8.0 及以上。
+原生 Android 1.2.1，支持 Android 8.0 及以上。
+
+修复专注页聊天室：滑到消息底部后继续上滑，剩余距离和惯性不会再传给底部面板触发回弹。保留向回阅读历史消息和下拉关闭。
 
 下载 `.apk` 安装；`SHA256SUMS.txt` 是校验值，`Android-check-reports.zip` 包含单元测试与 Lint 报告。已通过编译、单元测试、Lint 和 APK 签名校验。
 

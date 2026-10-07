@@ -1,4 +1,4 @@
-# Study With Miku · Android 1.2.0
+# Study With Miku · Android 1.2.1
 
 原作：[shshouse/StudyWithMiku](https://github.com/shshouse/StudyWithMiku)，基线提交 `159db717f02debf71a5138764ed8e068f4577f94`。原生 Kotlin、Compose、Media3；Material 3 Expressive 主题、动态形状按钮和花瓣计时进度。支持 Android 8.0（API 26）以上，target API 35。
 
@@ -22,6 +22,8 @@
 | 场景与外观 | 三段内置视频、静态模式、沉浸全屏、遮罩与空闲隐藏控制、深浅主题、壁纸取色、保持屏幕常亮 |
 | 原站说明 | 关于、上线天数、更新历史及图片、原作／赞助／账号设置链接、QQ群复制 |
 
+专注页聊天面板会消耗消息列表底部未使用的上滑距离与惯性，避免消息到底后带动面板回弹；向下滚动与拖动关闭仍沿用原生交互。
+
 网页拖拽浮窗适配为手机的聊天底部面板，可在计时与音乐播放时打开。音乐额外支持通知栏／锁屏控制、耳机拔出暂停、本地导入、收藏与自建歌单。聊天连接仅在应用前台保持；后台媒体与计时由各自可见前台服务维持。
 
 ## 使用与接口
@@ -43,6 +45,8 @@
 需要 JDK 17、SDK 35；首次构建下载依赖。输出 `app/build/outputs/apk/debug/app-debug.apk`。调试签名每次 CI 生成，工程无签名私钥。Expressive API 使用明确固定的 `material3:1.4.0-alpha18`。
 
 协议、HTTP 错误、账号凭据校验、云合并、分享和计时单元测试使用本地测试服务器。真实账号登录、发言、云端写入与跨设备同步须在用户手机上验收；当前无测试账号。详细边界见 [VALIDATION.md](VALIDATION.md)。
+
+有设备或模拟器时，可运行 `./gradlew connectedDebugAndroidTest` 执行离线聊天手势回归测试；CI 会编译该测试包，实际设备执行结果记录在验证文档中。
 
 ## 资源与许可
 
