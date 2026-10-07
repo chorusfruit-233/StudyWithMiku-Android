@@ -1,0 +1,90 @@
+[
+  {
+    "id": "builtin_0",
+    "title": "雪の日 · Snowy day",
+    "artist": "Snail’s House",
+    "uri": "asset:///music/track_0.mp3",
+    "cover": "asset:///covers/cover_0.jpg",
+    "builtin": true
+  },
+  {
+    "id": "builtin_1",
+    "title": "あなたと · With you",
+    "artist": "Snail’s House",
+    "uri": "asset:///music/track_1.mp3",
+    "cover": "asset:///covers/cover_1.jpg",
+    "builtin": true
+  },
+  {
+    "id": "builtin_2",
+    "title": "45度だけ開けた世界 (degree45)",
+    "artist": "Alice In Cradle",
+    "uri": "asset:///music/track_2.mp3",
+    "cover": "asset:///covers/cover_2.jpg",
+    "builtin": true
+  },
+  {
+    "id": "builtin_3",
+    "title": "Chiling Cappuccino（悠闲的卡布奇诺）",
+    "artist": "和未来一起喝茶",
+    "uri": "asset:///music/track_3.mp3",
+    "cover": "asset:///covers/cover_3.jpg",
+    "builtin": true
+  },
+  {
+    "id": "builtin_4",
+    "title": "MIKU休息了",
+    "artist": "和未来一起喝茶",
+    "uri": "asset:///music/track_4.mp3",
+    "cover": "asset:///covers/cover_4.jpg",
+    "builtin": true
+  },
+  {
+    "id": "builtin_5",
+    "title": "Miku 喜欢休息",
+    "artist": "和未来一起喝茶",
+    "uri": "asset:///music/track_5.mp3",
+    "cover": "asset:///covers/cover_5.jpg",
+    "builtin": true
+  },
+  {
+    "id": "builtin_6",
+    "title": "luminous_particle",
+    "artist": "Alice In Cradle",
+    "uri": "asset:///music/track_6.mp3",
+    "cover": "asset:///covers/cover_6.jpg",
+    "builtin": true
+  },
+  {
+    "id": "builtin_7",
+    "title": "medicine · 药",
+    "artist": "Snail’s House",
+    "uri": "asset:///music/track_7.mp3",
+    "cover": "asset:///covers/cover_7.jpg",
+    "builtin": true
+  },
+  {
+    "id": "builtin_8",
+    "title": "tuuzyou",
+    "artist": "Alice In Cradle",
+    "uri": "asset:///music/track_8.mp3",
+    "cover": "asset:///covers/cover_8.jpg",
+    "builtin": true
+  },
+  {
+    "id": "builtin_9",
+    "title": "タイトル (title)",
+    "artist": "Alice In Cradle",
+    "uri": "asset:///music/track_9.mp3",
+    "cover": "asset:///covers/cover_9.jpg",
+    "builtin": true
+  },
+  {
+    "id": "builtin_10",
+    "title": "正在为跳舞做心理准备的Miku",
+    "artist": "和未来一起喝茶",
+    "uri": "asset:///music/track_10.mp3",
+    "cover": "asset:///covers/cover_10.jpg",
+    "builtin": true
+  }
+]

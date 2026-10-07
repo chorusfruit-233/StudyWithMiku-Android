@@ -1,0 +1,47 @@
+# Study With Miku · Android 离线版
+
+原作：[shshouse/StudyWithMiku](https://github.com/shshouse/StudyWithMiku)。基于原仓库提交 `159db717f02debf71a5138764ed8e068f4577f94`，用 Kotlin / Jetpack Compose 重写 Android 界面，使用 Material 3 Expressive 主题、动态形状按钮和花瓣状计时进度。
+
+## 功能
+
+- **专注**：番茄钟、倒计时、正计时；自定义专注和休息时长；每四个番茄后进入长休息；Miku 完成语音；后台计时通知；三段内置动态场景和沉浸模式。
+- **音乐**：原项目的 11 首本地音乐；导入手机音频；自建和编辑歌单；收藏；搜索；进度拖动；随机、顺序、列表循环和单曲循环；锁屏和通知栏媒体控制；拔出耳机自动暂停。
+- **计划**：为任意日期添加、完成和删除待办。
+- **记录**：按日记录专注时长、完成番茄和待办；月度热力日历；跨午夜的专注时间按日期拆分。
+- **外观**：初音绿、浅色/深色/跟随系统、Android 12+ 壁纸取色；可关闭动态场景；可保持前台屏幕常亮。
+
+应用**不声明 INTERNET 或广泛存储读取权限**。没有在线人数、聊天室、账户、云同步、在线歌单请求或远程一言。使用系统文件选择器导入音频，复制到应用私有目录；之后无需依赖外部文件提供方。卸载会删除应用记录与导入副本，不会删除手机上的原文件。所有音视频资源都包含在 APK 内。
+
+## 构建
+
+Android Studio 打开此目录；或安装 JDK 17 和 Android SDK 35 后：
+
+```sh
+./gradlew assembleDebug testDebugUnitTest lintDebug
+```
+
+首次构建需下载 Gradle 和依赖。安装运行无需网络。最低 Android 8.0（API 26），目标 Android 15（API 35）。输出：`app/build/outputs/apk/debug/app-debug.apk`。
+
+调试 APK 使用自动生成的开发密钥签名。正式发布请配置自己的 release 签名；工程不包含私有密钥。
+
+## 实现说明
+
+- `FocusClock` 是独立可测试的计时模型，使用 `elapsedRealtime` 的单调时间来计算后台间隔，避免按回调次数计时。专注完成后停在下一阶段，等待用户开始。
+- `FocusService` 为用户主动启动的计时提供可见前台服务与暂停操作；`PlaybackService` 使用 Media3 的媒体前台服务。通知授权在首次开始计时时请求；拒绝通知仍可计时。
+- 定时状态与已记入的学习时间在同一个 SharedPreferences 事务中保存，恢复时不会重复记账。暂停、重置和切换模式保留已经专注的时间。重启手机后暂停未完成的计时。
+- 系统强行停止应用后无法继续显示通知或发出完成语音。请勿用系统“强行停止”代替应用内暂停。
+- 原生存储与网页 localStorage 相互独立，没有自动迁移网页学习记录。
+- Expressive API 使用 `material3:1.4.0-alpha18`（显式选择提供公开 Expressive 主题和按钮形变 API 的版本）。其他依赖版本与 Gradle 校验和已固定。
+
+## 资源与许可
+
+工程依原作 GPL-3.0 发布；完整许可在 `LICENSE` 和应用内“设置 → 开源许可与资源说明”中。原作作者署名保留。
+
+| 资源 | 来源 |
+| --- | --- |
+| 三段 Miku 场景、完成语音、贴图 | 原仓库 `public/` |
+| 内置曲目和封面 | 原仓库 `public/SpecialMusic/` |
+| 音乐创作者 | 和未来一起喝茶、Alice In Cradle、Snail’s House |
+| AndroidX / Compose / Media3 | Apache License 2.0 |
+
+曲名、创作者和封面在 `app/src/main/assets/library.json` 中保留，音频本身未重新编码；场景视频原样保留。封面和场景预览图为原资源的缩放副本。原音视频、插画和角色权利归各自权利人。
