@@ -8,7 +8,9 @@
 
 ## 下载 APK
 
-打开 [GitHub Actions](https://github.com/chorusfruit-233/StudyWithMiku-Android/actions/workflows/android-offline.yml)，选择成功的构建，在 **Artifacts** 中下载 `StudyWithMiku-offline-APK` 并解压。支持 Android 8.0 及以上。
+打开 [Releases](https://github.com/chorusfruit-233/StudyWithMiku-Android/releases)，选择最新的 `Android offline APK` 草稿，下载附件中的 `.apk` 直接安装。支持 Android 8.0 及以上。草稿仅对有仓库写入权限的用户可见，仓库保持私有。
+
+由于账户的 GitHub Actions 产物存储额度已满，工作流使用私有 Release 草稿保存 APK，不依赖 Actions Artifacts 额度，也不会自动公开发布。
 
 向 `main` 推送 Android 源码会自动构建；也可以在 Actions 页面点击 **Run workflow** 手动构建。每次构建包含编译、单元测试、Android Lint 和 APK 签名校验，输出 APK、SHA-256 校验值和检查报告。
 

@@ -7,7 +7,7 @@ on:
     paths: ["android/**", ".github/workflows/android-offline.yml"]
   workflow_dispatch:
 permissions:
-  contents: read
+  contents: write
 concurrency:
   group: android-${{ github.ref }}
   cancel-in-progress: true
@@ -39,19 +39,19 @@ jobs:
           cp app/build/outputs/apk/debug/app-debug.apk "../artifacts/StudyWithMiku-offline-${GITHUB_SHA:0:7}.apk"
           cd ../artifacts
           sha256sum *.apk > SHA256SUMS.txt
-      - uses: actions/upload-artifact@v4
-        with:
-          name: StudyWithMiku-offline-APK
-          path: artifacts/
-          retention-days: 30
-          if-no-files-found: error
-      - name: Upload check reports
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: Android-check-reports
-          path: |
-            android/app/build/reports/
-            android/app/build/test-results/
-          retention-days: 14
-          if-no-files-found: ignore
+      - name: Save APK and reports to a private release draft
+        if: github.event_name != 'pull_request'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          zip -qr artifacts/Android-check-reports.zip android/app/build/reports android/app/build/test-results
+          release_tag="ci-${GITHUB_SHA:0:12}"
+          if gh release view "$release_tag" >/dev/null 2>&1; then
+            gh release upload "$release_tag" artifacts/* --clobber
+          else
+            gh release create "$release_tag" artifacts/* --draft --prerelease \
+              --target "$GITHUB_SHA" --title "Android offline APK ${GITHUB_SHA:0:7}" \
+              --notes-file .github/ci-release-notes.md
+          fi
+          gh release view "$release_tag" --json url --jq '.url' >> "$GITHUB_STEP_SUMMARY"
