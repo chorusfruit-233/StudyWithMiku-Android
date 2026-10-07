@@ -25,14 +25,6 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
       - name: Install Android SDK 35
         run: sdkmanager "platforms;android-35" "build-tools;35.0.0"
-      - name: Restore stable debug signing key
-        env:
-          ANDROID_DEBUG_KEYSTORE_B64: ${{ secrets.ANDROID_DEBUG_KEYSTORE_B64 }}
-        run: |
-          test -n "$ANDROID_DEBUG_KEYSTORE_B64"
-          mkdir -p "$HOME/.android"
-          printf '%s' "$ANDROID_DEBUG_KEYSTORE_B64" | base64 --decode > "$HOME/.android/debug.keystore"
-          chmod 600 "$HOME/.android/debug.keystore"
       - name: Build, test and lint
         working-directory: android
         run: ./gradlew assembleDebug testDebugUnitTest lintDebug
