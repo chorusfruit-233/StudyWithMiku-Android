@@ -6,8 +6,13 @@
 - 2026-10-07，真实聊天室 WebSocket 握手 HTTP 101；收到 history（50 条，hasMore=true）和 count／adminOnline 消息。仅匿名读取，未向真实聊天室发送消息。
 - 官方登录页可获取。当前构建环境访问账号资料与公开 profiles 接口返回 HTTP 403，补充请求亦有超时；这属于真实接口验收限制，未通过伪造登录或绕过服务访问限制处理。
 - 真实账号登录、服务端发言、云端 PUT、跨设备同步、自动账号过期和头像均未做真实账号端到端验收。测试覆盖客户端协议与错误处理，不代表这些真实账号操作已经通过。
-- 新版界面和媒体淡入淡出仍需 Android 设备验收。下方 1.0.0 的设备结果只属于历史版本。
-- 签名、资源和最终 CI 检查结果在构建完成后更新。
+- Android 15／API 35 软件模拟器安装本地 1.2.0 APK 成功，确认 versionCode=3、versionName=1.2.0；应用在前台启动，专注页、社区页及账号页可通过 UIAutomator 导航与读取布局，聊天室错误／重连提示正常出现。
+- 模拟器截图输出全黑，未能完成新版视觉验收；模拟器中的真实聊天室连接未建立。媒体淡入淡出、后台切歌和完整网络界面仍需目标设备验收。上述模拟器测试使用 cf2c512 的本地构建，最终 1eb0bab 仅修复同步完成时的账号隔离，无 UI 变更。下方 1.0.0 的设备结果只属于历史版本。
+- 最终源码构建提交 `1eb0babf072e6d5970a895e6b926a8dd4091bbdd`；[GitHub Actions 37687726989](https://github.com/chorusfruit-233/StudyWithMiku-Android/actions/runs/37687726989) 成功。云端报告确认 33 项测试、0 失败／错误，Lint 0 错误。本地最终编译、测试和 Lint 同样通过。
+- 最终补丁修复选择同步方式后的任务跟踪，并检查请求完成时的账号归属，防止旧账号同步结果写入访客或新账号档案。
+- 云端 APK 为 1.2.0（versionCode=3），最低 API 26、target API 35；下载后的 SHA-256 与 CI 校验值一致，APK v2 签名验证通过。安装包含全部 16 张历史／现行表情、10 个推荐歌单、50 条本地语录和 30 条原作更新记录。
+- [私有 APK 草稿](https://github.com/chorusfruit-233/StudyWithMiku-Android/releases/tag/untagged-9e9d9d05ae6ba4735918) 包含 APK、SHA256SUMS.txt 与 Android-check-reports.zip；保持草稿与私有仓库，不公开发布。
+- 补充真实 WebSocket 分页探测：匿名请求 load_history，成功取得下一批 50 条 history_chunk，before 毫秒游标校验通过；未发送真实聊天消息。
 
 # 1.1.0 网络音乐验证记录
 
