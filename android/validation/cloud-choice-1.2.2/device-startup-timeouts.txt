@@ -1,0 +1,20 @@
+ACTIVITY MANAGER PROCESS EXIT INFO (dumpsys activity exit-info)
+Last Timestamp of Persistence Into Persistent Storage: 2026-10-08 08:11:14.593
+  package: com.shshouse.studywithmiku.offline
+    Historical Process Exit for uid=10138
+        ApplicationExitInfo #0:
+          timestamp=2026-10-08 13:38:06.268 pid=3314 realUid=10138 packageUid=10138 definingUid=10138 user=0
+          process=com.shshouse.studywithmiku.offline reason=6 (ANR) subreason=0 (UNKNOWN) status=0
+          importance=125 pss=0.00 rss=0.00 description=bg anr: Process ProcessRecord{91bfc83 3314:com.shshouse.studywithmiku.offline/u0a138} failed to complete startup state=empty trace=/data/system/procexitstore/anr_2026-10-08-13-38-04-867.gz
+        ApplicationExitInfo #1:
+          timestamp=2026-10-08 13:34:56.925 pid=3262 realUid=10138 packageUid=10138 definingUid=10138 user=0
+          process=com.shshouse.studywithmiku.offline reason=6 (ANR) subreason=0 (UNKNOWN) status=0
+          importance=125 pss=0.00 rss=0.00 description=bg anr: Process ProcessRecord{4a0cfa0 3262:com.shshouse.studywithmiku.offline/u0a138} failed to complete startup state=empty trace=/data/system/procexitstore/anr_2026-10-08-13-34-55-380.gz
+        ApplicationExitInfo #2:
+          timestamp=2026-10-08 13:33:15.061 pid=3205 realUid=10138 packageUid=10138 definingUid=10138 user=0
+          process=com.shshouse.studywithmiku.offline reason=6 (ANR) subreason=0 (UNKNOWN) status=0
+          importance=400 pss=0.00 rss=0.00 description=bg anr: Process ProcessRecord{23791db 3205:com.shshouse.studywithmiku.offline/u0a138} failed to complete startup state=empty trace=/data/system/procexitstore/anr_2026-10-08-13-33-13-901.gz
+        ApplicationExitInfo #3:
+          timestamp=2026-10-07 21:46:30.106 pid=3286 realUid=10138 packageUid=10138 definingUid=10138 user=0
+          process=com.shshouse.studywithmiku.offline reason=10 (USER REQUESTED) subreason=21 (FORCE STOP) status=0
+          importance=125 pss=0.00 rss=301MB description=stop com.shshouse.studywithmiku.offline due to finished inst state=empty trace=null

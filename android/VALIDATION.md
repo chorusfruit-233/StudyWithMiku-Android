@@ -5,7 +5,11 @@
 - 对比 JSON 值而非字段顺序与数字格式；本地今日派生计数跨午夜归零不视为新改动。旧 1.2.1 档案可使用已有云端快照判断是否需要再次选择。
 - 上传尚未完成的本地选择／合并带有持久化标记，避免请求失败后重启被误认为已经同步并覆盖。请求完成前退出账号不会把旧结果应用到访客资料。
 - 本地单元测试 48 项通过（原 33 项，新增同步生命周期 13 项、快照比较 2 项），覆盖最新云端选择、重启、旧档案、双方修改、失败重试、重复点击、退出／过期账号与上传失败后重启。
-- Android 设备测试与最终 APK 校验结果在构建完成后补充。所有新增测试使用合成资料；未使用真实账号，也未上传用户学习资料。
+- 本地 `assembleDebug testDebugUnitTest lintDebug assembleDebugAndroidTest` 成功，Lint 0 错误。新增 Android 设备测试包编译通过，但未完成设备验收。所有新增测试使用合成资料；未使用真实账号，也未上传用户学习资料。
+- Android 15／API 35 无硬件加速模拟器启动期间出现系统服务重启；安装本地 1.2.2 成功，确认 versionCode=5。三次设备测试尝试均因测试进程启动超时退出，Android 记录 reason=6（ANR，failed to complete startup），未取得实际按钮点击或持久化测试通过结果。[原始尝试记录](validation/cloud-choice-1.2.2/README.txt) 保留失败与退出原因，不作为通过证据。
+- 最终源码构建提交 `4c83d7812009aaaa86e5c871ab2f78674475be7d`；[GitHub Actions 37784273212](https://github.com/chorusfruit-233/StudyWithMiku-Android/actions/runs/37784273212) 成功。云端报告确认 48 项测试、0 失败／错误、0 跳过，Lint 0 错误；CI 编译设备测试 APK，设备执行结果单独说明。
+- 下载的 APK 为 1.2.2（versionCode=5），最低 API 26、target API 35；SHA-256 与 CI 校验值一致，APK v2 签名验证通过。SHA-256：`e8d6cd964e91c92214e78784d4cd0c4062e397d55d95a00bf9fa29e5c9189c47`。
+- [私有 APK 草稿](https://github.com/chorusfruit-233/StudyWithMiku-Android/releases/tag/untagged-d0848dd84fc131a1f994) 包含 APK、SHA256SUMS.txt 与 Android-check-reports.zip；保持私有草稿，不公开发布。真实账号端到端验收边界与调试签名升级限制见 README。
 
 # 1.2.1 专注页聊天室滚动修复
 
