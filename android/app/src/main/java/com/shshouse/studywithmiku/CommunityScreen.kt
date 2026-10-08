@@ -218,6 +218,7 @@ fun stickerExtension(id: Int) = when (id) { 4,11,13,14 -> "jpg"; 12,15 -> "gif";
             }
             if (sync.busy) LinearProgressIndicator(Modifier.fillMaxWidth())
             Text(if (sync.ready) "已同步 · ${Instant.ofEpochMilli(sync.lastSync).atZone(ZoneId.systemDefault()).format(DateTimeFormatter.ofPattern("HH:mm"))}" else "尚未完成资料同步",style = MaterialTheme.typography.bodyMedium)
+            sync.message?.let { Text(it,color = MaterialTheme.colorScheme.primary) }
             sync.error?.let { Text(it,color = MaterialTheme.colorScheme.error) }
             Row(Modifier.fillMaxWidth(),verticalAlignment = Alignment.CenterVertically) {
                 Column(Modifier.weight(1f)) { Text("自动同步"); Text("同步学习统计、待办、日历、倒计日与计时设置",style = MaterialTheme.typography.bodySmall) }
@@ -245,20 +246,29 @@ fun stickerExtension(id: Int) = when (id) { 4,11,13,14 -> "jpg"; 12,15 -> "gif";
 }
 
 @Composable fun SyncChoiceDialog(app: MikuApplication) {
-    val sync by app.sync.state.collectAsStateWithLifecycle()
+    SyncChoiceDialog(app.sync)
+}
+
+@Composable internal fun SyncChoiceDialog(controller: CloudSync) {
+    val sync by controller.state.collectAsStateWithLifecycle()
     val conflict = sync.conflict ?: return
     fun describe(study: CloudStudy): String {
         val stats = study.data.optJSONObject("stats")
         return "${((stats?.optDouble("totalStudyTime") ?: 0.0)/60).toLong()} 分钟 · ${stats?.optInt("totalPomodoros") ?: 0} 个番茄"
     }
-    AlertDialog(onDismissRequest = { app.sync.cancelChoice() },title = { Text("选择学习资料的同步方式") },text = {
+    AlertDialog(onDismissRequest = { controller.cancelChoice() },title = { Text("选择学习资料的同步方式") },text = {
         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Text("本地：${describe(conflict.local)}\n云端：${describe(conflict.remote)}")
+            if (sync.busy) {
+                LinearProgressIndicator(Modifier.fillMaxWidth())
+                Text("正在读取并保存学习资料…",style = MaterialTheme.typography.bodySmall)
+            }
+            sync.error?.let { Text(it,color = MaterialTheme.colorScheme.error) }
             Text("合并会按原项目规则保留每日较大的学习值、合并待办与计划，并使用当前设备的计时设置。切换账号时会保存原资料备份。",style = MaterialTheme.typography.bodySmall)
-            OutlinedButton(onClick = { app.sync.resolve(1) },modifier = Modifier.fillMaxWidth()) { Text("使用云端资料") }
-            OutlinedButton(onClick = { app.sync.resolve(2) },modifier = Modifier.fillMaxWidth()) { Text("保留本地并上传") }
+            OutlinedButton(onClick = { controller.resolve(1) },enabled = !sync.busy,modifier = Modifier.fillMaxWidth()) { Text("使用云端资料") }
+            OutlinedButton(onClick = { controller.resolve(2) },enabled = !sync.busy,modifier = Modifier.fillMaxWidth()) { Text("保留本地并上传") }
         }
-    },confirmButton = { TextButton(onClick = { app.sync.resolve(0) }) { Text("合并并同步") } },dismissButton = { TextButton(onClick = { app.sync.cancelChoice() }) { Text("暂不同步") } })
+    },confirmButton = { TextButton(onClick = { controller.resolve(0) },enabled = !sync.busy) { Text("合并并同步") } },dismissButton = { TextButton(onClick = { controller.cancelChoice() },enabled = !sync.busy) { Text("暂不同步") } })
 }
 
 @Composable private fun AboutPane() {
@@ -268,7 +278,7 @@ fun stickerExtension(id: Int) = when (id) { 4,11,13,14 -> "jpg"; 12,15 -> "gif";
     LazyColumn(Modifier.fillMaxSize(),contentPadding = PaddingValues(24.dp),verticalArrangement = Arrangement.spacedBy(16.dp)) {
         item {
             Text("Study With Miku",style = MaterialTheme.typography.headlineMedium)
-            Text("Love by SHSHOUSE · 原生 Android 1.2.0",style = MaterialTheme.typography.bodyMedium)
+            Text("Love by SHSHOUSE · 原生 Android 1.2.2",style = MaterialTheme.typography.bodyMedium)
             val since = Duration.between(LocalDate.of(2025,12,2).atStartOfDay(ZoneId.systemDefault()).toInstant(),Instant.now()).toDays()
             Text("原站已陪伴大家 $since 天",style = MaterialTheme.typography.bodySmall)
             listOf("原项目与源码" to "https://github.com/shshouse/StudyWithMiku","作者主页" to "https://space.bilibili.com/3493127123897196",

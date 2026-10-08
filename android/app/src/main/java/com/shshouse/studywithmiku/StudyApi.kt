@@ -14,7 +14,7 @@ object StudyNetwork {
         .writeTimeout(20,TimeUnit.SECONDS).callTimeout(30,TimeUnit.SECONDS).build()
 }
 class StudyApi(private val baseUrl: String = ACCOUNT_SITE,client: OkHttpClient = StudyNetwork.client,
-    private val cookies: () -> String = { "" }) {
+    private val cookies: () -> String = { "" }) : StudySyncApi {
     private val client = client.newBuilder().followRedirects(false).followSslRedirects(false).build()
     fun request(path: String,token: String = "",body: JSONObject? = null): JSONObject {
         require(path.startsWith("/api/study/"))
@@ -35,7 +35,7 @@ class StudyApi(private val baseUrl: String = ACCOUNT_SITE,client: OkHttpClient =
             if (body != null && text.isBlank()) JSONObject() else JSONObject(text)
         }
     }
-    fun fetch(token: String): CloudStudy {
+    override fun fetch(token: String): CloudStudy {
         fun dataAt(path: String): JSONObject {
             val response = request(path,token)
             if (!response.has("data")) throw IOException("账号服务返回了不完整的资料")
@@ -46,7 +46,7 @@ class StudyApi(private val baseUrl: String = ACCOUNT_SITE,client: OkHttpClient =
         val calendar = dataAt("/api/study/calendar")
         return CloudStudy(data,calendar)
     }
-    fun push(token: String,study: CloudStudy) {
+    override fun push(token: String,study: CloudStudy) {
         request("/api/study/data",token,study.data)
         request("/api/study/calendar",token,study.calendar)
     }

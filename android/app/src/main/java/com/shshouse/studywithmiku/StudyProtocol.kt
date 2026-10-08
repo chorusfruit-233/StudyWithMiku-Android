@@ -97,6 +97,32 @@ object StudyProtocol {
     fun wireId(id: String): Any = id.toLongOrNull() ?: id
     fun jsDate(day: LocalDate): String = day.format(DateTimeFormatter.ofPattern("EEE MMM dd yyyy",Locale.US))
     fun deepCopy(o: JSONObject) = JSONObject(o.toString())
+    /** Compare JSON values, not key order or 60 versus 60.0 returned by different clients. */
+    private fun canonical(value: Any?): String = when (value) {
+        null,JSONObject.NULL -> "null"
+        is JSONObject -> value.keys().asSequence().toList().sorted().joinToString(",","{","}") {
+            JSONObject.quote(it)+":"+canonical(value.get(it))
+        }
+        is JSONArray -> (0 until value.length()).joinToString(",","[","]") { canonical(value.get(it)) }
+        is Number -> runCatching { java.math.BigDecimal(value.toString()).stripTrailingZeros().toPlainString() }.getOrDefault(value.toString())
+        is Boolean -> value.toString()
+        else -> JSONObject.quote(value.toString())
+    }
+    fun sameStudy(a: CloudStudy,b: CloudStudy) = canonical(a.data) == canonical(b.data) && canonical(a.calendar) == canonical(b.calendar)
+    /** Daily history is authoritative locally; midnight rolls the derived today counters over. */
+    fun sameLocalStudy(a: CloudStudy,b: CloudStudy): Boolean {
+        fun stable(study: CloudStudy): CloudStudy {
+            val data = deepCopy(study.data)
+            data.optJSONObject("stats")?.let { stats -> listOf("lastDate","todayStudyTime","todayPomodoros").forEach { stats.remove(it) } }
+            val calendar = deepCopy(study.calendar)
+            calendar.optJSONObject("dailyLog")?.let { log -> log.keys().asSequence().toList().forEach { date ->
+                val day = log.optJSONObject(date)
+                if (day != null && day.optDouble("studyTime",0.0) == 0.0 && day.optInt("pomodoros",0) == 0) log.remove(date)
+            } }
+            return CloudStudy(data,calendar)
+        }
+        return sameStudy(stable(a),stable(b))
+    }
     fun merged(local: CloudStudy,remote: CloudStudy): CloudStudy {
         val data = deepCopy(remote.data)
         val stats = deepCopy(remote.data.optJSONObject("stats") ?: JSONObject())

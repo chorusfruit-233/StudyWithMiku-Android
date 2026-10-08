@@ -16,10 +16,10 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 
-class FocusEngine(private val context: Context, private val store: MikuStore) {
+class FocusEngine(private val context: Context, private val store: MikuStore) : StudySyncTimer {
     private val boot = Settings.Global.getInt(context.contentResolver,Settings.Global.BOOT_COUNT,0)
     private val _state = MutableStateFlow(store.readClock(boot))
-    val state = _state.asStateFlow()
+    override val state = _state.asStateFlow()
     private val _completions = kotlinx.coroutines.flow.MutableSharedFlow<Unit>(extraBufferCapacity = 4)
     val completions = _completions.asSharedFlow()
     private val handler = Handler(Looper.getMainLooper())
@@ -65,7 +65,7 @@ class FocusEngine(private val context: Context, private val store: MikuStore) {
             handler.postDelayed(loop,1000)
         }
     }
-    fun pause() {
+    override fun pause() {
         sync()
         _state.value = _state.value.copy(running = false)
         handler.removeCallbacks(loop)
@@ -80,8 +80,8 @@ class FocusEngine(private val context: Context, private val store: MikuStore) {
         store.updatePreferences(store.prefs.value.copy(timerMode = mode.name.lowercase()))
     }
     fun skipBreak() { if (_state.value.phase != Phase.FOCUS) reset(phase = Phase.FOCUS) }
-    fun flush() { sync(); checkpoint() }
-    fun restoreFromStore() {
+    override fun flush() { sync(); checkpoint() }
+    override fun restoreFromStore() {
         handler.removeCallbacks(loop)
         _state.value = store.readClock(boot).copy(running = false)
         checkpoint()

@@ -112,4 +112,23 @@ class StudyProtocolTest {
         assertEquals(Phase.LONG_BREAK,second.clock.phase); assertEquals(24000L,second.clock.remainingMs)
         assertEquals(6000L,FocusClock.duration(TimerMode.COUNTDOWN,Phase.FOCUS,prefs))
     }
+    @Test fun snapshotComparisonIgnoresObjectOrderAndNumericRepresentation() {
+        val first = CloudStudy(JSONObject("""{"stats":{"totalStudyTime":60},"todos":[]}"""))
+        val second = CloudStudy(JSONObject("""{"todos":[],"stats":{"totalStudyTime":60.0}}"""))
+        assertTrue(StudyProtocol.sameStudy(first,second))
+        second.data.getJSONObject("stats").put("totalStudyTime",61)
+        assertFalse(StudyProtocol.sameStudy(first,second))
+    }
+    @Test fun localBaselineIgnoresMidnightButDetectsHistoryAndSettingsChanges() {
+        val first = study(60,1,"task",false)
+        val second = CloudStudy(StudyProtocol.deepCopy(first.data),StudyProtocol.deepCopy(first.calendar))
+        second.data.getJSONObject("stats").put("lastDate","Thu Oct 08 2026").put("todayStudyTime",0).put("todayPomodoros",0)
+        second.calendar.getJSONObject("dailyLog").put("2026-10-08",JSONObject().put("studyTime",0).put("pomodoros",0))
+        assertTrue(StudyProtocol.sameLocalStudy(first,second))
+        second.calendar.getJSONObject("dailyLog").getJSONObject("2026-10-08").put("studyTime",1)
+        assertFalse(StudyProtocol.sameLocalStudy(first,second))
+        second.calendar.getJSONObject("dailyLog").remove("2026-10-08")
+        second.data.getJSONObject("settings").put("focusDuration",40)
+        assertFalse(StudyProtocol.sameLocalStudy(first,second))
+    }
 }

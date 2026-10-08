@@ -46,7 +46,7 @@ class TokenVault(context: Context) {
     }.getOrDefault("")
     fun clear() { disk.edit().clear().commit() }
 }
-class StudyAuth(context: Context,private val api: StudyApi) {
+class StudyAuth(context: Context,private val api: StudyApi) : StudySyncAccount {
     private val vault = TokenVault(context)
     private var credential = vault.read()
     private val _state = MutableStateFlow(runCatching {
@@ -54,8 +54,8 @@ class StudyAuth(context: Context,private val api: StudyApi) {
             AccountState(it.userId,it.username,it.expiresAt,it.expiresAt <= Instant.now().epochSecond)
         }
     }.getOrElse { credential = ""; AccountState(error = "登录凭据不可用，请重新登录") })
-    val state = _state.asStateFlow()
-    fun token(): String {
+    override val state = _state.asStateFlow()
+    override fun token(): String {
         if (_state.value.expiresAt > 0 && _state.value.expiresAt <= Instant.now().epochSecond) expire()
         return if (_state.value.loggedIn) credential else ""
     }
@@ -76,8 +76,8 @@ class StudyAuth(context: Context,private val api: StudyApi) {
             false
         }
     }
-    fun expire() { _state.value = _state.value.copy(expired = true,error = "登录已过期，请重新登录") }
-    fun logout() {
+    override fun expire() { _state.value = _state.value.copy(expired = true,error = "登录已过期，请重新登录") }
+    override fun logout() {
         credential = ""; vault.clear(); _state.value = AccountState()
         CookieManager.getInstance().removeAllCookies(null)
         CookieManager.getInstance().flush()

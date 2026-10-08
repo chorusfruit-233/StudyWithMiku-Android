@@ -14,7 +14,7 @@ import java.time.Instant
 import java.time.ZoneId
 import java.util.UUID
 
-class MikuStore(private val context: Context) {
+class MikuStore(private val context: Context) : StudySyncStore {
     private val disk = context.getSharedPreferences("miku_offline_v1", Context.MODE_PRIVATE)
     private fun obj(key: String) = runCatching { JSONObject(disk.getString(key, "{}")!!) }.getOrDefault(JSONObject())
     private fun arr(key: String) = runCatching { JSONArray(disk.getString(key, "[]")!!) }.getOrDefault(JSONArray())
@@ -32,11 +32,11 @@ class MikuStore(private val context: Context) {
     })
     val countdowns = _countdowns.asStateFlow()
     private val _revision = MutableStateFlow(0L)
-    val revision = _revision.asStateFlow()
+    override val revision = _revision.asStateFlow()
     private var importingStudy = false
     fun markLearningChanged() { if (!importingStudy) _revision.value++ }
-    val studyOwner get() = disk.getString("study_owner","") ?: ""
-    var autoSync: Boolean
+    override val studyOwner get() = disk.getString("study_owner","") ?: ""
+    override var autoSync: Boolean
         get() = disk.getBoolean("auto_sync",true)
         set(value) { disk.edit().putBoolean("auto_sync",value).apply(); markLearningChanged() }
 
@@ -230,7 +230,7 @@ class MikuStore(private val context: Context) {
         return DayLog(_logs.value.values.sumOf { it.millis } + base.optLong("millis"),
             _logs.value.values.sumOf { it.sessions } + base.optInt("sessions"))
     }
-    @Synchronized fun studySnapshot(): CloudStudy {
+    @Synchronized override fun studySnapshot(): CloudStudy {
         val shadow = obj("study_shadow")
         val data = shadow.optJSONObject("data")?.let(StudyProtocol::deepCopy) ?: JSONObject()
         val calendar = shadow.optJSONObject("calendar")?.let(StudyProtocol::deepCopy) ?: JSONObject()
@@ -255,10 +255,22 @@ class MikuStore(private val context: Context) {
             put(date,JSONArray().apply { list.forEach { put(todoJson(it,true)) } }) } })
         return CloudStudy(data,calendar)
     }
-    fun rememberCloud(study: CloudStudy) {
+    private fun savedStudy(key: String): CloudStudy? {
+        if (!disk.contains(key)) return null
+        val saved = obj(key)
+        return CloudStudy(saved.optJSONObject("data") ?: JSONObject(),saved.optJSONObject("calendar") ?: JSONObject())
+    }
+    override fun lastCloudStudy() = savedStudy("study_shadow")
+    override fun lastAppliedStudy() = savedStudy("study_applied")
+    override val pendingStudyUpload get() = disk.getString("study_pending_upload","false") == "true"
+    override fun rememberAppliedStudy(study: CloudStudy,pendingUpload: Boolean) {
+        disk.edit().putString("study_applied",JSONObject().put("data",study.data).put("calendar",study.calendar).toString())
+            .putString("study_pending_upload",pendingUpload.toString()).apply()
+    }
+    override fun rememberCloud(study: CloudStudy) {
         disk.edit().putString("study_shadow",JSONObject().put("data",study.data).put("calendar",study.calendar).toString()).apply()
     }
-    @Synchronized fun applyStudy(study: CloudStudy) {
+    @Synchronized override fun applyStudy(study: CloudStudy) {
         importingStudy = true
         try {
             val logs = mutableMapOf<String,DayLog>()
@@ -302,9 +314,9 @@ class MikuStore(private val context: Context) {
         } finally { importingStudy = false }
         _revision.value++
     }
-    @Synchronized fun switchStudyOwner(id: String) {
+    @Synchronized override fun switchStudyOwner(id: String) {
         if (id == studyOwner) return
-        val keys = listOf("preferences","todos","logs","clock","countdowns","study_baseline","study_shadow")
+        val keys = listOf("preferences","todos","logs","clock","countdowns","study_baseline","study_shadow","study_applied","study_pending_upload")
         val backup = JSONObject()
         keys.forEach { key -> disk.getString(key,null)?.let { backup.put(key,it) } }
         disk.edit().putString("study_profile_${studyOwner.ifBlank { "guest" }}",backup.toString()).commit()
