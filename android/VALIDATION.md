@@ -6,6 +6,9 @@
 - 小数秒／分钟导入改用四舍五入，修正 1.001 秒和 6.1 分钟因二进制浮点误差被截断的问题。生成同步快照时按 ID／日期保留原云端待办、计划、倒数日、日记录的未知字段。
 - 新增三个协调器回归用例在旧实现下均失败（原 13 项通过），证明测试能捕捉错误；修复后通过。另增加七项资料比较测试，总计 58 项单元测试。所有资料和凭据均为合成测试值，未操作真实用户账号。[回归记录](validation/sync-equality-1.2.3/README.txt)
 - 本地 `assembleDebug testDebugUnitTest lintDebug assembleDebugAndroidTest` 成功，58 项测试通过、0 失败／错误／跳过，Lint 0 错误。APK 本地签名校验通过，版本 1.2.3、versionCode=6。
+- 最终源码构建提交 `907f8bbde1f5c81eb0f95f5e6adb7de33c07941a`；[GitHub Actions 37989145381](https://github.com/chorusfruit-233/StudyWithMiku-Android/actions/runs/37989145381) 成功。下载云端报告确认 58 项测试、0 失败／错误／跳过，Lint 0 错误。
+- 下载 APK 确认为 1.2.3、versionCode=6、最低 API 26、target API 35，APK v2 签名校验通过，SHA-256 与 CI 校验文件一致：`d101c099b1eacb5d4146f25bf1a967b57969875c135a3ab6b98b7a17f2763065`。
+- [私有 APK 草稿](https://github.com/chorusfruit-233/StudyWithMiku-Android/releases/tag/untagged-dd9f18dca140097d51cd) 提供 APK、SHA256SUMS.txt 和 Android-check-reports.zip。临时调试签名的升级限制见 README；卸载会清除本地资料。
 - 本次未执行 Android 设备测试；原有设备测试和新增小数／未知字段持久化测试只进行编译。真实手机跨设备、实际账户云端同步尚未验收；本版不宣称已通过真实账号端到端测试。
 
 # 1.2.2 学习资料云端选择修复
