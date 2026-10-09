@@ -65,7 +65,7 @@ class CloudSync(private val store: StudySyncStore,private val timer: StudySyncTi
                 val previousRemote = if (!switching) store.lastCloudStudy() else null
                 val previousLocal = if (!switching) store.lastAppliedStudy() else null
                 when {
-                    !switching && previousRemote != null && StudyProtocol.sameStudy(remote,previousRemote) -> {
+                    !switching && previousRemote != null && StudyComparison.same(remote,previousRemote) -> {
                         // Includes existing 1.2.1 profiles: accepting cloud data must not prompt again.
                         val unchanged = !store.pendingStudyUpload && previousLocal != null && StudyProtocol.sameLocalStudy(local,previousLocal)
                         if (unchanged) lastRevision = store.revision.value
@@ -73,7 +73,7 @@ class CloudSync(private val store: StudySyncStore,private val timer: StudySyncTi
                             message = if (unchanged) "本地与云端资料已一致" else "云端资料未变化，本地改动已保留")
                     }
                     !switching && !store.pendingStudyUpload && previousLocal != null && StudyProtocol.sameLocalStudy(local,previousLocal) -> adopt(remote)
-                    !switching && StudyProtocol.sameStudy(local,remote) -> adopt(remote)
+                    StudyComparison.same(local,remote) -> adopt(remote)
                     hasData(local) && (remoteExists || switching) -> _state.value = SyncState(conflict = SyncConflict(local,remote,switching))
                     else -> {
                         val selected = if (remoteExists) remote else local

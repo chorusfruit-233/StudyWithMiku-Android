@@ -177,4 +177,43 @@ class CloudSyncTest {
         assertNotNull(restarted.state.value.conflict)
         restarted.resolve(1); runCurrent(); assertFalse(store.pendingStudyUpload)
     }
+    @Test fun equalWebAndNativeDataWithDefaultFieldsAndFloatVolumeDoesNotAsk() = scenario {
+        val remote = study(935*60).also {
+            it.data.getJSONObject("stats").put("totalPomodoros",32)
+            it.data.getJSONObject("settings").put("notificationVolume",0.6)
+        }
+        val store = Store(remote)
+        store.local.data.getJSONObject("stats").put("lastDate","Fri Oct 09 2026")
+            .put("todayStudyTime",0).put("todayPomodoros",0)
+        store.local.data.getJSONArray("todos").getJSONObject(0).put("id","123").put("pinned",false)
+        store.local.data.getJSONObject("settings").put("notificationVolume",0.6f.toDouble())
+            .put("breakDuration",5).put("countdownDuration",10).put("pomodoroCount",4)
+            .put("timerMode","pomodoro").put("pauseMusicDuringBreak",true)
+            .put("showHitokoto",true).put("hidePomodoroOnIdle",false).put("countdowns",org.json.JSONArray())
+        store.local.calendar.getJSONObject("dailyLog").put("2026-10-09",JSONObject("""{"studyTime":0,"pomodoros":0}"""))
+        val api = Api(remote); val sync = coordinator(store,api); runCurrent()
+        assertNull(sync.state.value.conflict); assertTrue(sync.state.value.ready)
+        assertEquals(0,api.writes)
+        sync.close()
+        val restarted = coordinator(store,api); runCurrent()
+        assertNull(restarted.state.value.conflict); assertTrue(restarted.state.value.ready)
+    }
+    @Test fun cloudMidnightRolloverDoesNotConflictWithOfflineTodoEdit() = scenario {
+        val api = Api(); val store = Store(api.remote)
+        store.cloud = copy(api.remote); store.applied = copy(store.local)
+        store.local.data.getJSONArray("todos").getJSONObject(0).put("text","offline edit")
+        val expected = copy(store.local)
+        api.remote.data.getJSONObject("stats").put("lastDate","Fri Oct 09 2026")
+            .put("todayStudyTime",0).put("todayPomodoros",0)
+        api.remote.calendar.getJSONObject("dailyLog").put("2026-10-09",JSONObject("""{"studyTime":0,"pomodoros":0}"""))
+        val sync = coordinator(store,api); runCurrent()
+        assertNull(sync.state.value.conflict); assertTrue(sync.state.value.ready)
+        assertTrue(StudyProtocol.sameStudy(expected,store.local)); assertEquals(0,api.writes)
+    }
+    @Test fun identicalGuestAndCloudDoNotNeedAccountChoice() = scenario {
+        val api = Api(); val store = Store(api.remote).also { it.studyOwner = "" }
+        val sync = coordinator(store,api); runCurrent()
+        assertNull(sync.state.value.conflict); assertTrue(sync.state.value.ready)
+        assertEquals("u",store.studyOwner); assertEquals(0,api.writes)
+    }
 }

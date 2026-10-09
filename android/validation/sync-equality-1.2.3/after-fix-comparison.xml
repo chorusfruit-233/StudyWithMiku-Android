@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.shshouse.studywithmiku.StudyComparisonTest" tests="7" skipped="0" failures="0" errors="0" timestamp="2026-10-09T20:44:36" hostname="fdda74bbd612" time="0.028">
+  <properties/>
+  <testcase name="representationalChangesAreEqualAndInputsAreUntouched" classname="com.shshouse.studywithmiku.StudyComparisonTest" time="0.005"/>
+  <testcase name="todayCountersWithUnrecordedCreditAreNotSilentlyIgnored" classname="com.shshouse.studywithmiku.StudyComparisonTest" time="0.005"/>
+  <testcase name="genuineTodoPlanCountdownAndSettingsChangesAreStillConflicts" classname="com.shshouse.studywithmiku.StudyComparisonTest" time="0.007"/>
+  <testcase name="todoOrderAndRealVolumeChangesRemainSignificant" classname="com.shshouse.studywithmiku.StudyComparisonTest" time="0.001"/>
+  <testcase name="nativeConversionRoundsInsteadOfTruncatingFloatingPointNoise" classname="com.shshouse.studywithmiku.StudyComparisonTest" time="0.0"/>
+  <testcase name="absentEmptySectionsAreEquivalentButUnknownFieldsAreNotDiscarded" classname="com.shshouse.studywithmiku.StudyComparisonTest" time="0.001"/>
+  <testcase name="equalDisplayedWholeMinutesNeverHideGenuineSecondsOrHistoryDifferences" classname="com.shshouse.studywithmiku.StudyComparisonTest" time="0.009"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

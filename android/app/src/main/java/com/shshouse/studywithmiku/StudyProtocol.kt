@@ -10,6 +10,8 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Base64
 import java.util.Locale
+import kotlin.math.roundToInt
+import kotlin.math.roundToLong
 
 const val STUDY_SITE = "https://study.mikumod.com"
 const val ACCOUNT_SITE = "https://mikumod.com"
@@ -97,6 +99,8 @@ object StudyProtocol {
     fun wireId(id: String): Any = id.toLongOrNull() ?: id
     fun jsDate(day: LocalDate): String = day.format(DateTimeFormatter.ofPattern("EEE MMM dd yyyy",Locale.US))
     fun deepCopy(o: JSONObject) = JSONObject(o.toString())
+    fun studyMillis(seconds: Double) = if (seconds.isFinite()) (seconds*1000).roundToLong() else 0L
+    fun durationSeconds(minutes: Double) = (minutes*60).roundToInt()
     /** Compare JSON values, not key order or 60 versus 60.0 returned by different clients. */
     private fun canonical(value: Any?): String = when (value) {
         null,JSONObject.NULL -> "null"
@@ -109,6 +113,7 @@ object StudyProtocol {
         else -> JSONObject.quote(value.toString())
     }
     fun sameStudy(a: CloudStudy,b: CloudStudy) = canonical(a.data) == canonical(b.data) && canonical(a.calendar) == canonical(b.calendar)
+    internal fun sameJson(a: Any?,b: Any?) = canonical(a) == canonical(b)
     /** Daily history is authoritative locally; midnight rolls the derived today counters over. */
     fun sameLocalStudy(a: CloudStudy,b: CloudStudy): Boolean {
         fun stable(study: CloudStudy): CloudStudy {

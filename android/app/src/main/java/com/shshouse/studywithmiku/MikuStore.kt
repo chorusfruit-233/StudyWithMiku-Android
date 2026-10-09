@@ -239,7 +239,10 @@ class MikuStore(private val context: Context) : StudySyncStore {
         val day = _logs.value[today.toString()] ?: DayLog()
         data.put("stats",(data.optJSONObject("stats") ?: JSONObject()).put("totalStudyTime",total.millis / 1000.0)
             .put("totalPomodoros",total.sessions).put("todayStudyTime",day.millis / 1000.0).put("todayPomodoros",day.sessions).put("lastDate",StudyProtocol.jsDate(today)))
-        fun todoJson(t: Todo,plan: Boolean) = JSONObject().put("id",StudyProtocol.wireId(t.id)).put("text",t.text).apply {
+        fun original(array: JSONArray?,id: String): JSONObject = array?.objects()?.firstOrNull { it.optString("id") == id }
+            ?.let(StudyProtocol::deepCopy) ?: JSONObject()
+        fun todoJson(t: Todo,plan: Boolean) = original(if (plan) calendar.optJSONObject("plans")?.optJSONArray(t.date) else data.optJSONArray("todos"),t.id)
+            .put("id",StudyProtocol.wireId(t.id)).put("text",t.text).apply {
             if (plan) { put("done",t.done); put("color",t.color) } else { put("completed",t.done); put("pinned",t.pinned) }
         }
         data.put("todos",JSONArray().apply { _todos.value.filter { it.date.isEmpty() }.forEach { put(todoJson(it,false)) } })
@@ -248,9 +251,11 @@ class MikuStore(private val context: Context) : StudySyncStore {
             .put("breakDuration",p.breakSeconds / 60.0).put("countdownDuration",p.countdownSeconds / 60.0).put("timerMode",p.timerMode)
             .put("pomodoroCount",p.pomodoroCount).put("notificationVolume",p.notificationVolume)
             .put("pauseMusicDuringBreak",p.pauseMusicDuringBreak).put("showHitokoto",p.showHitokoto).put("hidePomodoroOnIdle",p.hidePomodoroOnIdle)
-            .put("countdowns",JSONArray().apply { _countdowns.value.forEach { put(JSONObject().put("id",StudyProtocol.wireId(it.id)).put("title",it.title).put("date",it.date)) } }))
+            .put("countdowns",JSONArray().apply { _countdowns.value.forEach { put(original(data.optJSONObject("settings")?.optJSONArray("countdowns"),it.id)
+                .put("id",StudyProtocol.wireId(it.id)).put("title",it.title).put("date",it.date)) } }))
         calendar.put("dailyLog",JSONObject().apply { _logs.value.forEach { (date,log) ->
-            put(date,JSONObject().put("studyTime",log.millis/1000.0).put("pomodoros",log.sessions)) } })
+            put(date,(calendar.optJSONObject("dailyLog")?.optJSONObject(date)?.let(StudyProtocol::deepCopy) ?: JSONObject())
+                .put("studyTime",log.millis/1000.0).put("pomodoros",log.sessions)) } })
         calendar.put("plans",JSONObject().apply { _todos.value.filter { StudyProtocol.validDate(it.date) }.groupBy { it.date }.forEach { (date,list) ->
             put(date,JSONArray().apply { list.forEach { put(todoJson(it,true)) } }) } })
         return CloudStudy(data,calendar)
@@ -275,17 +280,17 @@ class MikuStore(private val context: Context) : StudySyncStore {
         try {
             val logs = mutableMapOf<String,DayLog>()
             study.calendar.optJSONObject("dailyLog")?.let { o -> o.keys().forEach { date ->
-                if (StudyProtocol.validDate(date)) o.optJSONObject(date)?.let { logs[date] = DayLog((it.optDouble("studyTime").coerceAtLeast(0.0)*1000).toLong(),it.optInt("pomodoros").coerceAtLeast(0)) }
+                if (StudyProtocol.validDate(date)) o.optJSONObject(date)?.let { logs[date] = DayLog(StudyProtocol.studyMillis(it.optDouble("studyTime").coerceAtLeast(0.0)),it.optInt("pomodoros").coerceAtLeast(0)) }
             } }
             val stats = study.data.optJSONObject("stats") ?: JSONObject()
             val today = LocalDate.now()
             if (stats.optString("lastDate") == StudyProtocol.jsDate(today)) {
                 val old = logs[today.toString()] ?: DayLog()
-                logs[today.toString()] = DayLog(maxOf(old.millis,(stats.optDouble("todayStudyTime").coerceAtLeast(0.0)*1000).toLong()),maxOf(old.sessions,stats.optInt("todayPomodoros")))
+                logs[today.toString()] = DayLog(maxOf(old.millis,StudyProtocol.studyMillis(stats.optDouble("todayStudyTime").coerceAtLeast(0.0))),maxOf(old.sessions,stats.optInt("todayPomodoros")))
             }
             _logs.value = logs
             disk.edit().putString("logs",logsJson().toString()).putString("study_baseline",JSONObject()
-                .put("millis",((stats.optDouble("totalStudyTime")*1000).toLong()-logs.values.sumOf { it.millis }).coerceAtLeast(0))
+                .put("millis",(StudyProtocol.studyMillis(stats.optDouble("totalStudyTime"))-logs.values.sumOf { it.millis }).coerceAtLeast(0))
                 .put("sessions",(stats.optInt("totalPomodoros")-logs.values.sumOf { it.sessions }).coerceAtLeast(0)).toString()).apply()
             val todos = mutableListOf<Todo>()
             study.data.optJSONArray("todos")?.objects()?.forEach { o ->
@@ -297,9 +302,9 @@ class MikuStore(private val context: Context) : StudySyncStore {
             saveTodos(todos)
             study.data.optJSONObject("settings")?.let { s ->
                 val p = _prefs.value
-                val focus = (s.optDouble("focusDuration",p.focusSeconds/60.0)*60).toInt().coerceIn(6,6000)
-                val rest = (s.optDouble("breakDuration",p.breakSeconds/60.0)*60).toInt().coerceIn(6,6000)
-                val countdown = (s.optDouble("countdownDuration",p.countdownSeconds/60.0)*60).toInt().coerceIn(6,36000)
+                val focus = StudyProtocol.durationSeconds(s.optDouble("focusDuration",p.focusSeconds/60.0)).coerceIn(6,6000)
+                val rest = StudyProtocol.durationSeconds(s.optDouble("breakDuration",p.breakSeconds/60.0)).coerceIn(6,6000)
+                val countdown = StudyProtocol.durationSeconds(s.optDouble("countdownDuration",p.countdownSeconds/60.0)).coerceIn(6,36000)
                 updatePreferences(p.copy(focusMinutes = (focus+59)/60,breakMinutes = (rest+59)/60,countdownMinutes = (countdown+59)/60,
                     focusSeconds = focus,breakSeconds = rest,countdownSeconds = countdown,longBreakSeconds = rest*2,longBreakMinutes = (rest*2+59)/60,
                     timerMode = s.optString("timerMode",p.timerMode).takeIf { it in listOf("pomodoro","countdown","stopwatch") } ?: "pomodoro",

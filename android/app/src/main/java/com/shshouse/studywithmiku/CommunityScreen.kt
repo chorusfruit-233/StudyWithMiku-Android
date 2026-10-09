@@ -252,13 +252,11 @@ fun stickerExtension(id: Int) = when (id) { 4,11,13,14 -> "jpg"; 12,15 -> "gif";
 @Composable internal fun SyncChoiceDialog(controller: CloudSync) {
     val sync by controller.state.collectAsStateWithLifecycle()
     val conflict = sync.conflict ?: return
-    fun describe(study: CloudStudy): String {
-        val stats = study.data.optJSONObject("stats")
-        return "${((stats?.optDouble("totalStudyTime") ?: 0.0)/60).toLong()} 分钟 · ${stats?.optInt("totalPomodoros") ?: 0} 个番茄"
-    }
+    val differences = remember(conflict) { StudyComparison.differences(conflict.local,conflict.remote) }
     AlertDialog(onDismissRequest = { controller.cancelChoice() },title = { Text("选择学习资料的同步方式") },text = {
         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text("本地：${describe(conflict.local)}\n云端：${describe(conflict.remote)}")
+            Text("本地：${StudyComparison.describe(conflict.local)}\n云端：${StudyComparison.describe(conflict.remote)}")
+            if (differences.isNotEmpty()) Text("存在差异：${differences.joinToString("、")}",style = MaterialTheme.typography.bodySmall)
             if (sync.busy) {
                 LinearProgressIndicator(Modifier.fillMaxWidth())
                 Text("正在读取并保存学习资料…",style = MaterialTheme.typography.bodySmall)
@@ -278,7 +276,7 @@ fun stickerExtension(id: Int) = when (id) { 4,11,13,14 -> "jpg"; 12,15 -> "gif";
     LazyColumn(Modifier.fillMaxSize(),contentPadding = PaddingValues(24.dp),verticalArrangement = Arrangement.spacedBy(16.dp)) {
         item {
             Text("Study With Miku",style = MaterialTheme.typography.headlineMedium)
-            Text("Love by SHSHOUSE · 原生 Android 1.2.2",style = MaterialTheme.typography.bodyMedium)
+            Text("Love by SHSHOUSE · 原生 Android 1.2.3",style = MaterialTheme.typography.bodyMedium)
             val since = Duration.between(LocalDate.of(2025,12,2).atStartOfDay(ZoneId.systemDefault()).toInstant(),Instant.now()).toDays()
             Text("原站已陪伴大家 $since 天",style = MaterialTheme.typography.bodySmall)
             listOf("原项目与源码" to "https://github.com/shshouse/StudyWithMiku","作者主页" to "https://space.bilibili.com/3493127123897196",

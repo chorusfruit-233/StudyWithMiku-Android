@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.shshouse.studywithmiku.CloudSyncTest" tests="16" skipped="0" failures="0" errors="0" timestamp="2026-10-09T20:44:35" hostname="fdda74bbd612" time="0.66">
+  <properties/>
+  <testcase name="nativeSettingsProjectionDoesNotCauseFalseConflictAfterRestart" classname="com.shshouse.studywithmiku.CloudSyncTest" time="0.405"/>
+  <testcase name="existing121AcceptedCloudSnapshotDoesNotRepeatDialog" classname="com.shshouse.studywithmiku.CloudSyncTest" time="0.011"/>
+  <testcase name="cloudMidnightRolloverDoesNotConflictWithOfflineTodoEdit" classname="com.shshouse.studywithmiku.CloudSyncTest" time="0.021"/>
+  <testcase name="equalWebAndNativeDataWithDefaultFieldsAndFloatVolumeDoesNotAsk" classname="com.shshouse.studywithmiku.CloudSyncTest" time="0.052"/>
+  <testcase name="rapidRepeatedCloudClicksStartOnlyOneRefresh" classname="com.shshouse.studywithmiku.CloudSyncTest" time="0.012"/>
+  <testcase name="unchangedCloudPreservesUnuploadedLocalChanges" classname="com.shshouse.studywithmiku.CloudSyncTest" time="0.005"/>
+  <testcase name="changesOnBothSidesStillRequireChoiceAndBlockAutomaticUpload" classname="com.shshouse.studywithmiku.CloudSyncTest" time="0.006"/>
+  <testcase name="expiredChoiceDoesNotKeepPromptForLoggedOutAccount" classname="com.shshouse.studywithmiku.CloudSyncTest" time="0.014"/>
+  <testcase name="restartingAfterCloudChoiceDoesNotAskAgain" classname="com.shshouse.studywithmiku.CloudSyncTest" time="0.013"/>
+  <testcase name="identicalGuestAndCloudDoNotNeedAccountChoice" classname="com.shshouse.studywithmiku.CloudSyncTest" time="0.009"/>
+  <testcase name="failedCloudChoiceRetainsLocalDataAndDialogForRetry" classname="com.shshouse.studywithmiku.CloudSyncTest" time="0.044"/>
+  <testcase name="newerCloudIsAdoptedWhenNativeSnapshotHasNotChanged" classname="com.shshouse.studywithmiku.CloudSyncTest" time="0.013"/>
+  <testcase name="localUploadChoiceIncludesEditsMadeWhileDialogWasOpen" classname="com.shshouse.studywithmiku.CloudSyncTest" time="0.005"/>
+  <testcase name="cloudChoiceFetchesLatestDataSavesLocallyAndDoesNotUpload" classname="com.shshouse.studywithmiku.CloudSyncTest" time="0.019"/>
+  <testcase name="logoutWhileCloudChoiceCompletesCannotAdoptIntoGuest" classname="com.shshouse.studywithmiku.CloudSyncTest" time="0.004"/>
+  <testcase name="failedLocalUploadIsNotDiscardedByRestartBaselineDetection" classname="com.shshouse.studywithmiku.CloudSyncTest" time="0.017"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

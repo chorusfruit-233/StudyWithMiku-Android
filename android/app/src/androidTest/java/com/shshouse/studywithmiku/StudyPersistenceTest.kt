@@ -68,4 +68,23 @@ class StudyPersistenceTest {
         assertTrue(reopened.pendingStudyUpload)
         assertEquals(2_400_500L,reopened.studyTotals().millis)
     }
+    @Test fun decimalCreditAndUnknownItemFieldsSurviveNativeRoundTrip() = isolated { context ->
+        val remote = remote()
+        remote.data.getJSONObject("stats").put("totalStudyTime",2400.501)
+        remote.data.getJSONObject("settings").put("focusDuration",6.1)
+        remote.data.getJSONArray("todos").getJSONObject(0).put("futureTodo","keep")
+        remote.data.getJSONObject("settings").getJSONArray("countdowns").getJSONObject(0).put("futureCountdown","keep")
+        remote.calendar.getJSONObject("dailyLog").getJSONObject(LocalDate.now().toString()).put("futureDay","keep")
+        remote.calendar.getJSONObject("plans").getJSONArray(LocalDate.now().toString()).getJSONObject(0).put("futurePlan","keep")
+        val store = MikuStore(context)
+        store.switchStudyOwner("fixture-account"); store.applyStudy(remote)
+        val reopened = MikuStore(context)
+        val snapshot = reopened.studySnapshot()
+        assertEquals(2_400_501L,reopened.studyTotals().millis)
+        assertEquals(366,reopened.prefs.value.focusSeconds)
+        assertEquals("keep",snapshot.data.getJSONArray("todos").getJSONObject(0).getString("futureTodo"))
+        assertEquals("keep",snapshot.data.getJSONObject("settings").getJSONArray("countdowns").getJSONObject(0).getString("futureCountdown"))
+        assertEquals("keep",snapshot.calendar.getJSONObject("dailyLog").getJSONObject(LocalDate.now().toString()).getString("futureDay"))
+        assertEquals("keep",snapshot.calendar.getJSONObject("plans").getJSONArray(LocalDate.now().toString()).getJSONObject(0).getString("futurePlan"))
+    }
 }
