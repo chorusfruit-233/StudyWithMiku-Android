@@ -10,6 +10,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
@@ -18,10 +20,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.withContext
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import java.net.URI
 
 fun platformName(platform: String) = if (platform == "tencent") "QQ 音乐" else "网易云音乐"
@@ -45,6 +49,8 @@ object RemoteCovers {
 
 @Composable fun NetworkMusicPanel(state: OnlineMusicState,online: OnlineMusic,onSelect: () -> Unit,onMessage: (String) -> Unit) {
     var custom by remember { mutableStateOf(false) }
+    var deleting by remember { mutableStateOf<SavedNetworkPlaylist?>(null) }
+    val savedPlaylists by online.savedPlaylists.collectAsStateWithLifecycle()
     val uriHandler = LocalUriHandler.current
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Surface(shape = RoundedCornerShape(28.dp),color = MaterialTheme.colorScheme.secondaryContainer) {
@@ -67,7 +73,7 @@ object RemoteCovers {
                     }
                 }
                 Row(Modifier.fillMaxWidth(),horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    FilledTonalButton(onClick = { custom = true },enabled = !state.loading,modifier = Modifier.weight(1f)) { Text("自定义歌单") }
+                    FilledTonalButton(onClick = { custom = true },enabled = !state.loading,modifier = Modifier.weight(1f)) { Text("添加网络歌单") }
                     OutlinedButton(onClick = { onSelect(); online.load(MusicConfig(api = state.config.api,bitrate = state.config.bitrate)) },
                         enabled = !state.loading,modifier = Modifier.weight(1f)) { Text("恢复默认歌单") }
                 }
@@ -87,6 +93,16 @@ object RemoteCovers {
                         color = MaterialTheme.colorScheme.onErrorContainer)
                     TextButton(onClick = { onSelect(); online.retry() },enabled = !state.loading) { Text("重试") }
                 }
+            }
+        }
+        Text("我的网络歌单",style = MaterialTheme.typography.titleLarge)
+        if (savedPlaylists.isEmpty()) Text("获取自定义歌单后会保存在这里，方便下次切换。播放仍需联网。",
+            style = MaterialTheme.typography.bodyMedium,color = MaterialTheme.colorScheme.onSurfaceVariant)
+        else LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            items(savedPlaylists,key = { "${it.platform}:${it.id}" }) { item ->
+                SavedNetworkPlaylistCard(item,selected = state.ids.isNotEmpty() && state.config.platform == item.platform && state.config.id == item.id,
+                    enabled = !state.loading,onLoad = { onSelect(); online.load(state.config.copy(platform = item.platform,id = item.id,name = item.name)) },
+                    onDelete = { deleting = item })
             }
         }
         Text("推荐歌单",style = MaterialTheme.typography.titleLarge)
@@ -113,7 +129,29 @@ object RemoteCovers {
         }
     }
     if (custom) NetworkPlaylistDialog(state.config,onDismiss = { custom = false }) {
-        custom = false; onSelect(); online.load(it)
+        custom = false; onSelect(); online.load(it,saveCustom = true)
+    }
+    deleting?.let { item ->
+        AlertDialog(onDismissRequest = { deleting = null },title = { Text("删除网络歌单？") },text = {
+            Text("将从我的网络歌单中移除“${item.name}”。")
+        },confirmButton = { TextButton(onClick = { online.deleteSavedPlaylist(item); deleting = null }) { Text("删除") } },
+            dismissButton = { TextButton(onClick = { deleting = null }) { Text("取消") } })
+    }
+}
+
+@Composable internal fun SavedNetworkPlaylistCard(item: SavedNetworkPlaylist,selected: Boolean,enabled: Boolean,
+    onLoad: () -> Unit,onDelete: () -> Unit) {
+    Surface(onClick = onLoad,enabled = enabled,shape = RoundedCornerShape(24.dp),
+        color = if (selected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainer,
+        modifier = Modifier.width(228.dp).height(164.dp)) {
+        Column(Modifier.padding(start = 16.dp,end = 8.dp,top = 8.dp,bottom = 16.dp),verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text("${platformName(item.platform)}${if (selected) " · 已载入" else ""}",style = MaterialTheme.typography.labelSmall,modifier = Modifier.weight(1f))
+                IconButton(onClick = onDelete) { Icon(Icons.Rounded.DeleteOutline,"删除网络歌单 ${item.name}",Modifier.size(20.dp)) }
+            }
+            Text(item.name,style = MaterialTheme.typography.titleMedium,maxLines = 2,overflow = TextOverflow.Ellipsis,modifier = Modifier.weight(1f))
+            Text("ID: ${item.id}",style = MaterialTheme.typography.bodySmall,maxLines = 1,overflow = TextOverflow.Ellipsis)
+        }
     }
 }
 
@@ -124,6 +162,14 @@ object RemoteCovers {
     var api by remember { mutableStateOf(config.api) }
     var advanced by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
+    fun submit() {
+        val id = MusicProtocol.playlistId(input)
+        if (id == null) error = "无法识别歌单 ID，请粘贴完整链接或数字 ID"
+        else {
+            val target = config.copy(api = api.trim(),platform = linkedPlatform ?: platform,id = id,name = "自定义歌单 $id")
+            runCatching { MusicProtocol.validate(target) }.onSuccess { onLoad(target) }.onFailure { error = it.message }
+        }
+    }
     AlertDialog(onDismissRequest = onDismiss,title = { Text("获取网络歌单") },text = {
         Column(Modifier.verticalScroll(rememberScrollState()),verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -134,6 +180,7 @@ object RemoteCovers {
             }
             OutlinedTextField(input,{ input = it; playlistLinkPlatform(it)?.let { detected -> platform = detected }; error = null },
                 label = { Text("歌单 ID 或分享链接") },singleLine = true,
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),keyboardActions = KeyboardActions(onDone = { submit() }),
                 supportingText = { Text(if (linkedPlatform != null) "已根据链接识别为${platformName(linkedPlatform)}" else "公开歌单；输入数字 ID 时，请先选择平台") })
             TextButton(onClick = { advanced = !advanced }) { Text("音乐源设置") }
             if (advanced) {
@@ -142,14 +189,7 @@ object RemoteCovers {
             }
             error?.let { Text(it,color = MaterialTheme.colorScheme.error) }
         }
-    },confirmButton = { TextButton(onClick = {
-        val id = MusicProtocol.playlistId(input)
-        if (id == null) error = "无法识别歌单 ID，请粘贴完整链接或数字 ID"
-        else {
-            val target = config.copy(api = api.trim(),platform = linkedPlatform ?: platform,id = id,name = "自定义歌单 $id")
-            runCatching { MusicProtocol.validate(target) }.onSuccess { onLoad(target) }.onFailure { error = it.message }
-        }
-    }) { Text("获取歌单") } },dismissButton = { TextButton(onClick = onDismiss) { Text("取消") } })
+    },confirmButton = { TextButton(onClick = { submit() }) { Text("获取并保存") } },dismissButton = { TextButton(onClick = onDismiss) { Text("取消") } })
 }
 
 internal fun playlistLinkPlatform(input: String): String? {

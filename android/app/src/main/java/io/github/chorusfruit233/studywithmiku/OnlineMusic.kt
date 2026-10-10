@@ -39,7 +39,7 @@ object MusicHttp {
 data class OnlineMusicState(val config: MusicConfig = MusicConfig(), val ids: List<String> = emptyList(),
     val loading: Boolean = false, val loadingName: String = "", val error: String? = null, val cached: Boolean = false)
 
-class OnlineMusic(context: Context, private val store: MikuStore) {
+class OnlineMusic(context: Context, private val store: MikuStore,private val playlistNames: PlaylistNameService = PlaylistNameService()) {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
     val recommendations = JSONArray(context.assets.open("recommendations.json").bufferedReader().use { it.readText() }).objects().map {
         Recommendation(it.getString("name"),it.optString("desc"),it.getString("platform"),it.getString("playlistId"),it.getJSONArray("tags").strings())
@@ -49,30 +49,42 @@ class OnlineMusic(context: Context, private val store: MikuStore) {
     }
     private val _state = MutableStateFlow(OnlineMusicState(store.readMusicConfig(),store.readOnlineIds(),cached = store.readOnlineIds().isNotEmpty()))
     val state = _state.asStateFlow()
+    val savedPlaylists = store.networkPlaylists
     private var job: Job? = null
     private var attempted = _state.value.config
+    private var attemptedSaveCustom = false
     private var initialized = false
     private val specialOrder = JSONArray(context.assets.open("special-song-order.json").bufferedReader().use { it.readText() }).strings()
     fun ensureLoaded() { if (!initialized) { initialized = true; load(_state.value.config) } }
-    fun retry() = load(attempted)
-    fun load(config: MusicConfig = _state.value.config, onLoaded: (List<Song>) -> Unit = {}) {
+    fun retry() = load(attempted,saveCustom = attemptedSaveCustom)
+    fun deleteSavedPlaylist(item: SavedNetworkPlaylist) = store.deleteNetworkPlaylist(item.platform,item.id)
+    fun load(config: MusicConfig = _state.value.config,saveCustom: Boolean = false, onLoaded: (List<Song>) -> Unit = {}) {
         job?.cancel()
         attempted = config
+        attemptedSaveCustom = saveCustom
         _state.value = _state.value.copy(loading = true,loadingName = config.name,error = null)
         job = scope.launch {
             try {
-                val songs = withContext(Dispatchers.IO) {
+                val (loadedConfig,songs) = withContext(Dispatchers.IO) {
                     val fetched = MusicProtocol.songs(MusicHttp.text(MusicProtocol.playlistUrl(config)),config,names)
                     check(fetched.isNotEmpty()) { "歌单为空或暂不可用，请检查歌单 ID、平台或稍后重试" }
-                    if (config.platform == "netease" && config.id == "8894040639") fetched + specialOrder.mapIndexedNotNull { i,id ->
+                    val title = if (saveCustom) store.networkPlaylists.value.find { it.platform == config.platform && it.id == config.id }?.name
+                        ?: playlistNames.fetch(config.platform,config.id).ifBlank { "ID:${config.id}" } else config.name
+                    val namedConfig = config.copy(name = title)
+                    val namedSongs = fetched.map { it.copy(playlistName = title) }
+                    val list = if (config.platform == "netease" && config.id == "8894040639") namedSongs + specialOrder.mapIndexedNotNull { i,id ->
                         store.library.value.songs.find { it.id == id }?.let { it.copy(title = it.webTitle.ifBlank { it.title },
-                            playlistId = config.id,playlistIndex = fetched.size+i,playlistName = config.name) }
+                            playlistId = config.id,playlistIndex = fetched.size+i,playlistName = title) }
                     }
-                    else fetched
+                    else namedSongs
+                    namedConfig to list
                 }
                 ensureActive()
-                withContext(Dispatchers.IO) { store.cacheOnline(config,songs) }
-                _state.value = OnlineMusicState(config,songs.map { it.id })
+                withContext(Dispatchers.IO) {
+                    store.cacheOnline(loadedConfig,songs)
+                    if (saveCustom) store.saveNetworkPlaylist(loadedConfig.platform,loadedConfig.id,loadedConfig.name)
+                }
+                _state.value = OnlineMusicState(loadedConfig,songs.map { it.id })
                 onLoaded(songs)
             } catch (e: CancellationException) { throw e }
             catch (e: Exception) {

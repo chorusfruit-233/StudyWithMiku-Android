@@ -26,6 +26,8 @@ class MikuStore(private val context: Context) : StudySyncStore {
     val logs = _logs.asStateFlow()
     private val _library = MutableStateFlow(readLibrary())
     val library = _library.asStateFlow()
+    private val _networkPlaylists = MutableStateFlow(NetworkPlaylistCatalog.read(arr("custom_network_playlists")))
+    val networkPlaylists = _networkPlaylists.asStateFlow()
     private val _countdowns = MutableStateFlow(arr("countdowns").objects().mapNotNull {
         val date = it.optString("date")
         if (StudyProtocol.validDate(date)) CountdownDay(it.optString("id"),it.optString("title"),date) else null
@@ -212,6 +214,16 @@ class MikuStore(private val context: Context) : StudySyncStore {
             o.optString("id",DEFAULT_MUSIC_PLAYLIST),o.optString("bitrate","2000"),o.optString("name","Study With Miku 默认歌单"))
     }
     fun readOnlineIds() = arr("network_ids").strings()
+    @Synchronized fun saveNetworkPlaylist(platform: String,id: String,name: String) {
+        val list = NetworkPlaylistCatalog.add(_networkPlaylists.value,platform,id,name)
+        disk.edit().putString("custom_network_playlists",NetworkPlaylistCatalog.write(list).toString()).apply()
+        _networkPlaylists.value = list
+    }
+    @Synchronized fun deleteNetworkPlaylist(platform: String,id: String) {
+        val list = NetworkPlaylistCatalog.remove(_networkPlaylists.value,platform,id)
+        disk.edit().putString("custom_network_playlists",NetworkPlaylistCatalog.write(list).toString()).apply()
+        _networkPlaylists.value = list
+    }
     @Synchronized fun cacheOnline(config: MusicConfig, songs: List<Song>) {
         val ids = songs.map { it.id }.toSet()
         val l = _library.value

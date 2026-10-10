@@ -22,6 +22,9 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
@@ -55,6 +58,10 @@ fun MikuApplication.openLogin() = startActivity(Intent(this,LoginActivity::class
     val onlineMusic by app.onlineMusic.state.collectAsStateWithLifecycle()
     var input by rememberSaveable { mutableStateOf("") }
     var stickers by remember { mutableStateOf(false) }
+    var replyingToId by rememberSaveable(account.userId) { mutableStateOf<String?>(null) }
+    val messageById = remember(chat.messages) { chat.messages.associateBy { it.id } }
+    val focusRequester = remember { FocusRequester() }
+    val keyboard = LocalSoftwareKeyboardController.current
     var unread by remember { mutableIntStateOf(0) }
     var previousLast by remember { mutableStateOf<String?>(null) }
     val list = rememberLazyListState()
@@ -70,7 +77,14 @@ fun MikuApplication.openLogin() = startActivity(Intent(this,LoginActivity::class
         }
     }
     LaunchedEffect(atBottom) { if (atBottom) unread = 0 }
-    fun send() { if (app.chat.sendChat(input,app.extras.messageLocation())) input = "" }
+    fun sendContent(content: String): Boolean {
+        val target = replyingToId
+        val payload = if (target == null) content else StudyProtocol.replyMessage(target,content) ?: return false
+        if (!app.chat.sendChat(payload,app.extras.messageLocation())) return false
+        replyingToId = null
+        return true
+    }
+    fun send() { if (sendContent(input)) input = "" }
     Column(Modifier.fillMaxSize().imePadding()) {
         Box(Modifier.weight(1f)) {
             LazyColumn(state = list,modifier = Modifier.fillMaxSize(),contentPadding = PaddingValues(16.dp),verticalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -85,6 +99,12 @@ fun MikuApplication.openLogin() = startActivity(Intent(this,LoginActivity::class
                     val prev = chat.messages.getOrNull(index-1)
                     val grouped = prev != null && (m.userId.ifBlank { m.username }).isNotBlank() && m.userId.ifBlank { m.username } == prev.userId.ifBlank { prev.username }
                     ChatBubble(m,profiles[m.userId],m.userId.isNotBlank() && m.userId == account.userId,grouped,
+                        referenced = StudyProtocol.reply(m.content)?.replyToId?.let { messageById[it] },
+                        referencedProfile = StudyProtocol.reply(m.content)?.replyToId?.let { messageById[it]?.userId }?.let { profiles[it] },
+                        onReply = {
+                            if (!account.loggedIn) app.openLogin()
+                            else { replyingToId = m.id; stickers = false; focusRequester.requestFocus(); keyboard?.show() }
+                        },
                         api = onlineMusic.config.api,onSong = { share ->
                             app.onlineMusic.load(app.onlineMusic.state.value.config.copy(platform = share.platform,id = share.playlistId,name = share.playlistName.ifBlank { "分享的歌单" })) { songs ->
                                 val selected = songs.getOrNull(share.index)?.takeIf { share.name.isBlank() || it.title == share.name || it.webTitle == share.name }
@@ -104,12 +124,18 @@ fun MikuApplication.openLogin() = startActivity(Intent(this,LoginActivity::class
                 TextButton(onClick = { if (chat.connected && account.loggedIn && !chat.authenticated) app.openLogin() else app.chat.reconnect() }) { Text(if (chat.connected && account.loggedIn && !chat.authenticated) "重新登录" else "重连") }
             }
         }
+        replyingToId?.let { id ->
+            ChatReplyPreview(messageById[id],messageById[id]?.userId?.let { profiles[it] },onCancel = { replyingToId = null })
+        }
         Row(Modifier.fillMaxWidth().padding(horizontal = 10.dp,vertical = 6.dp),verticalAlignment = Alignment.CenterVertically,horizontalArrangement = Arrangement.spacedBy(4.dp)) {
             IconButton(onClick = { stickers = true },enabled = chat.authenticated) { Icon(Icons.Rounded.SentimentSatisfiedAlt,"表情包") }
-            OutlinedTextField(input,{ if (it.length <= 500) input = it },modifier = Modifier.weight(1f),shape = RoundedCornerShape(24.dp),
+            val prefixLength = replyingToId?.let { "[reply:$it]".length } ?: 0
+            val maxLength = (500-prefixLength).coerceAtLeast(0)
+            OutlinedTextField(input,{ if (it.length <= maxLength || it.length < input.length) input = it },modifier = Modifier.weight(1f).focusRequester(focusRequester),shape = RoundedCornerShape(24.dp),
                 enabled = account.loggedIn && chat.connected && chat.authenticated,placeholder = { Text(if (account.loggedIn) "输入消息…" else "登录后可以发言",fontSize = 13.sp) },
+                isError = input.length > maxLength,supportingText = if (input.length > maxLength) { { Text("回复最多可输入 $maxLength 个字符") } } else null,
                 maxLines = 3,keyboardOptions = KeyboardOptions(imeAction = ImeAction.Send),keyboardActions = KeyboardActions(onSend = { send() }))
-            IconButton(onClick = { if (!account.loggedIn) app.openLogin() else send() },enabled = !account.loggedIn || chat.authenticated && input.isNotBlank()) {
+            IconButton(onClick = { if (!account.loggedIn) app.openLogin() else send() },enabled = !account.loggedIn || chat.authenticated && input.isNotBlank() && input.length <= maxLength) {
                 Icon(if (!account.loggedIn) Icons.Rounded.Login else Icons.Rounded.Send,if (!account.loggedIn) "登录" else "发送")
             }
         }
@@ -120,7 +146,7 @@ fun MikuApplication.openLogin() = startActivity(Intent(this,LoginActivity::class
             items((1..16).filter { it != 10 }) { id ->
                 AsyncImage("file:///android_asset/sticker/$id.${stickerExtension(id)}","发送表情包 $id",
                     Modifier.size(62.dp).clip(RoundedCornerShape(12.dp)).clickable {
-                        if (app.chat.sendChat(StudyProtocol.stickerMessage(id),app.extras.messageLocation())) { stickers = false; latest() }
+                        if (sendContent(StudyProtocol.stickerMessage(id))) { stickers = false; latest() }
                     },contentScale = ContentScale.Fit)
             }
         }
@@ -128,8 +154,26 @@ fun MikuApplication.openLogin() = startActivity(Intent(this,LoginActivity::class
 }
 fun stickerExtension(id: Int) = when (id) { 4,11,13,14 -> "jpg"; 12,15 -> "gif"; 16 -> "png"; else -> "webp" }
 
-@Composable private fun ChatBubble(m: ChatMessage,profile: UserProfile?,own: Boolean,grouped: Boolean,api: String,onSong: (SharedSong)->Unit) {
-    val name = profile?.username?.ifBlank { m.username } ?: m.username.ifBlank { "游客" }
+internal fun chatDisplayName(message: ChatMessage,profile: UserProfile?) = profile?.username?.takeIf { it.isNotBlank() } ?: message.username.ifBlank { "游客" }
+
+@Composable internal fun ChatReplyPreview(message: ChatMessage?,profile: UserProfile?,onCancel: () -> Unit) {
+    Surface(shape = RoundedCornerShape(20.dp),color = MaterialTheme.colorScheme.secondaryContainer,
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp,vertical = 4.dp)) {
+        Row(Modifier.padding(start = 12.dp,end = 4.dp),verticalAlignment = Alignment.CenterVertically,horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            Icon(Icons.Rounded.Reply,null,Modifier.size(20.dp))
+            Column(Modifier.weight(1f),verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                Text(if (message == null) "回复已选消息" else "回复 ${chatDisplayName(message,profile)}",style = MaterialTheme.typography.labelLarge)
+                Text(message?.let { StudyProtocol.replySummary(it.content) } ?: "原消息未加载",style = MaterialTheme.typography.bodySmall,
+                    maxLines = 1,overflow = TextOverflow.Ellipsis)
+            }
+            IconButton(onClick = onCancel) { Icon(Icons.Rounded.Close,"取消回复") }
+        }
+    }
+}
+
+@Composable internal fun ChatBubble(m: ChatMessage,profile: UserProfile?,own: Boolean,grouped: Boolean,api: String,
+    referenced: ChatMessage? = null,referencedProfile: UserProfile? = null,onReply: () -> Unit = {},onSong: (SharedSong)->Unit) {
+    val name = chatDisplayName(m,profile)
     Row(Modifier.fillMaxWidth(),horizontalArrangement = Arrangement.spacedBy(8.dp),verticalAlignment = Alignment.Top) {
         if (!grouped) UserAvatar(profile?.avatar,name,Modifier.size(34.dp)) else Spacer(Modifier.width(34.dp))
         Column(Modifier.weight(1f),verticalArrangement = Arrangement.spacedBy(5.dp)) {
@@ -140,9 +184,21 @@ fun stickerExtension(id: Int) = when (id) { 4,11,13,14 -> "jpg"; 12,15 -> "gif";
                 Text(runCatching { Instant.parse(m.createdAt).atZone(ZoneId.systemDefault()).format(DateTimeFormatter.ofPattern("M.d HH:mm")) }.getOrDefault(""),
                     style = MaterialTheme.typography.labelSmall,color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
-            val sticker = StudyProtocol.stickerId(m.content)
-            val song = StudyProtocol.sharedSong(m.content)
-            val day = StudyProtocol.countdown(m.content)
+            val reply = StudyProtocol.reply(m.content)
+            val content = reply?.text ?: m.content
+            Row(verticalAlignment = Alignment.Top,horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+            Column(Modifier.weight(1f),verticalArrangement = Arrangement.spacedBy(5.dp)) {
+            if (reply != null) Surface(shape = RoundedCornerShape(12.dp),color = MaterialTheme.colorScheme.surfaceContainerHigh) {
+                Column(Modifier.fillMaxWidth().padding(10.dp),verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                    Text(referenced?.let { chatDisplayName(it,referencedProfile) } ?: "原消息未加载",style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.primary,maxLines = 1,overflow = TextOverflow.Ellipsis)
+                    Text(referenced?.let { StudyProtocol.replySummary(it.content) } ?: "可加载更早的消息查看引用",style = MaterialTheme.typography.bodySmall,
+                        maxLines = 2,overflow = TextOverflow.Ellipsis)
+                }
+            }
+            val sticker = StudyProtocol.stickerId(content)
+            val song = StudyProtocol.sharedSong(content)
+            val day = StudyProtocol.countdown(content)
             when {
                 sticker != null -> AsyncImage("file:///android_asset/sticker/$sticker.${stickerExtension(sticker)}","表情包 $sticker",Modifier.size(130.dp),contentScale = ContentScale.Fit)
                 song != null -> Surface(onClick = { onSong(song) },shape = RoundedCornerShape(20.dp),color = MaterialTheme.colorScheme.primaryContainer) {
@@ -161,8 +217,11 @@ fun stickerExtension(id: Int) = when (id) { 4,11,13,14 -> "jpg"; 12,15 -> "gif";
                     }
                 }
                 else -> Surface(shape = RoundedCornerShape(18.dp),color = if (own) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surfaceContainer) {
-                    SelectionContainer { Text(m.content,Modifier.padding(12.dp),style = MaterialTheme.typography.bodyMedium) }
+                    SelectionContainer { Text(content,Modifier.padding(12.dp),style = MaterialTheme.typography.bodyMedium) }
                 }
+            }
+            }
+            IconButton(onClick = onReply) { Icon(Icons.Rounded.Reply,"回复 $name",Modifier.size(20.dp)) }
             }
         }
     }

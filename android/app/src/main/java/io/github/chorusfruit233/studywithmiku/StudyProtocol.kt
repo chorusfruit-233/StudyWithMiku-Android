@@ -23,6 +23,7 @@ data class ChatMessage(val id: String, val userId: String, val username: String,
     val timestamp get() = runCatching { Instant.parse(createdAt).toEpochMilli() }.getOrDefault(0)
 }
 data class SharedSong(val platform: String, val playlistId: String, val index: Int, val name: String, val cover: String, val playlistName: String)
+data class ChatReply(val replyToId: String,val text: String)
 data class CloudStudy(val data: JSONObject = JSONObject(), val calendar: JSONObject = JSONObject())
 
 object StudyProtocol {
@@ -53,6 +54,25 @@ object StudyProtocol {
     }
     fun mergeMessages(vararg lists: List<ChatMessage>) = lists.flatMap { it }.associateBy { it.id }.values
         .sortedWith(compareBy<ChatMessage> { it.timestamp }.thenBy { it.id })
+    /** Original text protocol: the worker stores the reply prefix as ordinary message content. */
+    fun reply(content: String): ChatReply? {
+        val match = Regex("^\\[reply:([^\\]]+)]").find(content) ?: return null
+        return ChatReply(match.groupValues[1],content.substring(match.value.length))
+    }
+    fun replyMessage(replyToId: String,text: String): String? {
+        val id = replyToId.trim()
+        val body = text.trim()
+        if (id.isBlank() || ']' in id || body.isBlank()) return null
+        return "[reply:$id]$body"
+    }
+    fun replySummary(content: String): String {
+        val body = (reply(content)?.text ?: content).trim()
+        if (body.isEmpty()) return "[空消息]"
+        if (stickerId(body) != null) return "[表情包]"
+        sharedSong(body)?.let { return "[音乐] ${it.name.ifBlank { "未知歌曲" }}" }
+        countdown(body)?.let { return "[倒计时] ${it.title.ifBlank { it.date }}" }
+        return if (body.length > 40) body.take(40)+"…" else body
+    }
     fun stickerId(content: String): Int? = Regex("^\\[sticker:([0-9]+)]$").matchEntire(content)?.groupValues?.get(1)?.toIntOrNull()?.takeIf { it in 1..16 }
     fun stickerMessage(id: Int) = if (id in 1..16 && id != 10) "[sticker:$id]" else ""
     fun stickerUrl(id: Int): String {

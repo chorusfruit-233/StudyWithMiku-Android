@@ -1,6 +1,6 @@
 # Study With Miku · Android 工程说明
 
-非官方 Android 移植。原作：[shshouse/StudyWithMiku](https://github.com/shshouse/StudyWithMiku)，基线提交 `159db717f02debf71a5138764ed8e068f4577f94`。原生 Kotlin、Compose、Media3；Material 3 Expressive 主题、动态形状按钮和花瓣计时进度。支持 Android 8.0（API 26）以上，target API 35。
+非官方 Android 移植。原作：[shshouse/StudyWithMiku](https://github.com/shshouse/StudyWithMiku)，功能基线更新至提交 `a3c4e5e0d4be48b2e21662ac85ff6022f8aa926d`，覆盖原作 2026-10-09 更新记录及 10 月 10 日的歌单管理后续调整。原生 Kotlin、Compose、Media3；Material 3 Expressive 主题、动态形状按钮和花瓣计时进度。支持 Android 8.0（API 26）以上，target API 35。
 
 仓库和已发布版本公开；安装请使用 [最新正式 Release](https://github.com/chorusfruit-233/StudyWithMiku-Android/releases/latest)。用户说明见 [根目录 README](../README.md)，更新记录见 [CHANGELOG.md](../CHANGELOG.md)。本页说明功能映射、接口与原生适配。
 
@@ -13,12 +13,13 @@
 | 原作功能 | Android 实现 |
 | --- | --- |
 | 网络播放器 | 网易云／QQ、默认及全部 10 个推荐歌单、歌单 ID／链接、Meting 源、音质、封面、歌词、音量、队列、循环与随机 |
+| 我的网络歌单 | 自定义歌单成功获取后保存平台、ID 与名称；重复获取去重并保留名称，重启后可切换，删除先确认 |
 | 彩蛋音乐 | 11 首内置；追加到站长歌单时保持网页顺序与共享索引 |
 | 播放衔接 | 提前 20 秒缓冲、末尾 6 秒交叉淡出淡入；缓冲未就绪时正常切歌 |
 | 官方账号 | 官方网页登录与原站 HTTPS 回调，服务端验证凭据，Android Keystore 加密保存，过期与退出登录 |
 | 学习云同步 | 统计、全局待办、设置、倒数日、每日学习记录与日历计划；手动拉取／上传、自动同步、冲突选择、账号隔离 |
 | 在线状态 | 实时人数、管理员在线状态、断线重连与心跳 |
-| 聊天室 | 匿名阅读、登录发言、50 条历史分页、消息排序去重、头像与用户名、连续消息分组、未读提示、地区显示 |
+| 聊天室 | 匿名阅读、登录发言、引用回复与取消回复、50 条历史分页、消息排序去重、头像与用户名、连续消息分组、未读提示、地区显示 |
 | 表情包 | 原作所有现行表情与 GIF；已撤下的第 10 号仅兼容历史消息 |
 | 分享 | 歌曲卡片可加载原歌单定位歌曲；发送和接收倒数日卡片 |
 | 一言 | 原作本地语录与 Hitokoto 在线语录、五分钟更新、点击换句 |
@@ -42,7 +43,11 @@
 
 聊天连接 `wss://online.study.mikugame.cc/ws`，使用原作 `auth`、`username`、`ping`、`load_history`、`chat` JSON 协议。登录后才能发言；昵称不能替代服务端认证。退出登录后重新建立匿名连接。
 
+回复使用原作 `[reply:消息id]正文` 文本协议，无需额外后端接口。显示引用用户名和摘要，引用原消息未加载时保留正文并提示加载历史；回复正文中的表情、歌曲与倒数日仍按原卡片类型显示。发送成功后清除回复目标，失败保留输入与目标，切换账号会清除回复目标。500 字符上限包含回复前缀。
+
 音乐源默认 `https://api.qijieya.cn/meting/`，默认网易云歌单 `17543418420`，音质 `2000`；推荐歌单与平台保持原作数据。平台 HTTP／HTTPS CDN、重定向和资源可用性沿用原作，仍校验 TLS。网络列表缓存不等于歌曲下载。
+
+“我的网络歌单”与 Android 本地歌曲组成的歌单分开保存。自定义歌单只有曲目加载成功后才进入列表；名称通过原作 `https://online.study.mikugame.cc/playlist-name?platform=…&id=…` 获取，最多等待四秒，失败显示 `ID:歌单id`。该请求不发送账号凭据。保存键为平台与歌单 ID，同 ID 在网易云和 QQ 中可分别保留；该列表只保存在本机，不进入学习云同步。
 
 ## 构建与验证
 
