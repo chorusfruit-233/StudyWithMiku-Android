@@ -1,0 +1,19 @@
+{
+  "variant": "release",
+  "version": "1.2.8",
+  "versionCode": 11,
+  "unitTests": {
+    "tests": 82,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "lintErrors": 0,
+  "signingVerified": true,
+  "debuggable": false,
+  "expectedCertificateSha256": "e07a05095f2b19e1b7b37d48e67016da4b5cf78386a03020410a3a134e1f12ad",
+  "provenance": "Local build with user-provided keystore; current GitHub integration cannot manage repository secrets (403).",
+  "sourceCommit": "f7fee3b317893be255f63f43b441eb00ae698580",
+  "upstreamCommit": "a3c4e5e0d4be48b2e21662ac85ff6022f8aa926d",
+  "releaseDeviceTested": false
+}

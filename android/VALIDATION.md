@@ -8,15 +8,20 @@
 
 公开发行的签名正式包仍为 1.2.7；下方分别记录后续 1.2.8 源码适配和已发布版本的验证结果。
 
-## 1.2.8 原作 2026-10-09 更新适配（设备验证进行中）
+## 1.2.8 原作 2026-10-09 更新适配
 
 - 原作功能基线从 `159db717f02debf71a5138764ed8e068f4577f94` 更新至 `a3c4e5e0d4be48b2e21662ac85ff6022f8aa926d`，覆盖自定义网络歌单管理、名称获取、聊天室引用回复、一言及更新记录。
 - 自定义网络歌单在曲目加载成功后保存平台、ID 与名称，平台＋ID 去重，名称失败使用 ID。保存列表与本地歌曲歌单及学习云同步分离。名称接口使用原作 Worker，四秒超时，不发送账号凭据。
 - 回复沿用 `[reply:消息id]正文`，保留引用目标与输入直到发送成功，退出或切换账号清除目标；正文按表情、歌曲、倒数日或文本渲染，引用未加载时显示明确提示。500 字符限制包含回复前缀。
-- 本地 `assembleDebug testDebugUnitTest lintDebug assembleDebugAndroidTest` 成功，82 项 Debug 单元测试通过、0 失败／错误／跳过，Lint 0 错误；新增回复协议、平台去重、名称失败和响应大小等回归测试。Android 测试 APK 编译成功，设备执行结果将在运行后补充。
+- 本地 `assembleDebug testDebugUnitTest lintDebug assembleDebugAndroidTest` 成功，82 项 Debug 单元测试通过、0 失败／错误／跳过，Lint 0 错误；新增回复协议、平台去重、名称失败和响应大小等回归测试。Android 测试 APK 编译成功。
 - 实际匿名读取原作 `/playlist-name`，网易云默认歌单返回“StudyWithMiku初音在线自习室”，QQ 歌单 `9515739794` 返回“阿氏圆的专注音乐集”，均为 HTTP 200。未登录账号、发送聊天或写入云端学习资料。
 - `quotes.json` 与 `updates.json` 来自该原作提交的实际 JavaScript 导出数组，分别为 47 条一言与 31 条更新记录，最新记录日期为 `2026-10-9`；不包含源文件中已注释停用的一言。
-- 版本为 1.2.8、versionCode=11，包名与正式证书目标沿用 1.2.7。签名 Release 与模拟器回归尚在准备，当前不宣称已通过。
+- 版本为 1.2.8、versionCode=11，包名与正式证书目标沿用 1.2.7。本地 `assembleRelease testReleaseUnitTest lintRelease` 成功，82 项 Release 单元测试全部通过、Lint 0 错误。签名 APK 的固定证书、包名、versionCode=11 和 `debuggable=false` 已验证，与 1.2.7 使用同一证书。
+- [Debug Actions 38068345768](https://github.com/chorusfruit-233/StudyWithMiku-Android/actions/runs/38068345768) 完成构建与模拟器回归；下载报告确认 82 项 Debug 单元测试、16 项 Android 35 测试全部通过，0 失败／错误／跳过，Debug Lint 0 错误。新增设备用例覆盖网络歌单持久化、音乐与名称接口失败、引用回复与取消、引用未加载时的表情以及删除确认，原有同步与聊天室滚动回归仍通过。
+- [回复组件截图与原始设备报告](validation/upstream-1.2.8/README.txt) 使用合成消息、独立 SharedPreferences 和本地 HTTP 测试服务，未使用真实账号或向聊天室发言；截图属于生产组件的测试窗口，未覆盖主界面所有主题或字体大小。设备结果属于 Debug 构建，不作为签名 Release 真机验收。
+- 签名 Release 的应用源码提交为 `f7fee3b317893be255f63f43b441eb00ae698580`，APK 大小 129,367,996 字节，SHA-256 为 `f329513742350c750cfffc47cec2425b1f072f88d2a2b6bde6741600fbda5e53`。[1.2.8 Release 草稿](https://github.com/chorusfruit-233/StudyWithMiku-Android/releases/tag/untagged-34ddd8ce8bc99e089ae3) 已保存 APK、校验值、公开证书和 Release 报告，仅维护者可见，尚未公开发布。
+
+- 本地附件上传返回 HTTP 401，改用临时 APK 传送分支与 [Actions 38068758745](https://github.com/chorusfruit-233/StudyWithMiku-Android/actions/runs/38068758745) 核验固定证书、包名、关闭调试和 SHA-256 后上传。签名在本地完成，Actions 仅核验与上传；未上传密钥或密码，临时分支已删除。从 GitHub 重新下载后，APK 签名和 SHA-256 均通过，Release 报告确认 82 项测试及源码提交一致。
 
 ## 1.2.7 固定密钥 Release 签名
 
