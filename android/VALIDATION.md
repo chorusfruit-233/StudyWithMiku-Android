@@ -2,7 +2,7 @@
 
 ## 公开发布状态（2026-10-10）
 
-仓库已公开，[v1.2.7](https://github.com/chorusfruit-233/StudyWithMiku-Android/releases/tag/v1.2.7) 已正式发布。已通过不携带账号凭据的 GitHub API 请求确认仓库及该版本公开，Release 提供 APK、文件校验值、公开证书资料和 Release 检查报告。
+仓库已公开，[v1.2.7](https://github.com/chorusfruit-233/StudyWithMiku-Android/releases/tag/v1.2.7) 已正式发布。GitHub 元数据确认仓库为 `public`、该版本 `draft=false`；未登录的网页视图能打开正式 Release，下载链接返回 HTTP 206 与有效 APK 文件头。Release 提供 APK、文件校验值、公开证书资料和 Release 检查报告。
 
 下文保留各版本真实构建、测试结果与验收范围。仓库公开不会自动发布历史 Debug 草稿；因此以草稿标识保留旧产物来源，不将其作为公众下载入口。本目录的回归报告与截图可随源码公开查看。
 
