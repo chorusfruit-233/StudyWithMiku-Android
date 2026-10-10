@@ -3,6 +3,9 @@
 - 应用标识与命名空间统一为 `io.github.chorusfruit233.studywithmiku`，Kotlin 主代码、单元测试与设备测试的 package 声明及目录同步迁移。版本 1.2.4、versionCode=7。
 - 本地 `assembleDebug testDebugUnitTest lintDebug assembleDebugAndroidTest` 成功；58 项单元测试通过，0 失败／错误／跳过，Lint 0 错误。测试报告类名为新命名空间。
 - 本地 APK 的实际包名为 `io.github.chorusfruit233.studywithmiku`，APK 签名验证通过。合并清单中的 Application、入口与登录 Activity、播放器与计时服务均使用新命名空间；设备测试目标包名同步正确。
+- 最终源码构建提交 `affa320ad4cf45b381aa07ddf8a7fd79a00a5d9c`；[GitHub Actions 38051501529](https://github.com/chorusfruit-233/StudyWithMiku-Android/actions/runs/38051501529) 成功。下载云端报告确认 58 项测试、0 失败／错误／跳过，Lint 0 错误，测试类均使用新命名空间。
+- 下载 APK 确认包名 `io.github.chorusfruit233.studywithmiku`、版本 1.2.4、versionCode=7、最低 API 26、target API 35，APK v2 签名验证通过。SHA-256 与 CI 校验文件一致：`1c7eaf9a221ded76d7e43ffdfde69d90c675377f368d7b59b5fc8b5a154dbdf9`。
+- [私有 APK 草稿](https://github.com/chorusfruit-233/StudyWithMiku-Android/releases/tag/untagged-73fc7649ae9e93388669) 提供 APK、SHA256SUMS.txt 和 Android-check-reports.zip。
 - 本次未执行设备测试或真实账号端到端测试；设备测试 APK 只验证编译与目标包配置。
 - 新包名作为独立应用安装，可与旧版共存；本机数据不自动迁移。云端学习资料可通过同一账号恢复，无需卸载旧包名应用。
 
