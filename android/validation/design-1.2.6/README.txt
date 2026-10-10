@@ -3,7 +3,8 @@ Study With Miku Android 1.2.6 design validation
 Product change: 33c4a5fb721212e2ea3306a62610932acaf6b991
 Final build: ec97ad0f4b28f098640e410176fb1a06a3b3d3e1
 GitHub Actions: https://github.com/chorusfruit-233/StudyWithMiku-Android/actions/runs/38056241528
-Private release draft: https://github.com/chorusfruit-233/StudyWithMiku-Android/releases/tag/untagged-bcc1b048202eebda340d
+Historical Debug draft: ci-ec97ad0f4b28 (unpublished; visible to maintainers with write access)
+Public signed releases: https://github.com/chorusfruit-233/StudyWithMiku-Android/releases/latest
 APK: StudyWithMiku-Android-1.2.6-ec97ad0.apk
 SHA-256: 8a58c770ece19ae8583d0ce07f39a9261a00ff91c0e9141e5495283a66e01345
 Application ID: io.github.chorusfruit233.studywithmiku

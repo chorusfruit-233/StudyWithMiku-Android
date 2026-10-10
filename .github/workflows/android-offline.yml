@@ -61,7 +61,7 @@ jobs:
           cp app/build/outputs/apk/debug/app-debug.apk "../artifacts/StudyWithMiku-Android-$debug_version-debug-${GITHUB_SHA:0:7}.apk"
           cd ../artifacts
           sha256sum *.apk > SHA256SUMS.txt
-      - name: Save APK and reports to a private release draft
+      - name: Save Debug APK and reports to an unpublished release draft
         if: github.event_name != 'pull_request'
         env:
           GH_TOKEN: ${{ github.token }}

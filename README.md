@@ -1,44 +1,80 @@
-# Study With Miku · Android 版
+# Study With Miku · Android
 
-[![Android APK](https://github.com/chorusfruit-233/StudyWithMiku-Android/actions/workflows/android-offline.yml/badge.svg)](https://github.com/chorusfruit-233/StudyWithMiku-Android/actions/workflows/android-offline.yml)
+[![Release](https://img.shields.io/github/v/release/chorusfruit-233/StudyWithMiku-Android)](https://github.com/chorusfruit-233/StudyWithMiku-Android/releases/latest)
+[![Android CI](https://github.com/chorusfruit-233/StudyWithMiku-Android/actions/workflows/android-offline.yml/badge.svg)](https://github.com/chorusfruit-233/StudyWithMiku-Android/actions/workflows/android-offline.yml)
+[![GPL-3.0](https://img.shields.io/badge/license-GPL--3.0-blue)](LICENSE)
 
-基于 [shshouse/StudyWithMiku](https://github.com/shshouse/StudyWithMiku) 的原生 Android 移植，使用 Kotlin、Jetpack Compose 和 Material 3 Expressive。1.2.7 保留原项目的完整在线功能：网易云／QQ 音乐、全部推荐歌单、MikuMod 官方账号、学习数据与日历云同步、在线人数、管理员在线状态、实时聊天室、历史消息、头像、表情包、歌曲和倒数日分享、一言与 IP 地区。
+和 Miku 一起学习、听歌，记录每一天的专注时间。
 
-番茄钟、倒计时、正计时、计划、记录、三段场景和十一首内置音乐可离线使用。网络功能沿用原站服务，无需修改后端。
+基于 [shshouse/StudyWithMiku](https://github.com/shshouse/StudyWithMiku) 的非官方原生 Android 移植，使用 Kotlin、Jetpack Compose、Media3 和 Material 3 Expressive。保留原项目的网络播放器、推荐歌单、账号同步与聊天室，同时提供离线计时、内置音乐和本地计划。网络功能沿用原站服务。
 
-## 下载 APK
+## 下载与安装
 
-打开 [Android Release APK 1.2.7 私有草稿](https://github.com/chorusfruit-233/StudyWithMiku-Android/releases/tag/untagged-2813a9700863c1d80418)，下载 `StudyWithMiku-Android-1.2.7-release.apk`。包名为 `io.github.chorusfruit233.studywithmiku`，支持 Android 8.0 及以上。仓库保持私有；草稿仅对有仓库写入权限的用户可见。
+**[下载最新正式版](https://github.com/chorusfruit-233/StudyWithMiku-Android/releases/latest)** · [全部已发布版本](https://github.com/chorusfruit-233/StudyWithMiku-Android/releases)
 
-[正式包构建与发布指南](android/RELEASING.md)：配置四个 Actions Secrets 后，在 Actions 运行 **Android signed release**，或推送版本标签，生成固定签名、关闭调试的 Release APK，并保存为私有草稿。当前 GitHub 连接没有 Secrets 管理权限，需要仓库管理员在设置页面填写；本次正式包已在本地签名，经 Actions 再次验证并上传。
+当前正式版为 **1.2.7**，可直接下载 [StudyWithMiku-Android-1.2.7-release.apk](https://github.com/chorusfruit-233/StudyWithMiku-Android/releases/download/v1.2.7/StudyWithMiku-Android-1.2.7-release.apk)。仓库、源码及已发布的 Release 均公开，下载无需仓库权限。
 
-向 `main` 推送 Android 源码会自动构建调试包，并运行单元测试与 Android 模拟器交互回归、运行 Lint 和验证 APK 签名，输出 APK、SHA-256 校验值和检查报告。也可在 Actions 中手动运行。由于账户的 Actions 产物存储额度已满，产物保存到私有 Release 草稿。
+| 项目 | 信息 |
+| --- | --- |
+| 系统要求 | Android 8.0（API 26）及以上 |
+| 包名 | `io.github.chorusfruit233.studywithmiku` |
+| 正式签名 | 固定 StudyWithMiku 证书，关闭调试 |
+| 安装包大小 | 1.2.7 约 129 MB，包含全部离线音乐与场景视频 |
 
-1.2.4 更换包名，作为独立应用安装，可与旧版共存。本机资料不会自动迁移，登录同一账号可恢复云端学习资料。
+Release 附带 `SHA256SUMS.txt`、`SIGNING-CERTIFICATE.txt` 和检查报告，可用于核对文件与签名。
 
-1.2.7 起提供固定 StudyWithMiku 密钥签名的正式 Release 包；后续保持同签名、同包名并提高 versionCode，可覆盖升级。此前调试 APK 的签名不同，首次切换不能覆盖安装；卸载会删除本机资料。密钥与密码不进入代码仓库。
+正式版升级需保持同包名、同签名及更高的 `versionCode`。此前的 Debug APK 使用临时签名，首次切换不能覆盖安装；先保存需要的资料，卸载会删除本机资料。旧包名应用可与当前应用共存，本机资料不会自动迁移。
 
-启动图标支持 Android 8.0 自适应形状和 Android 13 单色主题；主题图标需要启动器支持并启用。
+## 功能
 
-## 使用账号与同步
+| 页面 | 功能 |
+| --- | --- |
+| 专注 | 番茄钟、倒计时、正计时、短休息与长休息、三段 Miku 场景、静态模式、沉浸全屏和完成语音 |
+| 音乐 | 网易云／QQ 网络播放、原作 10 个推荐歌单、自定义歌单链接、封面与歌词、队列与循环、11 首内置音乐、本地导入与收藏 |
+| 计划与记录 | 待办、日期计划、倒数日、每日专注统计和月度热力日历 |
+| 社区与账号 | MikuMod 官方网页登录、学习资料与日历云同步、在线人数、管理员状态、实时聊天与历史分页、头像、表情及歌曲／倒数日分享 |
+| 外观与系统集成 | Material 3 Expressive、深浅主题、壁纸取色、自适应与单色主题图标、通知栏／锁屏媒体控制 |
 
-在“社区 → 账号”进入 MikuMod 官方网页登录，完成登录后自动返回应用。认证与权限由原站处理。首次遇到本地／云端均有记录时，选择使用云端、上传本地或合并，再点击确认；合并采用原作的逐日最大值和 ID 去重规则。切换账号时分别保存各账号和访客记录。
+番茄钟、计划、记录、三段场景和内置音乐可离线使用。网络歌曲、账号与社区功能需要联网；歌单缓存不代表歌曲已下载。
 
-选择“使用云端资料”并确认后，会重新读取最新学习统计与日历，保存到本机后显示完成反馈；失败会保留本地资料与选择框，可直接重试。已接受的资料再次进入不重复弹窗；云端有更新而本地没有改动时自动读取，双方都有改动时再选择。1.2.3 统一网页与 Android 的资料比较，排除跨天、空记录、默认值和浮点格式造成的误报；真实冲突显示秒数与差异类别。
+## 账号与同步
 
-官方账号端到端登录、真实发言和云端读写仍需用户在手机上验收；不提供开发者代登录，不收集用户密码。具体验证范围见 [验证记录](android/VALIDATION.md)。
+在 **社区 → 账号** 打开 MikuMod 官方登录页，完成认证后返回应用。登录沿用原站流程，应用不读取账号密码。
 
-## 开发
+首次关联有差异的本地与云端资料时，选择“使用云端资料”“保留本地并上传”或“合并并同步”，再点击确认。合并按原作规则保留每天较大的学习值，并对待办、计划等按 ID 去重。
 
-Android Studio 打开 [android](android/)，使用 JDK 17、Android SDK 35：
+读取成功并保存后才关闭同步窗口；失败会保留本地资料与选择框。已接受且没有变化的资料不会重复要求选择，云端更新与本地修改同时出现时会再次核对。切换账号时，账号与访客资料分别保存。同步范围沿用原作；本地导入音乐、收藏、播放队列与主题等 Android 扩展保存在本机。
 
-```sh
-cd android
+## 开发与构建
+
+使用 Android Studio 打开 [android](android/) 目录，准备 JDK 17、Android SDK 35 和 Build Tools 35.0.0：
+
+```bash
+git clone https://github.com/chorusfruit-233/StudyWithMiku-Android.git
+cd StudyWithMiku-Android/android
 ./gradlew assembleDebug testDebugUnitTest lintDebug
 ```
 
-功能映射、接口和原生适配见 [工程说明](android/README.md)。保留原作署名与 [GPL-3.0 许可](LICENSE)。
+Debug APK 输出到 `android/app/build/outputs/apk/debug/app-debug.apk`，构建 Debug 无需正式签名密钥。
 
-1.2.6 修正同步弹窗与账号操作、统一关于入口，并改进计时、计划删除与容量限制、记录翻月、歌词加载、歌单平台识别和窄屏播放布局。
+正式发行见 [Release 构建与发布指南](android/RELEASING.md)。`Android app` 工作流负责 Debug 构建和 Android 模拟器回归；`Android signed release` 负责固定签名的 Release 构建。工作流先保存 Release 草稿，维护者点击 **Publish release** 后才向公众展示。历史 Debug 草稿仍仅供有仓库写入权限的维护者查看。
 
-1.2.7 添加固定密钥 Release 签名、正式包证书与 debug 标志验证，以及独立发布工作流。
+当前 1.2.7 已通过 70 项 Release 单元测试和 Release Lint。相同应用源码的 Debug 构建通过 10 项 Android 35 模拟器回归；这些结果不等同于正式包真机或真实账号端到端验收。具体验证范围见 [验证记录](android/VALIDATION.md)。
+
+安装包体积主要来自 11 首音乐（约 65 MB）与 3 段视频（约 44 MB）。1.2.7 尚未启用 R8 代码裁剪及资源裁剪，音视频沿用原始编码。
+
+## 文档与反馈
+
+- [工程说明与原作功能映射](android/README.md)
+- [签名、构建与发布流程](android/RELEASING.md)
+- [更新记录](CHANGELOG.md)
+- [测试结果与验证范围](android/VALIDATION.md)
+- [提交问题或建议](https://github.com/chorusfruit-233/StudyWithMiku-Android/issues)
+
+报告问题时，请说明应用版本、手机与 Android 版本、复现步骤，以及预期和实际结果。
+
+## 致谢与许可
+
+原项目由 **SHSHOUSE** 创作：[StudyWithMiku](https://github.com/shshouse/StudyWithMiku)。Android 移植保留原作署名，遵循 [GNU GPL v3](LICENSE)。
+
+场景、音乐、完成语音、贴图、表情与推荐歌单沿用原项目。音乐来源包括和未来一起喝茶、Alice In Cradle 与 Snail’s House；资源与角色权利归各自权利人。依赖与资源说明见 [工程文档](android/README.md#资源与许可)。

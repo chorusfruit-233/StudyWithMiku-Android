@@ -1,6 +1,8 @@
-# Study With Miku · Android 1.2.7
+# Study With Miku · Android 工程说明
 
-原作：[shshouse/StudyWithMiku](https://github.com/shshouse/StudyWithMiku)，基线提交 `159db717f02debf71a5138764ed8e068f4577f94`。原生 Kotlin、Compose、Media3；Material 3 Expressive 主题、动态形状按钮和花瓣计时进度。支持 Android 8.0（API 26）以上，target API 35。
+非官方 Android 移植。原作：[shshouse/StudyWithMiku](https://github.com/shshouse/StudyWithMiku)，基线提交 `159db717f02debf71a5138764ed8e068f4577f94`。原生 Kotlin、Compose、Media3；Material 3 Expressive 主题、动态形状按钮和花瓣计时进度。支持 Android 8.0（API 26）以上，target API 35。
+
+仓库和已发布版本公开；安装请使用 [最新正式 Release](https://github.com/chorusfruit-233/StudyWithMiku-Android/releases/latest)。用户说明见 [根目录 README](../README.md)，更新记录见 [CHANGELOG.md](../CHANGELOG.md)。本页说明功能映射、接口与原生适配。
 
 包名（applicationId 与 namespace）：`io.github.chorusfruit233.studywithmiku`。新包名作为独立应用安装，可与旧版共存；本机资料不自动迁移，可登录同一账号恢复云端学习资料。
 
@@ -45,14 +47,23 @@
 ## 构建与验证
 
 ```sh
+cd android
 ./gradlew assembleDebug testDebugUnitTest lintDebug
 ```
 
-需要 JDK 17、SDK 35；首次构建下载依赖。输出 `app/build/outputs/apk/debug/app-debug.apk`。调试签名每次 CI 生成。正式 Release 包由固定 StudyWithMiku 密钥签名；环境变量提供签名参数，工程无签名私钥或密码，缺少参数时 Release 打包明确失败。详见 [RELEASING.md](RELEASING.md)。Expressive API 使用明确固定的 `material3:1.4.0-alpha18`。
+从仓库根目录执行以上命令，需要 JDK 17、Android SDK 35 和 Build Tools 35.0.0；首次构建下载依赖。输出 `android/app/build/outputs/apk/debug/app-debug.apk`。Debug 构建无需正式密钥，临时签名由构建环境生成。正式 Release 包使用固定 StudyWithMiku 证书；环境变量提供签名参数，公开源码不包含签名私钥或密码，缺少参数时 Release 打包明确失败。详见 [RELEASING.md](RELEASING.md)。Expressive API 使用明确固定的 `material3:1.4.0-alpha18`。
+
+`Android app` 工作流在源码变更时构建 Debug，并执行单元测试、Lint 与 Android 35 设备回归；Debug 附件保留在未公开草稿中。`Android signed release` 工作流通过版本标签或手动运行构建正式包，先生成草稿，维护者确认后公开发布。已发布版本不会被工作流覆盖。
 
 协议、HTTP 错误、账号凭据校验、云合并、分享和计时单元测试使用本地测试服务器。真实账号登录、发言、云端写入与跨设备同步须在用户手机上验收；当前无测试账号。详细边界见 [VALIDATION.md](VALIDATION.md)。
 
 有设备或模拟器时，可运行 `./gradlew connectedDebugAndroidTest` 执行离线聊天手势回归测试；CI 会在 Android 35 模拟器运行聊天手势、同步选择、任务操作与持久化回归，执行结果记录在验证文档中。
+
+## 安装包组成
+
+1.2.7 正式 APK 约 129 MB：11 首内置 MP3 约 65 MB、3 段 MP4 约 44 MB、DEX 代码约 15 MB，其余为图片、表情、资源与元数据。内置音视频约占 84%，均保留原始编码。
+
+该版本 `isMinifyEnabled=false`，尚未开启 R8 和资源裁剪；`mp3`、`mp4` 以不再 ZIP 压缩的方式打包。网络歌单本身只保存配置和列表，不把所有推荐歌曲打入 APK。
 
 ## 资源与许可
 

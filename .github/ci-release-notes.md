@@ -12,6 +12,6 @@
 
 下载 APK 安装，SHA256SUMS.txt 为校验值。Android-check-reports.zip 包含单元测试、Lint、Android 模拟器交互与持久化回归报告。真实账号登录、发言与云端写入仍需手机验收，未使用真实用户账号进行端到端测试。
 
-云端构建使用临时调试签名，可能无法覆盖安装旧版；卸载会删除本机资料，请先保存需要的资料。此 Release 保持私有草稿。
+云端构建使用临时调试签名，可能无法覆盖安装旧版；卸载会删除本机资料，请先保存需要的资料。本条目为未发布的 Debug 草稿，仅对有仓库写入权限的维护者可见；仓库公开不会自动发布草稿。
 
-此为调试构建；固定签名的正式包由 Android signed release 工作流生成，见对应版本的 Release 草稿。
+面向用户的固定签名正式包见 [最新公开 Release](https://github.com/chorusfruit-233/StudyWithMiku-Android/releases/latest)。正式构建与发布流程见 [RELEASING.md](https://github.com/chorusfruit-233/StudyWithMiku-Android/blob/main/android/RELEASING.md)。
