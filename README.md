@@ -2,7 +2,7 @@
 
 [![Android APK](https://github.com/chorusfruit-233/StudyWithMiku-Android/actions/workflows/android-offline.yml/badge.svg)](https://github.com/chorusfruit-233/StudyWithMiku-Android/actions/workflows/android-offline.yml)
 
-基于 [shshouse/StudyWithMiku](https://github.com/shshouse/StudyWithMiku) 的原生 Android 移植，使用 Kotlin、Jetpack Compose 和 Material 3 Expressive。1.2.6 接入原项目的完整在线功能：网易云／QQ 音乐、全部推荐歌单、MikuMod 官方账号、学习数据与日历云同步、在线人数、管理员在线状态、实时聊天室、历史消息、头像、表情包、歌曲和倒数日分享、一言与 IP 地区。
+基于 [shshouse/StudyWithMiku](https://github.com/shshouse/StudyWithMiku) 的原生 Android 移植，使用 Kotlin、Jetpack Compose 和 Material 3 Expressive。1.2.7 保留原项目的完整在线功能：网易云／QQ 音乐、全部推荐歌单、MikuMod 官方账号、学习数据与日历云同步、在线人数、管理员在线状态、实时聊天室、历史消息、头像、表情包、歌曲和倒数日分享、一言与 IP 地区。
 
 番茄钟、倒计时、正计时、计划、记录、三段场景和十一首内置音乐可离线使用。网络功能沿用原站服务，无需修改后端。
 
@@ -10,11 +10,13 @@
 
 打开 [Android APK 1.2.6 私有草稿](https://github.com/chorusfruit-233/StudyWithMiku-Android/releases/tag/untagged-bcc1b048202eebda340d)，下载 `.apk`。包名为 `io.github.chorusfruit233.studywithmiku`，支持 Android 8.0 及以上。仓库保持私有；草稿仅对有仓库写入权限的用户可见。
 
-向 `main` 推送 Android 源码会自动编译、运行单元测试与 Android 模拟器交互回归、运行 Lint 和验证 APK 签名，输出 APK、SHA-256 校验值和检查报告。也可在 Actions 中手动运行。由于账户的 Actions 产物存储额度已满，产物保存到私有 Release 草稿。
+[正式包构建与发布指南](android/RELEASING.md)：配置四个 Actions Secrets 后，在 Actions 运行 **Android signed release**，或推送版本标签，生成固定签名、关闭调试的 Release APK，并保存为私有草稿。当前 GitHub 连接没有 Secrets 管理权限，需要仓库管理员在设置页面填写；本次正式包可在本地签名后上传。
+
+向 `main` 推送 Android 源码会自动构建调试包，并运行单元测试与 Android 模拟器交互回归、运行 Lint 和验证 APK 签名，输出 APK、SHA-256 校验值和检查报告。也可在 Actions 中手动运行。由于账户的 Actions 产物存储额度已满，产物保存到私有 Release 草稿。
 
 1.2.4 更换包名，作为独立应用安装，可与旧版共存。本机资料不会自动迁移，登录同一账号可恢复云端学习资料。
 
-APK 使用每次构建自动生成的调试签名。已安装不同签名版本时，需要先卸载再安装；卸载会删除本机数据。工程不包含私有签名密钥，正式发布应配置固定发行签名。
+1.2.7 起提供固定 StudyWithMiku 密钥签名的正式 Release 包；后续保持同签名、同包名并提高 versionCode，可覆盖升级。此前调试 APK 的签名不同，首次切换不能覆盖安装；卸载会删除本机资料。密钥与密码不进入代码仓库。
 
 启动图标支持 Android 8.0 自适应形状和 Android 13 单色主题；主题图标需要启动器支持并启用。
 
@@ -38,3 +40,5 @@ cd android
 功能映射、接口和原生适配见 [工程说明](android/README.md)。保留原作署名与 [GPL-3.0 许可](LICENSE)。
 
 1.2.6 修正同步弹窗与账号操作、统一关于入口，并改进计时、计划删除与容量限制、记录翻月、歌词加载、歌单平台识别和窄屏播放布局。
+
+1.2.7 添加固定密钥 Release 签名、正式包证书与 debug 标志验证，以及独立发布工作流。

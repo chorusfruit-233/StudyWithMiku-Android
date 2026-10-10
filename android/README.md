@@ -1,4 +1,4 @@
-# Study With Miku · Android 1.2.6
+# Study With Miku · Android 1.2.7
 
 原作：[shshouse/StudyWithMiku](https://github.com/shshouse/StudyWithMiku)，基线提交 `159db717f02debf71a5138764ed8e068f4577f94`。原生 Kotlin、Compose、Media3；Material 3 Expressive 主题、动态形状按钮和花瓣计时进度。支持 Android 8.0（API 26）以上，target API 35。
 
@@ -48,7 +48,7 @@
 ./gradlew assembleDebug testDebugUnitTest lintDebug
 ```
 
-需要 JDK 17、SDK 35；首次构建下载依赖。输出 `app/build/outputs/apk/debug/app-debug.apk`。调试签名每次 CI 生成，工程无签名私钥。Expressive API 使用明确固定的 `material3:1.4.0-alpha18`。
+需要 JDK 17、SDK 35；首次构建下载依赖。输出 `app/build/outputs/apk/debug/app-debug.apk`。调试签名每次 CI 生成。正式 Release 包由固定 StudyWithMiku 密钥签名；环境变量提供签名参数，工程无签名私钥或密码，缺少参数时 Release 打包明确失败。详见 [RELEASING.md](RELEASING.md)。Expressive API 使用明确固定的 `material3:1.4.0-alpha18`。
 
 协议、HTTP 错误、账号凭据校验、云合并、分享和计时单元测试使用本地测试服务器。真实账号登录、发言、云端写入与跨设备同步须在用户手机上验收；当前无测试账号。详细边界见 [VALIDATION.md](VALIDATION.md)。
 

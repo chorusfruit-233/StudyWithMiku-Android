@@ -51,11 +51,14 @@ jobs:
             test -f android/app/build/reports/design-screenshots/sync-choice.png && test -s android/app/build/reports/design-screenshots/sync-choice.png
             test -f android/app/build/reports/design-screenshots/task-edit.png && test -s android/app/build/reports/design-screenshots/task-edit.png
       - name: Prepare APK artifact
+        id: debug_apk
         working-directory: android
         run: |
           "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify app/build/outputs/apk/debug/app-debug.apk
           mkdir -p ../artifacts
-          cp app/build/outputs/apk/debug/app-debug.apk "../artifacts/StudyWithMiku-Android-1.2.6-${GITHUB_SHA:0:7}.apk"
+          debug_version=$("$ANDROID_HOME/build-tools/35.0.0/aapt" dump badging app/build/outputs/apk/debug/app-debug.apk | python -c 'import re,sys; print(re.search(r"versionName=\x27([^\x27]+)\x27",sys.stdin.read()).group(1))')
+          echo "version=$debug_version" >> "$GITHUB_OUTPUT"
+          cp app/build/outputs/apk/debug/app-debug.apk "../artifacts/StudyWithMiku-Android-$debug_version-debug-${GITHUB_SHA:0:7}.apk"
           cd ../artifacts
           sha256sum *.apk > SHA256SUMS.txt
       - name: Save APK and reports to a private release draft
@@ -63,6 +66,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
+          DEBUG_VERSION: ${{ steps.debug_apk.outputs.version }}
         run: |
           zip -qr artifacts/Android-check-reports.zip android/app/build/reports android/app/build/test-results android/app/build/outputs/androidTest-results
           release_tag="ci-${GITHUB_SHA:0:12}"
@@ -70,7 +74,7 @@ jobs:
             gh release upload "$release_tag" artifacts/* --clobber
           else
             gh release create "$release_tag" artifacts/* --draft --prerelease \
-              --target "$GITHUB_SHA" --title "Android APK 1.2.6 ${GITHUB_SHA:0:7}" \
+              --target "$GITHUB_SHA" --title "Android Debug APK $DEBUG_VERSION ${GITHUB_SHA:0:7}" \
               --notes-file .github/ci-release-notes.md
           fi
           gh release view "$release_tag" --json url --jq '.url' >> "$GITHUB_STEP_SUMMARY"

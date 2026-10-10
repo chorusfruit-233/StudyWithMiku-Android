@@ -3,3 +3,6 @@ artifacts/
 *.jks
 *.keystore
 .env
+keystore.properties
+signing.properties
+__pycache__/

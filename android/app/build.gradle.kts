@@ -3,6 +3,20 @@ plugins {
     id("org.jetbrains.kotlin.android")
     id("org.jetbrains.kotlin.plugin.compose")
 }
+
+// Credentials are supplied by the local environment or GitHub Actions secrets.
+// Never embed a password or keystore in this project.
+val signingEnvironment = listOf("MIKU_KEYSTORE_PATH", "MIKU_STORE_PASSWORD", "MIKU_KEY_ALIAS", "MIKU_KEY_PASSWORD")
+    .associateWith { providers.environmentVariable(it).orNull }
+val hasReleaseSigning = signingEnvironment.values.all { !it.isNullOrBlank() }
+val checkReleaseSigning = tasks.register("checkReleaseSigning") {
+    doLast {
+        val missing = signingEnvironment.filterValues { it.isNullOrBlank() }.keys
+        check(missing.isEmpty()) { "Release signing requires environment variables: ${missing.joinToString()}. See android/RELEASING.md." }
+        check(rootProject.file(signingEnvironment.getValue("MIKU_KEYSTORE_PATH")!!).isFile) { "Release keystore file does not exist." }
+    }
+}
+
 android {
     namespace = "io.github.chorusfruit233.studywithmiku"
     compileSdk = 35
@@ -10,11 +24,27 @@ android {
         applicationId = "io.github.chorusfruit233.studywithmiku"
         minSdk = 26
         targetSdk = 35
-        versionCode = 9
-        versionName = "1.2.6"
+        versionCode = 10
+        versionName = "1.2.7"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
     buildFeatures { compose = true; buildConfig = true }
+    if (hasReleaseSigning) {
+        signingConfigs.create("release") {
+            storeFile = rootProject.file(signingEnvironment.getValue("MIKU_KEYSTORE_PATH")!!)
+            storePassword = signingEnvironment.getValue("MIKU_STORE_PASSWORD")
+            keyAlias = signingEnvironment.getValue("MIKU_KEY_ALIAS")
+            keyPassword = signingEnvironment.getValue("MIKU_KEY_PASSWORD")
+        }
+    }
+    buildTypes {
+        getByName("release") {
+            isDebuggable = false
+            // Keep the first signed release behavior identical to the validated app.
+            isMinifyEnabled = false
+            if (hasReleaseSigning) signingConfig = signingConfigs.getByName("release")
+        }
+    }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
@@ -22,6 +52,9 @@ android {
     kotlinOptions { jvmTarget = "17" }
     androidResources { noCompress += listOf("mp3", "mp4") }
     packaging { resources.excludes += "/META-INF/{AL2.0,LGPL2.1}" }
+}
+tasks.matching { it.name == "packageRelease" || it.name == "validateSigningRelease" }.configureEach {
+    dependsOn(checkReleaseSigning)
 }
 dependencies {
     implementation("androidx.core:core-ktx:1.16.0")

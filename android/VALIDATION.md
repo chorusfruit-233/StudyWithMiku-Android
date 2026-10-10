@@ -1,3 +1,13 @@
+# 1.2.7 固定密钥 Release 签名
+
+- 使用用户提供的 StudyWithMiku JKS，别名 `StudyWithMiku`。Release APK 的证书 SHA-256 为 `e07a05095f2b19e1b7b37d48e67016da4b5cf78386a03020410a3a134e1f12ad`，与 JKS 公钥证书一致；APK 签名验证通过，合并 Manifest 与 APK 均确认 `debuggable=false`。版本 1.2.7、versionCode=10、包名 `io.github.chorusfruit233.studywithmiku`，最低 API 26、target API 35。
+- 本地 `assembleRelease testReleaseUnitTest lintRelease` 成功，70 项 Release 单元测试通过、0 失败／错误／跳过，Release Lint 0 错误。未启用代码混淆；未改变运行时功能，首次正式签名以兼容性为先。
+- 打包 Release 缺少签名参数会明确失败；实际检查任务已验证拒绝缺失凭据。发布校验脚本已验证接受固定证书正式包、拒绝旧调试证书 APK，并核对包名、版本与关闭调试标志。
+- 新增 `Android signed release` 工作流，通过加密 Secrets 恢复临时 JKS，在任务结束后删除；版本标签与 APK 版本必须一致，已经发布的版本不会被覆盖。Debug 工作流保留，并改为从 APK 元数据读取文件名和标题中的版本，明确标记 Debug。
+- 当前 GitHub 连接访问 Actions Secrets 返回 HTTP 403（Resource not accessible by integration），无法代填仓库 Secrets。签名 APK 本次在本地生成，工作流运行前需要仓库管理员按 [RELEASING.md](RELEASING.md) 手动配置四项 Secrets；不宣称已完成云端签名构建。
+- 本次没有对签名 Release 执行真机或模拟器测试；下方 1.2.6 的 10 项 Android 回归属于其 Debug 构建，应用功能源代码相同，不能作为新签名正式包设备验收。
+- APK 校验值：`cf534a55f11a3cf83699bcd258e7d944148733091facc9bb22509d86a6717a32`。上传后的 Release 链接与构建提交将在完成后补充。
+
 # 1.2.6 设计与交互修正
 
 - 同步弹窗采用同层级单选方案和统一确认按钮；选择方案本身不导入或上传。首次设置同步仅有一个入口，完成后区分上传本地与检查云端更新；状态区分有本地改动待上传与已核对。暂缓同步显示正常提示，读取失败后取消不会重复反馈。
