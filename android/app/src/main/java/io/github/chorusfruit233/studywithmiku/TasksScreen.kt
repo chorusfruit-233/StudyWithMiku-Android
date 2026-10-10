@@ -29,6 +29,9 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
     var calendar by remember { mutableStateOf(false) }
     var add by remember { mutableStateOf(false) }
     var editing by remember { mutableStateOf<Todo?>(null) }
+    var deletingTodo by remember { mutableStateOf<Todo?>(null) }
+    var deletingCountdown by remember { mutableStateOf<CountdownDay?>(null) }
+    var taskError by remember { mutableStateOf<String?>(null) }
     var color by remember { mutableStateOf("#39c5bb") }
     var text by rememberSaveable { mutableStateOf("") }
     val tasks = todos.filter { it.date == if (global) "" else selectedKey }.sortedWith(compareBy<Todo> { it.done }.thenByDescending { it.pinned })
@@ -40,7 +43,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
         }
         if (!global) {
         Row(Modifier.fillMaxWidth(),verticalAlignment = Alignment.CenterVertically) {
-            Text("${selected.monthValue} 月 ${selected.dayOfMonth} 日",style = MaterialTheme.typography.titleLarge,modifier = Modifier.weight(1f))
+            Text("${selected.year} 年 ${selected.monthValue} 月 ${selected.dayOfMonth} 日",style = MaterialTheme.typography.titleLarge,modifier = Modifier.weight(1f))
             TextButton(onClick = { selectedKey = LocalDate.now().toString() }) { Text("今天") }
             IconButton(onClick = { calendar = true }) { Icon(Icons.Rounded.CalendarMonth,"选择日期") }
         }
@@ -63,24 +66,25 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
             Text("${tasks.count { it.done }} / ${tasks.size} 已完成",style = MaterialTheme.typography.labelMedium,color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
         if (tasks.isNotEmpty()) LinearProgressIndicator(progress = { tasks.count { it.done }.toFloat()/tasks.size },modifier = Modifier.fillMaxWidth().height(8.dp))
-        if (tasks.isEmpty()) EmptyState("今天的空白，留给新的可能。","添加一个小目标，Miku 陪你一起完成。",Icons.Rounded.EditNote)
+        if (tasks.isEmpty()) EmptyState(if (global) "还没有待办事项。" else "这一天还没有计划。","添加一个小目标，Miku 陪你一起完成。",Icons.Rounded.EditNote)
         else Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
             tasks.forEachIndexed { i,todo ->
                 Surface(shape = listItemShape(i,tasks.size),color = MaterialTheme.colorScheme.surfaceContainerLow) {
                     Row(Modifier.fillMaxWidth().padding(start = 8.dp,end = 8.dp,top = 9.dp,bottom = 9.dp),verticalAlignment = Alignment.CenterVertically) {
                         Checkbox(todo.done,{ store.toggleTodo(todo.id) })
-                        Text(todo.text,Modifier.weight(1f).clickable { editing = todo; text = todo.text; color = todo.color; add = true },style = MaterialTheme.typography.bodyLarge,
+                        Text(todo.text,Modifier.weight(1f).clickable { editing = todo; text = todo.text; color = todo.color; taskError = null; add = true },style = MaterialTheme.typography.bodyLarge,
                             textDecoration = if (todo.done) TextDecoration.LineThrough else TextDecoration.None,
                             color = if (todo.done) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface)
-                        if (global) IconButton(onClick = { store.pinTodo(todo.id) }) { Icon(if (todo.pinned) Icons.Rounded.PushPin else Icons.Rounded.PushPin,"置顶到专注页",tint = if (todo.pinned) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant) }
-                        IconButton(onClick = { store.deleteTodo(todo.id) }) { Icon(Icons.Rounded.Close,"删除计划",Modifier.size(19.dp)) }
+                        if (global) IconButton(onClick = { store.pinTodo(todo.id) }) { Icon(Icons.Rounded.PushPin,if (todo.pinned) "取消置顶" else "置顶到专注页",tint = if (todo.pinned) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant) }
+                        IconButton(onClick = { deletingTodo = todo }) { Icon(Icons.Rounded.DeleteOutline,if (global) "删除待办" else "删除计划",Modifier.size(19.dp)) }
                     }
                 }
             }
         }
-        FilledTonalButton(onClick = { editing = null; text = ""; color = "#39c5bb"; add = true },modifier = Modifier.fillMaxWidth().height(56.dp)) {
+        FilledTonalButton(onClick = { editing = null; text = ""; color = "#39c5bb"; taskError = null; add = true },enabled = tasks.size < 200,modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
             Icon(Icons.Rounded.Add,null); Spacer(Modifier.width(8.dp)); Text("添加一个小目标")
         }
+        if (tasks.size >= 200) Text(if (global) "待办事项已达到 200 项上限，请先删除一些项目。" else "当天计划已达到 200 项上限，请先删除一些项目。",style = MaterialTheme.typography.bodySmall,color = MaterialTheme.colorScheme.onSurfaceVariant)
         Text("完成多少都没关系，开始就已经很棒了。",style = MaterialTheme.typography.bodySmall,color = MaterialTheme.colorScheme.onSurfaceVariant)
         Row(Modifier.fillMaxWidth(),verticalAlignment = Alignment.CenterVertically) {
             Text("倒数日",Modifier.weight(1f),style = MaterialTheme.typography.titleLarge)
@@ -91,7 +95,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
                 Row(Modifier.fillMaxWidth().padding(14.dp),verticalAlignment = Alignment.CenterVertically) {
                     Column(Modifier.weight(1f)) { Text(day.title,style = MaterialTheme.typography.titleMedium); Text("${day.date} · ${countdownLabel(day.date)}",style = MaterialTheme.typography.bodySmall) }
                     IconButton(onClick = { onShare(StudyProtocol.countdownShare(day)) }) { Icon(Icons.Rounded.Share,"分享倒数日") }
-                    IconButton(onClick = { store.deleteCountdown(day.id) }) { Icon(Icons.Rounded.Close,"删除倒数日") }
+                    IconButton(onClick = { deletingCountdown = day }) { Icon(Icons.Rounded.DeleteOutline,"删除倒数日") }
                 }
             }
         }
@@ -103,18 +107,43 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
             TextButton(onClick = { picker.selectedDateMillis?.let { selectedKey = Instant.ofEpochMilli(it).atZone(ZoneOffset.UTC).toLocalDate().toString() }; calendar = false }) { Text("确定") }
         },dismissButton = { TextButton(onClick = { calendar = false }) { Text("取消") } }) { DatePicker(picker) }
     }
-    if (add) AlertDialog(onDismissRequest = { add = false },icon = { Icon(Icons.Rounded.EditNote,null) },title = { Text("一个小目标") },
-        text = { Column(verticalArrangement = Arrangement.spacedBy(12.dp)) { OutlinedTextField(value = text,onValueChange = { if (it.length <= 200) text = it },label = { Text(if (global) "想完成什么？" else "想在这一天完成什么？") },
-            supportingText = { Text("${selected.monthValue} 月 ${selected.dayOfMonth} 日 · ${text.length}/200") },minLines = 2,maxLines = 4)
-            if (!global) Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+    if (add) AlertDialog(onDismissRequest = { add = false },icon = { Icon(Icons.Rounded.EditNote,null) },title = { Text(if (editing == null) "添加小目标" else "编辑小目标") },
+        text = { Column(Modifier.verticalScroll(rememberScrollState()),verticalArrangement = Arrangement.spacedBy(12.dp)) { OutlinedTextField(value = text,onValueChange = { if (it.length <= 200) text = it },label = { Text(if (global) "想完成什么？" else "想在这一天完成什么？") },
+            supportingText = { Text(if (global) "${text.length}/200" else "${selected.year} 年 ${selected.monthValue} 月 ${selected.dayOfMonth} 日 · ${text.length}/200") },minLines = 2,maxLines = 4)
+            if (editing == null && tasks.size >= 200) Text("已达到 200 项上限，请先删除一些项目。",style = MaterialTheme.typography.bodySmall,color = MaterialTheme.colorScheme.error)
+            taskError?.let { Text(it,style = MaterialTheme.typography.bodySmall,color = MaterialTheme.colorScheme.error) }
+            if (!global) Row(Modifier.horizontalScroll(rememberScrollState()),horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 listOf("#39c5bb","#f06292","#ffb74d","#7986cb").forEach { value ->
                     FilterChip(color == value,{ color = value },label = { Text("●",color = androidx.compose.ui.graphics.Color(android.graphics.Color.parseColor(value))) })
                 }
             }
         } },
-        confirmButton = { TextButton(onClick = { val todo = editing; if (todo == null) { store.addTodo(text,if (global) null else selected); if (!global) store.todos.value.lastOrNull()?.let { store.editTodo(it.id,it.text,color) } } else store.editTodo(todo.id,text,color); text = ""; editing = null; add = false },enabled = text.isNotBlank()) { Text("添加") } },
+        confirmButton = { TextButton(onClick = {
+            val todo = editing
+            var saved = true
+            if (todo == null) {
+                val id = store.addTodo(text,if (global) null else selected)
+                if (id == null) {
+                    taskError = "未能添加目标，请检查内容和 200 项数量上限。"
+                    saved = false
+                } else if (!global) store.editTodo(id,text,color)
+            } else store.editTodo(todo.id,text,color)
+            if (saved) { text = ""; editing = null; taskError = null; add = false }
+        },enabled = text.isNotBlank() && (editing != null || tasks.size < 200)) { Text(if (editing == null) "添加" else "保存") } },
         dismissButton = { TextButton(onClick = { add = false }) { Text("取消") } })
     if (addDay) CountdownDialog(onDismiss = { addDay = false }) { title,date -> store.addCountdown(title,date); addDay = false }
+    deletingTodo?.let { todo ->
+        AlertDialog(onDismissRequest = { deletingTodo = null },title = { Text(if (todo.date.isEmpty()) "删除这项待办？" else "删除这项计划？") },
+            text = { Text("“${todo.text}”将被删除，已记录的专注时间会保留。",Modifier.heightIn(max = 240.dp).verticalScroll(rememberScrollState())) },
+            confirmButton = { TextButton(onClick = { store.deleteTodo(todo.id); deletingTodo = null }) { Text("删除",color = MaterialTheme.colorScheme.error) } },
+            dismissButton = { TextButton(onClick = { deletingTodo = null }) { Text("取消") } })
+    }
+    deletingCountdown?.let { day ->
+        AlertDialog(onDismissRequest = { deletingCountdown = null },title = { Text("删除这个倒数日？") },
+            text = { Text("“${day.title}”（${day.date}）将被删除。") },
+            confirmButton = { TextButton(onClick = { store.deleteCountdown(day.id); deletingCountdown = null }) { Text("删除",color = MaterialTheme.colorScheme.error) } },
+            dismissButton = { TextButton(onClick = { deletingCountdown = null }) { Text("取消") } })
+    }
 }
 
 fun listItemShape(index: Int,size: Int) = RoundedCornerShape(

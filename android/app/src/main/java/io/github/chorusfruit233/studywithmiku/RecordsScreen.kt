@@ -12,6 +12,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -28,19 +29,28 @@ import java.time.YearMonth
     val totalSessions = monthLogs.sumOf { it.sessions }
     val active = monthLogs.count { it.millis > 0 }
     val dayLog = logs[dayKey] ?: DayLog()
+    fun selectMonth(target: YearMonth) {
+        monthKey = target.toString()
+        dayKey = target.atDay(selected.dayOfMonth.coerceAtMost(target.lengthOfMonth())).toString()
+    }
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 24.dp),verticalArrangement = Arrangement.spacedBy(16.dp)) {
         PageHeading("YOUR EFFORT COUNTS","努力过的日子，\n都有迹可循。","每一分钟，都是朝未来走的一小步。")
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            StatCard("本月专注","${totalMs / 60_000}","分钟",Icons.Rounded.AutoAwesome,Modifier.weight(1f))
-            StatCard("本月番茄","$totalSessions","个",Icons.Rounded.LocalFlorist,Modifier.weight(1f),false)
+            StatCard("${month.monthValue} 月专注","${totalMs / 60_000}","分钟",Icons.Rounded.AutoAwesome,Modifier.weight(1f))
+            StatCard("${month.monthValue} 月番茄","$totalSessions","个",Icons.Rounded.LocalFlorist,Modifier.weight(1f),false)
         }
         Surface(shape = RoundedCornerShape(32.dp),color = MaterialTheme.colorScheme.surfaceContainerLow) {
             Column(Modifier.padding(18.dp),verticalArrangement = Arrangement.spacedBy(16.dp)) {
                 Row(Modifier.fillMaxWidth(),verticalAlignment = Alignment.CenterVertically) {
-                    IconButton(onClick = { monthKey = month.minusMonths(1).toString() }) { Icon(Icons.Rounded.ChevronLeft,"上个月") }
+                    IconButton(onClick = { selectMonth(month.minusMonths(1)) }) { Icon(Icons.Rounded.ChevronLeft,"上个月") }
                     Text("${month.year} 年 ${month.monthValue} 月",Modifier.weight(1f),style = MaterialTheme.typography.titleMedium,textAlign = androidx.compose.ui.text.style.TextAlign.Center)
-                    IconButton(onClick = { monthKey = month.plusMonths(1).toString() }) { Icon(Icons.Rounded.ChevronRight,"下个月") }
+                    IconButton(onClick = { selectMonth(month.plusMonths(1)) }) { Icon(Icons.Rounded.ChevronRight,"下个月") }
                 }
+                TextButton(onClick = {
+                    val today = LocalDate.now()
+                    monthKey = YearMonth.from(today).toString()
+                    dayKey = today.toString()
+                },modifier = Modifier.align(Alignment.End)) { Text("回到今天") }
                 Row(Modifier.fillMaxWidth()) { listOf("一","二","三","四","五","六","日").forEach {
                     Text(it,Modifier.weight(1f),textAlign = androidx.compose.ui.text.style.TextAlign.Center,style = MaterialTheme.typography.labelSmall,color = MaterialTheme.colorScheme.onSurfaceVariant)
                 } }
@@ -74,19 +84,28 @@ import java.time.YearMonth
                     }
                 }
                 Row(Modifier.fillMaxWidth(),verticalAlignment = Alignment.CenterVertically,horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                    Text("本月学习 $active 天",Modifier.weight(1f),style = MaterialTheme.typography.bodySmall,color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text("${month.monthValue} 月学习 $active 天",Modifier.weight(1f),style = MaterialTheme.typography.bodySmall,color = MaterialTheme.colorScheme.onSurfaceVariant)
                     Text("少",style = MaterialTheme.typography.labelSmall)
                     (0..3).forEach { level -> Box(Modifier.size(10.dp).background(androidx.compose.ui.graphics.lerp(MaterialTheme.colorScheme.primaryContainer,MaterialTheme.colorScheme.primary,level/3f),RoundedCornerShape(3.dp))) }
                     Text("多",style = MaterialTheme.typography.labelSmall)
                 }
             }
         }
-        Text("${selected.monthValue} 月 ${selected.dayOfMonth} 日",style = MaterialTheme.typography.titleLarge)
+        Text("${selected.year} 年 ${selected.monthValue} 月 ${selected.dayOfMonth} 日",style = MaterialTheme.typography.titleLarge)
         Surface(shape = RoundedCornerShape(24.dp),color = MaterialTheme.colorScheme.surfaceContainerLow) {
-            Row(Modifier.fillMaxWidth().padding(20.dp),horizontalArrangement = Arrangement.SpaceBetween) {
-                Column(verticalArrangement = Arrangement.spacedBy(5.dp)) { Text("专注时间",style = MaterialTheme.typography.bodySmall); Text("${dayLog.millis/60_000} 分钟",style = MaterialTheme.typography.titleLarge) }
-                Column(verticalArrangement = Arrangement.spacedBy(5.dp)) { Text("完成番茄",style = MaterialTheme.typography.bodySmall); Text("${dayLog.sessions} 个",style = MaterialTheme.typography.titleLarge) }
-                Column(verticalArrangement = Arrangement.spacedBy(5.dp)) { Text("完成计划",style = MaterialTheme.typography.bodySmall); Text("${todos.count { it.date == dayKey && it.done }} 件",style = MaterialTheme.typography.titleLarge) }
+            BoxWithConstraints(Modifier.fillMaxWidth().padding(20.dp)) {
+                val metrics = listOf("专注时间" to "${dayLog.millis/60_000} 分钟","完成番茄" to "${dayLog.sessions} 个",
+                    "完成计划" to "${todos.count { it.date == dayKey && it.done }} 件")
+                if (maxWidth >= 320.dp * LocalDensity.current.fontScale) {
+                    Row(Modifier.fillMaxWidth(),horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                        metrics.forEach { (label,value) -> RecordMetric(label,value,Modifier.weight(1f)) }
+                    }
+                } else Column(Modifier.fillMaxWidth(),verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                    metrics.forEachIndexed { index,(label,value) ->
+                        if (index > 0) HorizontalDivider()
+                        RecordMetric(label,value,Modifier.fillMaxWidth())
+                    }
+                }
             }
         }
         val plans = todos.filter { it.date == dayKey }
@@ -96,7 +115,14 @@ import java.time.YearMonth
                 Text(it.text,style = MaterialTheme.typography.bodyMedium)
             } }
         }
-        if (totalMs == 0L) Text("从第一次专注开始，这里会慢慢长出你的足迹。",style = MaterialTheme.typography.bodyMedium,color = MaterialTheme.colorScheme.onSurfaceVariant)
+        if (totalMs == 0L) Text("${month.year} 年 ${month.monthValue} 月还没有专注记录。",style = MaterialTheme.typography.bodyMedium,color = MaterialTheme.colorScheme.onSurfaceVariant)
         Spacer(Modifier.height(24.dp))
+    }
+}
+
+@Composable private fun RecordMetric(label: String,value: String,modifier: Modifier = Modifier) {
+    Column(modifier,verticalArrangement = Arrangement.spacedBy(5.dp)) {
+        Text(label,style = MaterialTheme.typography.bodySmall,color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text(value,style = MaterialTheme.typography.titleLarge)
     }
 }

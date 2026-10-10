@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.withContext
+import java.net.URI
 
 fun platformName(platform: String) = if (platform == "tencent") "QQ 音乐" else "网易云音乐"
 
@@ -42,7 +43,7 @@ object RemoteCovers {
     }
 }
 
-@Composable fun NetworkMusicPanel(state: OnlineMusicState,online: OnlineMusic,onSelect: () -> Unit) {
+@Composable fun NetworkMusicPanel(state: OnlineMusicState,online: OnlineMusic,onSelect: () -> Unit,onMessage: (String) -> Unit) {
     var custom by remember { mutableStateOf(false) }
     val uriHandler = LocalUriHandler.current
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -54,7 +55,7 @@ object RemoteCovers {
                     Column(Modifier.weight(1f)) {
                         Text(if (state.loading) "正在获取${state.loadingName}…" else state.config.name,
                             style = MaterialTheme.typography.titleMedium,maxLines = 2,overflow = TextOverflow.Ellipsis)
-                        Text("${platformName(state.config.platform)} · ${state.ids.size} 首${if (state.cached) " · 上次加载" else ""}",style = MaterialTheme.typography.bodySmall)
+                        Text(if (state.loading && state.ids.isNotEmpty()) "当前歌单仍可播放，加载完成后切换" else "${platformName(state.config.platform)} · ${state.ids.size} 首${if (state.cached) " · 上次加载" else ""}",style = MaterialTheme.typography.bodySmall)
                     }
                     IconButton(onClick = { onSelect(); online.load() },enabled = !state.loading) { Icon(Icons.Rounded.Refresh,"刷新当前歌单") }
                 }
@@ -66,12 +67,15 @@ object RemoteCovers {
                     }
                 }
                 Row(Modifier.fillMaxWidth(),horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    FilledTonalButton(onClick = { custom = true },modifier = Modifier.weight(1f)) { Text("自定义歌单") }
+                    FilledTonalButton(onClick = { custom = true },enabled = !state.loading,modifier = Modifier.weight(1f)) { Text("自定义歌单") }
                     OutlinedButton(onClick = { onSelect(); online.load(MusicConfig(api = state.config.api,bitrate = state.config.bitrate)) },
-                        modifier = Modifier.weight(1f)) { Text("默认歌单") }
+                        enabled = !state.loading,modifier = Modifier.weight(1f)) { Text("恢复默认歌单") }
                 }
-                TextButton(onClick = { runCatching { uriHandler.openUri(MusicProtocol.webUrl(state.config.platform,state.config.id)) } }) {
-                    Text("打开歌单 · ID ${state.config.id}",style = MaterialTheme.typography.labelMedium)
+                TextButton(onClick = {
+                    runCatching { uriHandler.openUri(MusicProtocol.webUrl(state.config.platform,state.config.id)) }
+                        .onFailure { onMessage("无法打开歌单网页，请检查是否已安装浏览器") }
+                }) {
+                    Text("打开歌单网页",style = MaterialTheme.typography.labelMedium)
                 }
             }
         }
@@ -79,6 +83,8 @@ object RemoteCovers {
             Surface(shape = RoundedCornerShape(20.dp),color = MaterialTheme.colorScheme.errorContainer) {
                 Column(Modifier.padding(16.dp),verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text(error,style = MaterialTheme.typography.bodyMedium,color = MaterialTheme.colorScheme.onErrorContainer)
+                    if (state.ids.isNotEmpty()) Text("仍显示上次成功加载的歌单：${state.config.name}",style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onErrorContainer)
                     TextButton(onClick = { onSelect(); online.retry() },enabled = !state.loading) { Text("重试") }
                 }
             }
@@ -86,14 +92,15 @@ object RemoteCovers {
         Text("推荐歌单",style = MaterialTheme.typography.titleLarge)
         LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             items(online.recommendations,key = { it.name }) { item ->
-                val selected = state.config.platform == item.platform && state.config.id == item.id
+                val selected = state.ids.isNotEmpty() && state.config.platform == item.platform && state.config.id == item.id
                 Surface(onClick = { onSelect(); online.load(state.config.copy(platform = item.platform,id = item.id,name = item.name)) },
+                    enabled = !state.loading,
                     shape = RoundedCornerShape(24.dp),color = if (selected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainer,
                     modifier = Modifier.width(210.dp).height(176.dp)) {
                     Column(Modifier.padding(16.dp),verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         Row(verticalAlignment = Alignment.CenterVertically,horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                            Icon(if (selected) Icons.Rounded.GraphicEq else Icons.Rounded.LibraryMusic,null,Modifier.size(20.dp))
-                            Text(platformName(item.platform),style = MaterialTheme.typography.labelSmall)
+                            Icon(if (selected) Icons.Rounded.CheckCircle else Icons.Rounded.LibraryMusic,null,Modifier.size(20.dp))
+                            Text("${platformName(item.platform)}${if (selected) " · 已载入" else ""}",style = MaterialTheme.typography.labelSmall)
                         }
                         Text(item.name,style = MaterialTheme.typography.titleMedium,maxLines = 2,overflow = TextOverflow.Ellipsis)
                         Text(item.description.ifBlank { "为专注挑选一段旋律" },style = MaterialTheme.typography.bodySmall,
@@ -113,6 +120,7 @@ object RemoteCovers {
 @Composable private fun NetworkPlaylistDialog(config: MusicConfig,onDismiss: () -> Unit,onLoad: (MusicConfig) -> Unit) {
     var platform by remember { mutableStateOf(config.platform) }
     var input by remember { mutableStateOf(config.id) }
+    val linkedPlatform = remember(input) { playlistLinkPlatform(input) }
     var api by remember { mutableStateOf(config.api) }
     var advanced by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
@@ -120,11 +128,13 @@ object RemoteCovers {
         Column(Modifier.verticalScroll(rememberScrollState()),verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 listOf("netease","tencent").forEach { value ->
-                    FilterChip(selected = platform == value,onClick = { platform = value },label = { Text(platformName(value)) })
+                    FilterChip(selected = (linkedPlatform ?: platform) == value,onClick = { platform = value; error = null },
+                        enabled = linkedPlatform == null,label = { Text(platformName(value)) })
                 }
             }
-            OutlinedTextField(input,{ input = it; error = null },label = { Text("歌单 ID 或分享链接") },singleLine = true,
-                supportingText = { Text("网易云 / QQ 音乐的公开歌单") })
+            OutlinedTextField(input,{ input = it; playlistLinkPlatform(it)?.let { detected -> platform = detected }; error = null },
+                label = { Text("歌单 ID 或分享链接") },singleLine = true,
+                supportingText = { Text(if (linkedPlatform != null) "已根据链接识别为${platformName(linkedPlatform)}" else "公开歌单；输入数字 ID 时，请先选择平台") })
             TextButton(onClick = { advanced = !advanced }) { Text("音乐源设置") }
             if (advanced) {
                 OutlinedTextField(api,{ api = it; error = null },label = { Text("Meting 接口地址") },singleLine = true)
@@ -136,32 +146,47 @@ object RemoteCovers {
         val id = MusicProtocol.playlistId(input)
         if (id == null) error = "无法识别歌单 ID，请粘贴完整链接或数字 ID"
         else {
-            val target = config.copy(api = api.trim(),platform = platform,id = id,name = "自定义歌单 $id")
+            val target = config.copy(api = api.trim(),platform = linkedPlatform ?: platform,id = id,name = "自定义歌单 $id")
             runCatching { MusicProtocol.validate(target) }.onSuccess { onLoad(target) }.onFailure { error = it.message }
         }
     }) { Text("获取歌单") } },dismissButton = { TextButton(onClick = onDismiss) { Text("取消") } })
 }
 
+internal fun playlistLinkPlatform(input: String): String? {
+    val address = Regex("https?://[^\\s]+",RegexOption.IGNORE_CASE).find(input)?.value ?: input.trim()
+    val host = runCatching { URI(if (address.contains("://")) address else "https://$address").host?.lowercase() }.getOrNull() ?: return null
+    return when {
+        host == "music.163.com" || host.endsWith(".music.163.com") -> "netease"
+        host == "y.qq.com" || host.endsWith(".y.qq.com") || host == "music.qq.com" -> "tencent"
+        else -> null
+    }
+}
+
+private data class LyricsLoadState(val lines: List<LyricLine> = emptyList(),val error: String? = null,val loading: Boolean = true)
+
 @Composable fun LyricsPanel(song: Song?,position: Long) {
     if (song?.lyrics.isNullOrBlank()) return
     var refresh by remember(song?.id) { mutableIntStateOf(0) }
-    val state by produceState<Pair<List<LyricLine>,String?>>(emptyList<LyricLine>() to null,song?.lyrics,refresh) {
-        value = emptyList<LyricLine>() to null
+    val state by produceState(LyricsLoadState(),song?.lyrics,refresh) {
+        value = LyricsLoadState()
         try {
             val text = withContext(Dispatchers.IO) {
                 song!!.lyrics.let { if (it.startsWith("[")) it else MusicHttp.text(it) }
             }
-            value = MusicProtocol.lyrics(text) to null
+            value = LyricsLoadState(lines = MusicProtocol.lyrics(text),loading = false)
         } catch (e: CancellationException) { throw e }
-        catch (_: Exception) { value = emptyList<LyricLine>() to "歌词暂时无法加载" }
+        catch (_: Exception) { value = LyricsLoadState(error = "歌词暂时无法加载",loading = false) }
     }
-    val lines = state.first
+    val lines = state.lines
     val current = lines.indexOfLast { it.timeMs <= position }
     Surface(shape = RoundedCornerShape(24.dp),color = MaterialTheme.colorScheme.surfaceContainerLow,modifier = Modifier.fillMaxWidth()) {
         Column(Modifier.padding(20.dp),horizontalAlignment = Alignment.CenterHorizontally,verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Text("歌词",style = MaterialTheme.typography.labelLarge,color = MaterialTheme.colorScheme.primary)
-            if (state.second != null) {
-                Text(state.second!!,style = MaterialTheme.typography.bodySmall)
+            if (state.loading) {
+                CircularProgressIndicator(Modifier.size(24.dp),strokeWidth = 2.dp)
+                Text("正在加载歌词…",style = MaterialTheme.typography.bodySmall)
+            } else if (state.error != null) {
+                Text(state.error!!,style = MaterialTheme.typography.bodySmall)
                 TextButton(onClick = { refresh++ }) { Text("重新加载") }
             } else if (lines.isEmpty()) Text("暂无同步歌词",style = MaterialTheme.typography.bodyMedium)
             else for (i in (current-1).coerceAtLeast(0)..(current+2).coerceIn(0,lines.lastIndex)) {

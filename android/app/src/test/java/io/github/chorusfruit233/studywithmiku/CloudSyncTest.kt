@@ -129,6 +129,18 @@ class CloudSyncTest {
         assertNotNull(sync.state.value.conflict); assertEquals(0,api.writes)
         sync.syncNow(); runCurrent(); assertNotNull(sync.state.value.conflict); assertEquals(0,api.writes)
     }
+    @Test fun postponingChoicePreservesLocalDataAndBlocksUploadsUntilChosen() = scenario {
+        val store = Store().apply { autoSync = true }; val before = copy(store.local)
+        val api = Api(); val sync = coordinator(store,api)
+        runCurrent(); assertNotNull(sync.state.value.conflict)
+        sync.cancelChoice(); advanceTimeBy(2001); runCurrent()
+        assertNull(sync.state.value.conflict); assertNull(sync.state.value.error)
+        assertFalse(sync.state.value.ready)
+        assertTrue(StudyProtocol.sameStudy(before,store.local))
+        assertEquals(0,store.imports); assertEquals(0,api.writes)
+        sync.pull(); runCurrent()
+        assertNotNull(sync.state.value.conflict); assertEquals(0,api.writes)
+    }
     @Test fun failedCloudChoiceRetainsLocalDataAndDialogForRetry() = scenario {
         val store = Store(); val expected = copy(store.local); val api = Api(); val sync = coordinator(store,api)
         runCurrent(); api.error = IOException("fixture network failure")

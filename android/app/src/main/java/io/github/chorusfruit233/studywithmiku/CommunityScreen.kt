@@ -11,6 +11,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.text.selection.SelectionContainer
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.ui.semantics.Role
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
@@ -20,8 +23,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -29,32 +30,20 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import kotlinx.coroutines.launch
-import org.json.JSONArray
 import java.time.*
 import java.time.format.DateTimeFormatter
 
 fun MikuApplication.openLogin() = startActivity(Intent(this,LoginActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
-@Composable fun CommunityScreen(app: MikuApplication,music: MusicConnection,message: (String)->Unit,openPlayer: ()->Unit) {
-    var page by rememberSaveable { mutableIntStateOf(0) }
-    val account by app.auth.state.collectAsStateWithLifecycle()
-    val chat by app.chat.state.collectAsStateWithLifecycle()
+@Composable fun CommunityScreen(app: MikuApplication,music: MusicConnection,message: (String)->Unit,
+    page: Int,onPageChange: (Int)->Unit,openPlayer: ()->Unit) {
     Column(Modifier.fillMaxSize()) {
-        Row(Modifier.fillMaxWidth().padding(horizontal = 20.dp,vertical = 6.dp),verticalAlignment = Alignment.CenterVertically) {
-            Column(Modifier.weight(1f)) {
-                Text("和正在学习的人相遇",style = MaterialTheme.typography.titleLarge)
-                Text(if (chat.connected) "${chat.online} 人在线${if (chat.adminOnline) " · 站长在线" else ""}" else "正在连接学习空间…",style = MaterialTheme.typography.bodySmall,color = MaterialTheme.colorScheme.primary)
+        PrimaryTabRow(selectedTabIndex = page) {
+            listOf("聊天室","账号与同步").forEachIndexed { index,label ->
+                Tab(selected = page == index,onClick = { onPageChange(index) },text = { Text(label) })
             }
-            IconButton(onClick = { if (!account.loggedIn) app.openLogin() else page = 1 }) { Icon(Icons.Rounded.AccountCircle,"账号与同步") }
-        }
-        Row(Modifier.padding(horizontal = 20.dp).horizontalScroll(rememberScrollState()),horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            listOf("聊天室","账号与同步","关于与更新").forEachIndexed { i,label -> FilterChip(selected = page == i,onClick = { page = i },label = { Text(label) }) }
         }
         Box(Modifier.weight(1f)) {
-            when (page) {
-                0 -> ChatPane(app,music,message,openPlayer)
-                1 -> AccountPane(app)
-                else -> AboutPane()
-            }
+            if (page == 0) ChatPane(app,music,message,openPlayer) else AccountPane(app)
         }
     }
 }
@@ -192,8 +181,8 @@ fun stickerExtension(id: Int) = when (id) { 4,11,13,14 -> "jpg"; 12,15 -> "gif";
     val account by app.auth.state.collectAsStateWithLifecycle()
     val sync by app.sync.state.collectAsStateWithLifecycle()
     val profiles by app.chat.profiles.collectAsStateWithLifecycle()
-    val onlineMusic by app.onlineMusic.state.collectAsStateWithLifecycle()
     val logs by app.store.logs.collectAsStateWithLifecycle()
+    val revision by app.store.revision.collectAsStateWithLifecycle()
     val location by app.extras.location.collectAsStateWithLifecycle()
     var auto by remember { mutableStateOf(app.store.autoSync) }
     var shareLocation by remember { mutableStateOf(app.extras.shareLocation) }
@@ -212,16 +201,35 @@ fun stickerExtension(id: Int) = when (id) { 4,11,13,14 -> "jpg"; 12,15 -> "gif";
         }
         if (!account.loggedIn) Button(onClick = { app.openLogin() },modifier = Modifier.fillMaxWidth()) { Icon(Icons.Rounded.Login,null); Spacer(Modifier.width(8.dp)); Text("登录 MikuMod") }
         else {
-            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                FilledTonalButton(onClick = { app.sync.syncNow() },enabled = !sync.busy,modifier = Modifier.weight(1f)) { Text(if (sync.busy) "同步中…" else if (sync.ready) "立即上传同步" else "读取云端") }
-                OutlinedButton(onClick = { app.sync.pull() },enabled = !sync.busy,modifier = Modifier.weight(1f)) { Text("读取云端") }
+            Text("学习资料",style = MaterialTheme.typography.titleMedium)
+            if (sync.ready) {
+                Button(onClick = { app.sync.syncNow() },enabled = !sync.busy,modifier = Modifier.fillMaxWidth()) {
+                    Icon(Icons.Rounded.CloudUpload,null); Spacer(Modifier.width(8.dp)); Text("上传本地资料")
+                }
+                OutlinedButton(onClick = { app.sync.pull() },enabled = !sync.busy,modifier = Modifier.fillMaxWidth()) {
+                    Icon(Icons.Rounded.CloudSync,null); Spacer(Modifier.width(8.dp)); Text("检查云端更新")
+                }
+            } else {
+                Button(onClick = { app.sync.pull() },enabled = !sync.busy,modifier = Modifier.fillMaxWidth()) {
+                    Icon(Icons.Rounded.CloudSync,null); Spacer(Modifier.width(8.dp)); Text("设置学习资料同步")
+                }
             }
             if (sync.busy) LinearProgressIndicator(Modifier.fillMaxWidth())
-            Text(if (sync.ready) "已同步 · ${Instant.ofEpochMilli(sync.lastSync).atZone(ZoneId.systemDefault()).format(DateTimeFormatter.ofPattern("HH:mm"))}" else "尚未完成资料同步",style = MaterialTheme.typography.bodyMedium)
+            val pending = remember(logs,revision,sync) {
+                sync.ready && (app.store.pendingStudyUpload || app.store.lastCloudStudy()?.let {
+                    !StudyComparison.same(app.store.studySnapshot(),it)
+                } != false)
+            }
+            Text(when {
+                sync.busy -> "正在处理学习资料…"
+                !sync.ready -> "尚未设置同步"
+                pending -> "有本地资料待上传"
+                else -> "已与云端核对 · ${Instant.ofEpochMilli(sync.lastSync).atZone(ZoneId.systemDefault()).format(DateTimeFormatter.ofPattern("HH:mm"))}"
+            },style = MaterialTheme.typography.bodyMedium)
             sync.message?.let { Text(it,color = MaterialTheme.colorScheme.primary) }
             sync.error?.let { Text(it,color = MaterialTheme.colorScheme.error) }
             Row(Modifier.fillMaxWidth(),verticalAlignment = Alignment.CenterVertically) {
-                Column(Modifier.weight(1f)) { Text("自动同步"); Text("同步学习统计、待办、日历、倒计日与计时设置",style = MaterialTheme.typography.bodySmall) }
+                Column(Modifier.weight(1f)) { Text("自动同步"); Text(if (sync.ready) "自动上传学习统计、待办、计划与计时设置" else "设置完成后，自动上传学习资料",style = MaterialTheme.typography.bodySmall) }
                 Switch(auto,{ auto = it; app.store.autoSync = it })
             }
             val total = remember(logs, sync.lastSync) { app.store.studyTotals() }
@@ -234,71 +242,74 @@ fun stickerExtension(id: Int) = when (id) { 4,11,13,14 -> "jpg"; 12,15 -> "gif";
             TextButton(onClick = { logout = true }) { Text("退出登录") }
         }
         HorizontalDivider()
+        Text("聊天隐私",style = MaterialTheme.typography.titleMedium)
         Row(Modifier.fillMaxWidth(),verticalAlignment = Alignment.CenterVertically) {
-            Column(Modifier.weight(1f)) { Text("聊天时显示地区"); Text(location.ifBlank { "未获取到地区" },style = MaterialTheme.typography.bodySmall) }
+            Column(Modifier.weight(1f)) { Text("聊天时显示地区"); Text(if (shareLocation) location.ifBlank { "未获取到地区" } else "聊天消息不附带地区",style = MaterialTheme.typography.bodySmall) }
             Switch(shareLocation,{ shareLocation = it; app.extras.shareLocation = it })
         }
         Text("地区根据 IP 获取，不请求手机定位权限。",style = MaterialTheme.typography.bodySmall,color = MaterialTheme.colorScheme.onSurfaceVariant)
-        TextButton(onClick = { app.extras.refreshLocation(true) }) { Text("刷新地区") }
+        TextButton(onClick = { app.extras.refreshLocation(true) },enabled = shareLocation) { Text("刷新地区") }
     }
     if (logout) AlertDialog(onDismissRequest = { logout = false },title = { Text("退出当前账号？") },text = { Text("该账号的本地学习资料会保留，退出后切回游客资料。") },
         confirmButton = { TextButton(onClick = { app.sync.logout(); logout = false }) { Text("退出") } },dismissButton = { TextButton(onClick = { logout = false }) { Text("取消") } })
 }
 
-@Composable fun SyncChoiceDialog(app: MikuApplication) {
-    SyncChoiceDialog(app.sync)
+@Composable fun SyncChoiceDialog(app: MikuApplication,onMessage: (String)->Unit = {}) {
+    SyncChoiceDialog(app.sync,onMessage)
 }
 
-@Composable internal fun SyncChoiceDialog(controller: CloudSync) {
+@Composable internal fun SyncChoiceDialog(controller: CloudSync,onMessage: (String)->Unit = {}) {
     val sync by controller.state.collectAsStateWithLifecycle()
-    val conflict = sync.conflict ?: return
-    val differences = remember(conflict) { StudyComparison.differences(conflict.local,conflict.remote) }
-    AlertDialog(onDismissRequest = { controller.cancelChoice() },title = { Text("选择学习资料的同步方式") },text = {
-        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text("本地：${StudyComparison.describe(conflict.local)}\n云端：${StudyComparison.describe(conflict.remote)}")
-            if (differences.isNotEmpty()) Text("存在差异：${differences.joinToString("、")}",style = MaterialTheme.typography.bodySmall)
-            if (sync.busy) {
-                LinearProgressIndicator(Modifier.fillMaxWidth())
-                Text("正在读取并保存学习资料…",style = MaterialTheme.typography.bodySmall)
-            }
-            sync.error?.let { Text(it,color = MaterialTheme.colorScheme.error) }
-            Text("合并会按原项目规则保留每日较大的学习值、合并待办与计划，并使用当前设备的计时设置。切换账号时会保存原资料备份。",style = MaterialTheme.typography.bodySmall)
-            OutlinedButton(onClick = { controller.resolve(1) },enabled = !sync.busy,modifier = Modifier.fillMaxWidth()) { Text("使用云端资料") }
-            OutlinedButton(onClick = { controller.resolve(2) },enabled = !sync.busy,modifier = Modifier.fillMaxWidth()) { Text("保留本地并上传") }
-        }
-    },confirmButton = { TextButton(onClick = { controller.resolve(0) },enabled = !sync.busy) { Text("合并并同步") } },dismissButton = { TextButton(onClick = { controller.cancelChoice() },enabled = !sync.busy) { Text("暂不同步") } })
-}
-
-@Composable private fun AboutPane() {
-    val context = LocalContext.current
-    val uri = LocalUriHandler.current
-    val updates = remember { JSONArray(context.assets.open("updates.json").bufferedReader().use { it.readText() }).objects() }
-    LazyColumn(Modifier.fillMaxSize(),contentPadding = PaddingValues(24.dp),verticalArrangement = Arrangement.spacedBy(16.dp)) {
-        item {
-            Text("Study With Miku",style = MaterialTheme.typography.headlineMedium)
-            Text("Love by SHSHOUSE · 原生 Android 1.2.5",style = MaterialTheme.typography.bodyMedium)
-            val since = Duration.between(LocalDate.of(2025,12,2).atStartOfDay(ZoneId.systemDefault()).toInstant(),Instant.now()).toDays()
-            Text("原站已陪伴大家 $since 天",style = MaterialTheme.typography.bodySmall)
-            listOf("原项目与源码" to "https://github.com/shshouse/StudyWithMiku","作者主页" to "https://space.bilibili.com/3493127123897196",
-                "MikuMod 账号设置" to "$ACCOUNT_SITE/settings","B站项目介绍" to "https://www.bilibili.com/video/BV18TSWBzE4o","支持原作者" to "https://afdian.com/a/shshouse").forEach { (name,url) ->
-                TextButton(onClick = { runCatching { uri.openUri(url) } }) { Text(name) }
-            }
-            TextButton(onClick = {
-                (context.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager).setPrimaryClip(android.content.ClipData.newPlainText("StudyWithMiku QQ群","941108668"))
-            }) { Text("复制 QQ 群号 941108668") }
-            Text("原项目更新日志",style = MaterialTheme.typography.titleLarge)
-        }
-        items(updates,key = { it.optString("date") }) { update ->
-            Surface(shape = RoundedCornerShape(24.dp),color = MaterialTheme.colorScheme.surfaceContainerLow) {
-                Column(Modifier.padding(18.dp),verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                    Text(update.optString("date"),style = MaterialTheme.typography.titleMedium,color = MaterialTheme.colorScheme.primary)
-                    update.optJSONArray("content")?.strings()?.forEach { Text(it,style = MaterialTheme.typography.bodyMedium) }
-                    update.optJSONArray("images")?.strings()?.forEach { image -> AsyncImage("$STUDY_SITE$image",null,Modifier.fillMaxWidth().heightIn(max = 280.dp).clip(RoundedCornerShape(16.dp)),contentScale = ContentScale.Fit) }
-                }
-            }
+    var awaitingResult by remember { mutableStateOf(false) }
+    val deliverMessage by rememberUpdatedState(onMessage)
+    LaunchedEffect(sync.busy,sync.conflict,sync.message,sync.error,awaitingResult) {
+        if (awaitingResult && !sync.busy && sync.conflict == null) {
+            (sync.error ?: sync.message)?.let(deliverMessage)
+            awaitingResult = false
         }
     }
+    val conflict = sync.conflict ?: return
+    var choice by remember(conflict) { mutableIntStateOf(0) }
+    val differences = remember(conflict) { StudyComparison.differences(conflict.local,conflict.remote) }
+    fun postpone() {
+        awaitingResult = false
+        controller.cancelChoice()
+        controller.state.value.message?.let(deliverMessage)
+    }
+    AlertDialog(onDismissRequest = { if (!sync.busy) postpone() },title = { Text("选择学习资料的同步方式") },text = {
+        Column(Modifier.verticalScroll(rememberScrollState()),verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Text("本地：${StudyComparison.describe(conflict.local)}\n云端：${StudyComparison.describe(conflict.remote)}")
+            if (differences.isNotEmpty()) Text("存在差异：${differences.joinToString("、")}",style = MaterialTheme.typography.bodySmall)
+            Column(Modifier.selectableGroup(),verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                listOf(
+                    "合并本地与云端" to "保留每日较大的学习值，合并待办与计划，使用当前设备的计时设置。",
+                    "使用云端资料" to "将云端资料保存到本机，替换当前本地学习资料。",
+                    "保留本地资料" to "保留本机的学习资料，并上传以替换云端资料。"
+                ).forEachIndexed { index,(title,description) ->
+                    Surface(shape = RoundedCornerShape(20.dp),color = if (choice == index) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surfaceContainerLow) {
+                        Row(Modifier.fillMaxWidth().selectable(selected = choice == index,enabled = !sync.busy,
+                            role = Role.RadioButton,onClick = { choice = index }).padding(12.dp),verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            RadioButton(selected = choice == index,onClick = null,enabled = !sync.busy)
+                            Column(Modifier.weight(1f),verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                                Text(title,style = MaterialTheme.typography.titleSmall)
+                                Text(description,style = MaterialTheme.typography.bodySmall)
+                            }
+                        }
+                    }
+                }
+            }
+            Text("切换账号时会保留原账号的本地资料备份。",style = MaterialTheme.typography.bodySmall)
+            if (sync.busy) LinearProgressIndicator(Modifier.fillMaxWidth())
+            sync.error?.let { Text(it,color = MaterialTheme.colorScheme.error) }
+        }
+    },confirmButton = {
+        Button(onClick = { awaitingResult = true; controller.resolve(choice) },enabled = !sync.busy) {
+            Text(if (sync.busy) "正在处理…" else "确认选择")
+        }
+    },dismissButton = { TextButton(onClick = { postpone() },enabled = !sync.busy) { Text("暂不同步") } })
 }
+
 fun countdownLabel(date: String): String {
     val days = java.time.temporal.ChronoUnit.DAYS.between(LocalDate.now(),LocalDate.parse(date))
     return if (days > 0) "还有 $days 天" else if (days == 0L) "就是今天" else "已过 ${-days} 天"

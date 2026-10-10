@@ -150,6 +150,9 @@ class CloudSync(private val store: StudySyncStore,private val timer: StudySyncTi
         task?.cancel(); timer.pause(); activeUser = ""; _state.value = SyncState()
         store.switchStudyOwner(""); timer.restoreFromStore(); auth.logout()
     }
-    fun cancelChoice() { if (!_state.value.busy) _state.value = _state.value.copy(conflict = null,error = "请选择本地与云端资料的同步方式后再同步") }
+    fun cancelChoice() {
+        if (!_state.value.busy) _state.value = _state.value.copy(conflict = null,error = null,
+            message = "已暂缓同步，本地资料已保留。可在账号页重新设置同步。")
+    }
     internal fun close() { scope.cancel() }
 }

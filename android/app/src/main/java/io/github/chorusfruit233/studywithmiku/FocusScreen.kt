@@ -42,6 +42,7 @@ import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.PlayerView
 import java.time.LocalDate
+import java.util.Locale
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.awaitCancellation
@@ -98,27 +99,26 @@ private val sceneResources = listOf(R.drawable.scene_1,R.drawable.scene_2,R.draw
                     }
                 }
                 Spacer(Modifier.height(14.dp))
-                Box(Modifier.fillMaxWidth().height(174.dp),contentAlignment = Alignment.Center) {
+                Box(Modifier.fillMaxWidth().heightIn(min = 174.dp),contentAlignment = Alignment.Center) {
                     FlowerProgress(clock,prefs,Modifier.size(174.dp))
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text(if (clock.mode == TimerMode.POMODORO) clock.phase.label else if (clock.running) "正在专注" else "准备开始",
+                        Text(focusStatusLabel(clock),
                             style = MaterialTheme.typography.labelLarge,color = MaterialTheme.colorScheme.primary)
                         Text(timeLabel(if (clock.mode == TimerMode.STOPWATCH) clock.elapsedMs else clock.remainingMs),
-                            style = MaterialTheme.typography.displayLarge.copy(fontSize = if (clock.elapsedMs > 3_600_000L) 54.sp else 68.sp),
+                            style = MaterialTheme.typography.displayLarge.copy(fontSize = if ((if (clock.mode == TimerMode.STOPWATCH) clock.elapsedMs else clock.remainingMs) >= 3_600_000L) 54.sp else 68.sp),
                             maxLines = 1)
-                        Text(if (clock.mode == TimerMode.POMODORO) "第 ${(clock.round+1).toString().padStart(2,'0')} 轮 · ${prefs.focusSeconds / 60.0} / ${prefs.breakSeconds / 60.0} 分钟"
-                            else if (clock.mode == TimerMode.STOPWATCH) "按自己的节奏，向前一点点" else "只做眼前这一件事",
-                            style = MaterialTheme.typography.bodySmall,color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text(focusDetailLabel(clock,prefs),
+                            style = MaterialTheme.typography.bodySmall,color = MaterialTheme.colorScheme.onSurfaceVariant,textAlign = TextAlign.Center)
                     }
                 }
                 Spacer(Modifier.height(12.dp))
                 Row(Modifier.fillMaxWidth(),horizontalArrangement = Arrangement.spacedBy(10.dp),verticalAlignment = Alignment.CenterVertically) {
                     FilledTonalIconButton(onClick = { confirmReset = true },modifier = Modifier.size(60.dp)) { Icon(Icons.Rounded.RestartAlt,"重置计时") }
                     Button(onClick = toggle,shapes = ButtonDefaults.shapes(shape = CircleShape,pressedShape = RoundedCornerShape(20.dp)),
-                        modifier = Modifier.weight(1f).height(60.dp),enabled = true) {
+                        modifier = Modifier.weight(1f).heightIn(min = 60.dp),enabled = true) {
                         Icon(if (clock.running) Icons.Rounded.Pause else Icons.Rounded.PlayArrow,null,Modifier.size(26.dp))
                         Spacer(Modifier.width(8.dp))
-                        Text(if (clock.running) "暂停一下" else if (clock.elapsedMs > 0) "继续专注" else if (clock.phase == Phase.FOCUS) "开始专注" else "开始休息",fontSize = 17.sp)
+                        Text(focusActionLabel(clock),fontSize = 17.sp)
                     }
                 }
                 if (clock.phase != Phase.FOCUS) TextButton(onClick = { engine.skipBreak() }) { Text("跳过休息，回到专注") }
@@ -174,12 +174,41 @@ private val sceneResources = listOf(R.drawable.scene_1,R.drawable.scene_2,R.draw
             Box(Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(Color.Black.copy(alpha = prefs.overlayOpacity),Color.Transparent,Color.Black.copy(alpha = (prefs.overlayOpacity+.25f).coerceAtMost(1f))))))
             if (sceneControls) IconButton(onClick = { fullScene = false },modifier = Modifier.align(Alignment.TopEnd).statusBarsPadding().padding(16.dp)) { Icon(Icons.Rounded.Close,"退出沉浸",tint = Color.White) }
             if (!prefs.hidePomodoroOnIdle || clock.running || sceneControls) Column(Modifier.align(Alignment.BottomCenter).navigationBarsPadding().padding(32.dp),horizontalAlignment = Alignment.CenterHorizontally) {
-                Text(clock.phase.label,color = Color.White)
+                Text(focusStatusLabel(clock),color = Color.White)
                 Text(timeLabel(if (clock.mode == TimerMode.STOPWATCH) clock.elapsedMs else clock.remainingMs),style = MaterialTheme.typography.displayLarge,color = Color.White)
-                if (sceneControls) FilledTonalButton(onClick = toggle) { Icon(if (clock.running) Icons.Rounded.Pause else Icons.Rounded.PlayArrow,null); Text(if (clock.running) "暂停" else "开始") }
+                Text(focusDetailLabel(clock,prefs),style = MaterialTheme.typography.bodySmall,color = Color.White,textAlign = TextAlign.Center)
+                if (sceneControls) FilledTonalButton(onClick = toggle) {
+                    Icon(if (clock.running) Icons.Rounded.Pause else Icons.Rounded.PlayArrow,null)
+                    Spacer(Modifier.width(8.dp))
+                    Text(focusActionLabel(clock))
+                }
             }
         }
     }
+}
+
+internal fun focusStatusLabel(clock: FocusClock): String = when {
+    !clock.running && clock.elapsedMs > 0 -> if (clock.mode == TimerMode.POMODORO) "${clock.phase.label} · 已暂停" else "已暂停"
+    !clock.running -> if (clock.mode == TimerMode.POMODORO) "准备${clock.phase.label}" else "准备开始"
+    clock.mode != TimerMode.POMODORO || clock.phase == Phase.FOCUS -> "正在专注"
+    else -> "${clock.phase.label}中"
+}
+
+internal fun focusActionLabel(clock: FocusClock): String {
+    if (clock.running) return "暂停"
+    val activity = if (clock.mode == TimerMode.POMODORO && clock.phase != Phase.FOCUS) "休息" else "专注"
+    return (if (clock.elapsedMs > 0) "继续" else "开始") + activity
+}
+
+internal fun focusDetailLabel(clock: FocusClock,prefs: Preferences): String = when (clock.mode) {
+    TimerMode.POMODORO -> {
+        // A break belongs to the focus round that just finished, rather than the next round.
+        val round = (clock.round + if (clock.phase == Phase.FOCUS) 1 else 0).coerceAtLeast(1)
+        val minutes = String.format(Locale.US,"%.2f",FocusClock.duration(clock.mode,clock.phase,prefs)/60_000.0).trimEnd('0').trimEnd('.')
+        "第 ${round.toString().padStart(2,'0')} 轮 · ${clock.phase.label} $minutes 分钟"
+    }
+    TimerMode.STOPWATCH -> "按自己的节奏，向前一点点"
+    TimerMode.COUNTDOWN -> "只做眼前这一件事"
 }
 
 fun Modifier.clipShape(radius: androidx.compose.ui.unit.Dp) = this.then(Modifier.background(Color.Transparent,RoundedCornerShape(radius))).then(Modifier.clip(RoundedCornerShape(radius)))

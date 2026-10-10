@@ -12,19 +12,16 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlin.math.roundToInt
 
-@Composable fun SettingsSheet(prefs: Preferences,store: MikuStore,engine: FocusEngine,onDismiss: () -> Unit) {
+@Composable fun SettingsSheet(prefs: Preferences,store: MikuStore,engine: FocusEngine,onDismiss: () -> Unit,onAbout: () -> Unit) {
     val clock by engine.state.collectAsStateWithLifecycle()
-    var license by remember { mutableStateOf(false) }
     val sheet = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-    val context = LocalContext.current
     fun update(p: Preferences,resetClock: Boolean = false) {
+        if (p == prefs) return
         store.updatePreferences(p)
         if (resetClock && !clock.running) engine.reset()
     }
@@ -34,22 +31,27 @@ import kotlin.math.roundToInt
             Text("按自己的节奏，调整一点点。",style = MaterialTheme.typography.bodyMedium,color = MaterialTheme.colorScheme.onSurfaceVariant)
             SettingSection("专注节奏") {
                 if (clock.running) Text("暂停计时后，可以调整本轮时长。",style = MaterialTheme.typography.bodySmall,color = MaterialTheme.colorScheme.primary)
-                DurationField("专注时长",prefs.focusSeconds,100,!clock.running) { update(prefs.copy(focusSeconds = it,focusMinutes = it/60),true) }
-                DurationField("短休息",prefs.breakSeconds,100,!clock.running) { update(prefs.copy(breakSeconds = it,breakMinutes = it/60,longBreakSeconds = it*2,longBreakMinutes = it/30),true) }
-                DurationField("长休息",prefs.longBreakSeconds,200,!clock.running) { update(prefs.copy(longBreakSeconds = it,longBreakMinutes = it/60),true) }
-                DurationField("倒计时时长",prefs.countdownSeconds,600,!clock.running) { update(prefs.copy(countdownSeconds = it,countdownMinutes = it/60),true) }
-                MinuteSlider("长休息间隔（轮）",prefs.pomodoroCount,1..20,!clock.running) { update(prefs.copy(pomodoroCount = it),true) }
+                DurationField("专注时长",prefs.focusSeconds,100,!clock.running) { update(prefs.copy(focusSeconds = it,focusMinutes = (it+59)/60),true) }
+                DurationField("短休息",prefs.breakSeconds,100,!clock.running) { update(prefs.copy(breakSeconds = it,breakMinutes = (it+59)/60),true) }
+                DurationField("长休息",prefs.longBreakSeconds,200,!clock.running) { update(prefs.copy(longBreakSeconds = it,longBreakMinutes = (it+59)/60),true) }
+                DurationField("倒计时时长",prefs.countdownSeconds,600,!clock.running) { update(prefs.copy(countdownSeconds = it,countdownMinutes = (it+59)/60),true) }
+                SettingSlider("长休息间隔",prefs.pomodoroCount,1..20,"轮",!clock.running) { update(prefs.copy(pomodoroCount = it),true) }
                 SettingSwitch("自动进入下一阶段","番茄钟连续专注和休息",prefs.autoAdvance) { update(prefs.copy(autoAdvance = it)) }
-                SettingSwitch("休息时暂停音乐","淡出后暂停，专注开始时恢复",prefs.pauseMusicDuringBreak) { update(prefs.copy(pauseMusicDuringBreak = it)) }
-                Text("完成提示音量",style = MaterialTheme.typography.bodyMedium)
-                Slider(prefs.notificationVolume,{ update(prefs.copy(notificationVolume = it)) })
-                SettingSwitch("音乐交叉淡入淡出","提前缓冲下一首，平滑衔接",prefs.crossfade) { update(prefs.copy(crossfade = it)) }
-                MinuteSlider("每日专注目标",prefs.dailyGoalMinutes,15..360,true) { update(prefs.copy(dailyGoalMinutes = it)) }
+                SettingSlider("每日专注目标",prefs.dailyGoalMinutes,15..600,"分钟",true) { update(prefs.copy(dailyGoalMinutes = it)) }
+            }
+            SettingSection("声音与播放") {
                 SettingSwitch("Miku 完成语音","计时结束时，听到一声鼓励",prefs.completionSound) { update(prefs.copy(completionSound = it)) }
+                Row(Modifier.fillMaxWidth(),verticalAlignment = Alignment.CenterVertically) {
+                    Text("完成语音音量",Modifier.weight(1f),style = MaterialTheme.typography.bodyMedium)
+                    Text("${(prefs.notificationVolume*100).roundToInt()}%",style = MaterialTheme.typography.labelLarge,color = MaterialTheme.colorScheme.primary)
+                }
+                Slider(prefs.notificationVolume,{ update(prefs.copy(notificationVolume = it)) },enabled = prefs.completionSound)
+                SettingSwitch("休息时暂停音乐","淡出后暂停，专注开始时恢复",prefs.pauseMusicDuringBreak) { update(prefs.copy(pauseMusicDuringBreak = it)) }
+                SettingSwitch("音乐交叉淡入淡出","提前缓冲下一首，平滑衔接",prefs.crossfade) { update(prefs.copy(crossfade = it)) }
             }
             SettingSection("外观与陪伴") {
                 Text("主题",style = MaterialTheme.typography.titleMedium)
-                Row(Modifier.fillMaxWidth(),horizontalArrangement = Arrangement.spacedBy(7.dp)) {
+                FlowRow(Modifier.fillMaxWidth(),horizontalArrangement = Arrangement.spacedBy(7.dp),verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     listOf("跟随系统","浅色","深色").forEachIndexed { i,title ->
                         FilterChip(selected = prefs.theme == i,onClick = { update(prefs.copy(theme = i)) },label = { Text(title) },shape = CircleShape)
                     }
@@ -64,28 +66,24 @@ import kotlin.math.roundToInt
             }
             Surface(shape = RoundedCornerShape(28.dp),color = MaterialTheme.colorScheme.primaryContainer) {
                 Row(Modifier.padding(18.dp),verticalAlignment = Alignment.CenterVertically,horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    Icon(Icons.Rounded.OfflinePin,null,Modifier.size(30.dp),tint = MaterialTheme.colorScheme.primary)
+                    Icon(Icons.Rounded.CloudSync,null,Modifier.size(30.dp),tint = MaterialTheme.colorScheme.primary)
                     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                         Text("音乐在线，专注在当下。",style = MaterialTheme.typography.titleMedium)
                         Text("使用原站账号可同步学习记录与设置。\n在社区页登录、管理云端数据。",style = MaterialTheme.typography.bodySmall)
                     }
                 }
             }
-            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                Text("Study With Miku · 1.2.2",style = MaterialTheme.typography.titleMedium)
-                Text("原作：shshouse / StudyWithMiku\nAndroid 版 · Material 3 Expressive\n场景、音乐、语音和贴图沿用原项目，创作者署名见内置资源说明。",
-                    style = MaterialTheme.typography.bodySmall,color = MaterialTheme.colorScheme.onSurfaceVariant)
-                TextButton(onClick = { license = true }) { Text("开源许可与资源说明") }
+            Surface(onClick = onAbout,shape = RoundedCornerShape(24.dp),color = MaterialTheme.colorScheme.surfaceContainerLow) {
+                Row(Modifier.fillMaxWidth().padding(18.dp),verticalAlignment = Alignment.CenterVertically,horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Icon(Icons.Rounded.Info,null,tint = MaterialTheme.colorScheme.primary)
+                    Column(Modifier.weight(1f),verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                        Text("关于 Study With Miku",style = MaterialTheme.typography.titleMedium)
+                        Text("版本、原作、更新与开源许可",style = MaterialTheme.typography.bodySmall,color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                    Icon(Icons.Rounded.ChevronRight,null)
+                }
             }
         }
-    }
-    if (license) {
-        val text = remember { context.assets.open("LICENSE.txt").bufferedReader().use { it.readText() } }
-        AlertDialog(onDismissRequest = { license = false },title = { Text("开源许可与资源") },
-            text = { Column(Modifier.heightIn(max = 420.dp).verticalScroll(rememberScrollState()),verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                Text("基于 github.com/shshouse/StudyWithMiku，遵循 GNU GPL v3。\n\n音乐：和未来一起喝茶、Alice In Cradle、Snail’s House。原始音视频和插画资源来源于原仓库；资源权利归各自创作者。\n\nAndroidX / Jetpack Compose / Media3：Apache License 2.0。",style = MaterialTheme.typography.bodyMedium)
-                Text(text,fontSize = 11.sp,lineHeight = 16.sp)
-            } },confirmButton = { TextButton(onClick = { license = false }) { Text("关闭") } })
     }
 }
 
@@ -97,12 +95,12 @@ import kotlin.math.roundToInt
         }
     }
 }
-@Composable private fun MinuteSlider(label: String,value: Int,range: IntRange,enabled: Boolean,onChange: (Int) -> Unit) {
+@Composable private fun SettingSlider(label: String,value: Int,range: IntRange,unit: String,enabled: Boolean,onChange: (Int) -> Unit) {
     var draft by remember(value) { mutableFloatStateOf(value.toFloat()) }
     Column {
         Row(Modifier.fillMaxWidth(),verticalAlignment = Alignment.CenterVertically) {
             Text(label,Modifier.weight(1f),style = MaterialTheme.typography.bodyMedium)
-            Text("${draft.roundToInt()} 分钟",style = MaterialTheme.typography.labelLarge,color = MaterialTheme.colorScheme.primary)
+            Text("${draft.roundToInt()} $unit",style = MaterialTheme.typography.labelLarge,color = MaterialTheme.colorScheme.primary)
         }
         Slider(value = draft,onValueChange = { draft = it },onValueChangeFinished = { onChange(draft.roundToInt()) },
             valueRange = range.first.toFloat()..range.last.toFloat(),steps = range.last-range.first-1,enabled = enabled)
@@ -119,14 +117,32 @@ import kotlin.math.roundToInt
 }
 
 @Composable private fun DurationField(label: String,seconds: Int,maxMinutes: Int,enabled: Boolean,onSave: (Int)->Unit) {
-    var text by remember(seconds) { mutableStateOf("%.1f".format(java.util.Locale.US,seconds/60.0)) }
+    var text by remember(seconds) {
+        mutableStateOf("%.2f".format(java.util.Locale.US,seconds/60.0).removeSuffix("0"))
+    }
     val minutes = text.toDoubleOrNull()
     val valid = minutes != null && minutes.isFinite() && minutes in 0.1..maxMinutes.toDouble()
-    Row(verticalAlignment = Alignment.CenterVertically,horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        OutlinedTextField(text,{ text = it.take(8) },Modifier.weight(1f),label = { Text("$label（分钟）") },
-            singleLine = true,enabled = enabled,isError = !valid,
-            keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Decimal),
-            supportingText = { Text("0.1–$maxMinutes 分钟，支持小数") })
-        TextButton(onClick = { if (valid) onSave((minutes!!*60).roundToInt()) },enabled = enabled && valid) { Text("保存") }
+    val draftSeconds = if (valid) (minutes!!*60).roundToInt() else null
+    val canSave = enabled && draftSeconds != null && draftSeconds != seconds
+    val fontScale = LocalDensity.current.fontScale
+    BoxWithConstraints(Modifier.fillMaxWidth()) {
+        if (maxWidth < 300.dp || fontScale > 1.3f) {
+            Column(Modifier.fillMaxWidth()) {
+                DurationInput(text,{ text = it.take(8) },label,maxMinutes,enabled,valid,Modifier.fillMaxWidth())
+                TextButton(onClick = { draftSeconds?.let(onSave) },enabled = canSave,modifier = Modifier.align(Alignment.End)) { Text("保存") }
+            }
+        } else {
+            Row(verticalAlignment = Alignment.CenterVertically,horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                DurationInput(text,{ text = it.take(8) },label,maxMinutes,enabled,valid,Modifier.weight(1f))
+                TextButton(onClick = { draftSeconds?.let(onSave) },enabled = canSave) { Text("保存") }
+            }
+        }
     }
+}
+
+@Composable private fun DurationInput(text: String,onTextChange: (String) -> Unit,label: String,maxMinutes: Int,enabled: Boolean,valid: Boolean,modifier: Modifier) {
+    OutlinedTextField(text,onTextChange,modifier,label = { Text("$label（分钟）") },
+        singleLine = true,enabled = enabled,isError = !valid,
+        keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Decimal),
+        supportingText = { Text("0.1–$maxMinutes 分钟，支持小数") })
 }

@@ -48,6 +48,20 @@ class FocusClockTest {
         assertEquals(Phase.FOCUS,result.clock.phase)
         assertFalse(result.clock.running)
     }
+    @Test fun completedCountdownStartsANewFullSession() {
+        val countdownPrefs = prefs.copy(countdownMinutes = 1,countdownSeconds = 60)
+        val finished = FocusClock(mode = TimerMode.COUNTDOWN,remainingMs = 60_000).start(100).tick(60_100,countdownPrefs)
+        assertTrue(finished.finished)
+        assertEquals(60_000L,finished.studiedMs)
+        assertEquals(60_000L,finished.clock.remainingMs)
+        assertEquals(0L,finished.clock.elapsedMs)
+
+        val restarted = finished.clock.start(90_100).tick(95_100,countdownPrefs)
+        assertTrue(restarted.clock.running)
+        assertFalse(restarted.finished)
+        assertEquals(5_000L,restarted.studiedMs)
+        assertEquals(55_000L,restarted.clock.remainingMs)
+    }
     @Test fun repeatedTickDoesNotDuplicateCredit() {
         val first = FocusClock(remainingMs = 60_000).start(0).tick(10_000,prefs)
         assertEquals(0L,first.clock.tick(10_000,prefs).studiedMs)

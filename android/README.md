@@ -1,4 +1,4 @@
-# Study With Miku · Android 1.2.5
+# Study With Miku · Android 1.2.6
 
 原作：[shshouse/StudyWithMiku](https://github.com/shshouse/StudyWithMiku)，基线提交 `159db717f02debf71a5138764ed8e068f4577f94`。原生 Kotlin、Compose、Media3；Material 3 Expressive 主题、动态形状按钮和花瓣计时进度。支持 Android 8.0（API 26）以上，target API 35。
 
@@ -52,7 +52,7 @@
 
 协议、HTTP 错误、账号凭据校验、云合并、分享和计时单元测试使用本地测试服务器。真实账号登录、发言、云端写入与跨设备同步须在用户手机上验收；当前无测试账号。详细边界见 [VALIDATION.md](VALIDATION.md)。
 
-有设备或模拟器时，可运行 `./gradlew connectedDebugAndroidTest` 执行离线聊天手势回归测试；CI 会编译该测试包，实际设备执行结果记录在验证文档中。
+有设备或模拟器时，可运行 `./gradlew connectedDebugAndroidTest` 执行离线聊天手势回归测试；CI 会在 Android 35 模拟器运行聊天手势、同步选择、任务操作与持久化回归，执行结果记录在验证文档中。
 
 ## 资源与许可
 

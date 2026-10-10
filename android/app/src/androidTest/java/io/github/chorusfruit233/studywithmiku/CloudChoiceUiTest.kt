@@ -59,9 +59,17 @@ class CloudChoiceUiTest {
                 }
             }
             compose.waitUntil(15_000) { controller?.state?.value?.conflict != null }
+            compose.onNodeWithText("确认选择").assertIsDisplayed()
+            saveDesignScreenshot("sync-choice")
             // The server changed after the original choice dialog was opened.
             cloud = CloudStudy(JSONObject("""{"stats":{"totalStudyTime":1200,"totalPomodoros":2},"todos":[{"id":10,"text":"Latest cloud task","completed":true}],"settings":{"focusDuration":45}}"""))
-            compose.onNodeWithText("使用云端资料").performClick()
+            compose.onNodeWithText("使用云端资料").performScrollTo().performClick()
+            compose.runOnIdle {
+                assertFalse(controller!!.state.value.ready)
+                assertEquals("Local task",store.todos.value.single().text)
+                assertEquals(1,reads.get()); assertEquals(0,writes.get())
+            }
+            compose.onNodeWithText("确认选择").performClick()
             compose.waitUntil(15_000) { controller?.state?.value?.ready == true }
             compose.onNodeWithText("学习资料已保存到本机").assertIsDisplayed()
             compose.onNodeWithText("选择学习资料的同步方式").assertDoesNotExist()

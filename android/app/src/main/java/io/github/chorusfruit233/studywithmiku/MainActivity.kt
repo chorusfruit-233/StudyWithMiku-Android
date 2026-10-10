@@ -67,6 +67,8 @@ class MainActivity : ComponentActivity() {
     DisposableEffect(music) { onDispose { music.close() } }
     var tab by rememberSaveable { mutableIntStateOf(0) }
     var settings by remember { mutableStateOf(false) }
+    var about by rememberSaveable { mutableStateOf(false) }
+    var communityPage by rememberSaveable { mutableIntStateOf(0) }
     var player by remember { mutableStateOf(false) }
     var chatSheet by remember { mutableStateOf(false) }
     val chat by app.chat.state.collectAsStateWithLifecycle()
@@ -98,7 +100,7 @@ class MainActivity : ComponentActivity() {
                         Text(if (chat.connected) "${chat.online} 人正在一起学习${if (chat.adminOnline) " · 管理员在线" else ""}" else "和 Miku 一起，慢慢变好",fontSize = 10.sp,color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 }
-                IconButton(onClick = { chatSheet = true }) { Icon(Icons.Rounded.ChatBubbleOutline,"打开聊天室") }
+                if (tab != 4) IconButton(onClick = { chatSheet = true }) { Icon(Icons.Rounded.ChatBubbleOutline,"打开聊天室") }
                 IconButton(onClick = { settings = true }) { Icon(Icons.Rounded.Tune,"设置") }
             }
         },
@@ -120,23 +122,24 @@ class MainActivity : ComponentActivity() {
                 when (selected) {
                     0 -> FocusScreen(prefs,timer,logs,todos,app.store,app.timer,app.extras,::toggleTimer)
                     1 -> LibraryScreen(library,playback,app.store,music,app.onlineMusic,::message) { player = true }
-                    2 -> TasksScreen(todos,app.store) { content -> if (!app.auth.state.value.loggedIn) app.openLogin() else if (app.chat.sendChat(content,app.extras.messageLocation())) { tab = 4; message("已分享到聊天室") } else message("连接成功后再分享") }
+                    2 -> TasksScreen(todos,app.store) { content -> if (!app.auth.state.value.loggedIn) app.openLogin() else if (app.chat.sendChat(content,app.extras.messageLocation())) { communityPage = 0; tab = 4; message("已分享到聊天室") } else message("连接成功后再分享") }
                     3 -> RecordsScreen(logs,todos)
-                    else -> CommunityScreen(app,music,::message) { player = true }
+                    else -> CommunityScreen(app,music,::message,communityPage,{ communityPage = it }) { player = true }
                 }
             }
         }
     }
-    if (settings) SettingsSheet(prefs,app.store,app.timer) { settings = false }
+    if (settings) SettingsSheet(prefs,app.store,app.timer,onDismiss = { settings = false },onAbout = { settings = false; about = true })
+    if (about) AboutSheet { about = false }
     if (player) PlayerSheet(library,playback,app.store,music,onShare = { song ->
         if (!app.auth.state.value.loggedIn) app.openLogin()
-        else if (app.chat.sendChat(StudyProtocol.songShare(song) ?: "",app.extras.messageLocation())) { player = false; tab = 4; message("已分享到聊天室") }
+        else if (app.chat.sendChat(StudyProtocol.songShare(song) ?: "",app.extras.messageLocation())) { player = false; chatSheet = false; communityPage = 0; tab = 4; message("已分享到聊天室") }
         else message("连接成功后再分享")
     }) { player = false }
     if (chatSheet) FocusChatSheet(onDismiss = { chatSheet = false }) {
-        ChatPane(app,music,::message) { player = true }
+        ChatPane(app,music,::message) { chatSheet = false; player = true }
     }
-    SyncChoiceDialog(app)
+    SyncChoiceDialog(app,::message)
 }
 
 @Composable fun PageHeading(eyebrow: String, title: String, subtitle: String? = null) {

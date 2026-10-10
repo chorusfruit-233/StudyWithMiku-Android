@@ -43,7 +43,7 @@ class MikuStore(private val context: Context) : StudySyncStore {
     private fun readPreferences(): Preferences {
         val p = obj("preferences")
         return Preferences(p.optInt("focus",25).coerceIn(1,180), p.optInt("break",5).coerceIn(1,100),
-            p.optInt("long",15).coerceIn(1,60), p.optInt("countdown",30).coerceIn(1,180),
+            p.optInt("long",15).coerceIn(1,200), p.optInt("countdown",30).coerceIn(1,600),
             p.optInt("goal",120).coerceIn(15,600),p.optInt("scene",0).coerceIn(0,2),
             p.optInt("theme",0).coerceIn(0,2),p.optBoolean("dynamic",false),
             p.optBoolean("animate",true),p.optBoolean("screen",false),p.optBoolean("sound",true),
@@ -77,8 +77,16 @@ class MikuStore(private val context: Context) : StudySyncStore {
             .put("id",it.id).put("text",it.text).put("date",it.date).put("done",it.done).put("pinned",it.pinned).put("color",it.color)) } }.toString()).apply()
         markLearningChanged()
     }
-    fun addTodo(text: String, date: LocalDate? = null) {
-        if (text.isNotBlank() && _todos.value.count { it.date == (date?.toString() ?: "") } < 200) saveTodos(_todos.value + Todo(System.currentTimeMillis().toString(),text.trim().take(200),date?.toString() ?: ""))
+    fun addTodo(text: String, date: LocalDate? = null): String? {
+        val day = date?.toString() ?: ""
+        if (text.isBlank() || _todos.value.count { it.date == day } >= 200) return null
+        // Original web IDs are numeric timestamps. Keep that format, including rapid additions.
+        var timestamp = System.currentTimeMillis()
+        val ids = _todos.value.map { it.id }.toSet()
+        while (timestamp.toString() in ids) timestamp++
+        val todo = Todo(timestamp.toString(),text.trim().take(200),day)
+        saveTodos(_todos.value + todo)
+        return todo.id
     }
     fun pinTodo(id: String) = saveTodos(_todos.value.map { it.copy(pinned = if (it.id == id) !it.pinned else false) })
     fun toggleTodo(id: String) = saveTodos(_todos.value.map { if (it.id == id) it.copy(done = !it.done) else it })
