@@ -48,6 +48,8 @@ jobs:
             cd android && ./gradlew connectedDebugAndroidTest
             mkdir -p android/app/build/reports/design-screenshots
             adb pull /sdcard/Download/studywithmiku-design/. android/app/build/reports/design-screenshots/
+            test -f android/app/build/reports/design-screenshots/sync-choice.png && test -s android/app/build/reports/design-screenshots/sync-choice.png
+            test -f android/app/build/reports/design-screenshots/task-edit.png && test -s android/app/build/reports/design-screenshots/task-edit.png
       - name: Prepare APK artifact
         working-directory: android
         run: |
