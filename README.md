@@ -8,9 +8,9 @@
 
 ## 下载 APK
 
-打开 [Android APK 1.2.6 私有草稿](https://github.com/chorusfruit-233/StudyWithMiku-Android/releases/tag/untagged-bcc1b048202eebda340d)，下载 `.apk`。包名为 `io.github.chorusfruit233.studywithmiku`，支持 Android 8.0 及以上。仓库保持私有；草稿仅对有仓库写入权限的用户可见。
+打开 [Android Release APK 1.2.7 私有草稿](https://github.com/chorusfruit-233/StudyWithMiku-Android/releases/tag/untagged-2813a9700863c1d80418)，下载 `StudyWithMiku-Android-1.2.7-release.apk`。包名为 `io.github.chorusfruit233.studywithmiku`，支持 Android 8.0 及以上。仓库保持私有；草稿仅对有仓库写入权限的用户可见。
 
-[正式包构建与发布指南](android/RELEASING.md)：配置四个 Actions Secrets 后，在 Actions 运行 **Android signed release**，或推送版本标签，生成固定签名、关闭调试的 Release APK，并保存为私有草稿。当前 GitHub 连接没有 Secrets 管理权限，需要仓库管理员在设置页面填写；本次正式包可在本地签名后上传。
+[正式包构建与发布指南](android/RELEASING.md)：配置四个 Actions Secrets 后，在 Actions 运行 **Android signed release**，或推送版本标签，生成固定签名、关闭调试的 Release APK，并保存为私有草稿。当前 GitHub 连接没有 Secrets 管理权限，需要仓库管理员在设置页面填写；本次正式包已在本地签名，经 Actions 再次验证并上传。
 
 向 `main` 推送 Android 源码会自动构建调试包，并运行单元测试与 Android 模拟器交互回归、运行 Lint 和验证 APK 签名，输出 APK、SHA-256 校验值和检查报告。也可在 Actions 中手动运行。由于账户的 Actions 产物存储额度已满，产物保存到私有 Release 草稿。
 

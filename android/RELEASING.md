@@ -4,6 +4,12 @@
 
 固定证书 SHA-256：`E0:7A:05:09:5F:2B:19:E1:B7:B3:7D:48:E6:70:16:DA:4B:5C:F7:83:86:A0:30:20:41:0A:3A:13:4E:1F:12:AD`。
 
+## 本次 1.2.7 正式包
+
+已使用该密钥在本地构建并签名，保存到 [1.2.7 私有 Release 草稿](https://github.com/chorusfruit-233/StudyWithMiku-Android/releases/tag/untagged-2813a9700863c1d80418)。下载 `StudyWithMiku-Android-1.2.7-release.apk` 即可安装；在草稿页面点击 **Publish release** 可正式发布到当前私有仓库。
+
+当前连接管理 Actions Secrets 返回 HTTP 403，因此尚未设置以下四项 Secrets。此次通过临时私有分支传送已签名 APK，由 Actions 验证固定证书、关闭调试及 SHA-256 后上传，传送分支已删除；未传送 JKS 或密码，也不宣称本次是在云端完成签名构建。后续自动构建请按下列步骤配置。
+
 ## GitHub 构建
 
 在仓库 **Settings → Secrets and variables → Actions → New repository secret** 配置：

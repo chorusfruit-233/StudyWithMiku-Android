@@ -6,7 +6,9 @@
 - 新增 `Android signed release` 工作流，通过加密 Secrets 恢复临时 JKS，在任务结束后删除；版本标签与 APK 版本必须一致，已经发布的版本不会被覆盖。Debug 工作流保留，并改为从 APK 元数据读取文件名和标题中的版本，明确标记 Debug。
 - 当前 GitHub 连接访问 Actions Secrets 返回 HTTP 403（Resource not accessible by integration），无法代填仓库 Secrets。签名 APK 本次在本地生成，工作流运行前需要仓库管理员按 [RELEASING.md](RELEASING.md) 手动配置四项 Secrets；不宣称已完成云端签名构建。
 - 本次没有对签名 Release 执行真机或模拟器测试；下方 1.2.6 的 10 项 Android 回归属于其 Debug 构建，应用功能源代码相同，不能作为新签名正式包设备验收。
-- APK 校验值：`cf534a55f11a3cf83699bcd258e7d944148733091facc9bb22509d86a6717a32`。上传后的 Release 链接与构建提交将在完成后补充。
+- 正式包源码提交 `f5aa975c8552dbad02e01cb42e0b059cf60167dc`；[私有 Release 草稿](https://github.com/chorusfruit-233/StudyWithMiku-Android/releases/tag/untagged-2813a9700863c1d80418) 已包含签名 APK、校验值、公开证书资料与 Release 检查报告。由于本地附件上传端点返回 HTTP 401，使用临时私有分支传送已签名 APK，[Actions 38059048025](https://github.com/chorusfruit-233/StudyWithMiku-Android/actions/runs/38059048025) 成功验证其固定签名、包名、关闭调试和传送校验值后上传；未传送签名密钥或密码，临时分支已删除。此工作流是上传与核验，不是云端签名构建。
+- 从 GitHub 重新下载的正式 APK 签名与校验值均通过，SHA-256 为 `cf534a55f11a3cf83699bcd258e7d944148733091facc9bb22509d86a6717a32`；下载的检查报告确认 70 项 Release 单元测试通过，元数据的源码提交与本次构建一致。
+- 当前源码的 [Debug Actions 38058600855](https://github.com/chorusfruit-233/StudyWithMiku-Android/actions/runs/38058600855) 亦成功；下载报告确认 70 项 Debug 单元测试、10 项 Android 35 回归通过，Debug Lint 0 错误。这些设备测试属于 Debug 构建，不作为签名 Release 的设备验收。
 
 # 1.2.6 设计与交互修正
 
