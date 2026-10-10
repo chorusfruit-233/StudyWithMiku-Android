@@ -1,3 +1,11 @@
+# 1.2.5 自适应与单色启动图标
+
+- Manifest 的普通图标与 roundIcon 指向 mipmap。API 26 资源使用独立薄荷绿背景与 Miku 矢量前景；API 33 资源增加 monochrome。单色前景采用透明眼睛／笑脸镂空，由启动器着色，不用白色填充假装透明。
+- 前景与单色图案在 108 dp 画布上以中心点缩放至 0.78，保留头像、双马尾和发饰，并适配中心 66 dp 安全区域。原矢量图移至 mipmap 作为默认回退，所有资源别名保持相同类型。
+- [图标预览](validation/adaptive-icon-1.2.5/preview.png) 由资源中的矢量路径生成，检查圆形、圆角方形以及两组示例主题色下的完整性与镂空。预览为遮罩模拟，不是 Android 启动器设备截图；实际遮罩、主题颜色与动效取决于启动器，主题图标需启动器支持并启用。
+- 本地 `assembleDebug testDebugUnitTest lintDebug assembleDebugAndroidTest` 成功；58 项现有单元测试通过，0 失败／错误／跳过，Lint 0 错误。资源变更未新增单元测试；未执行设备测试或启动器端到端验收。
+- 对本地 APK 中普通／圆形图标的 API 26 与 API 33 四份二进制 XML 做检查：均含 adaptive-icon、background、foreground，API 33 两份额外含 monochrome。[打包检查记录](validation/adaptive-icon-1.2.5/README.txt)
+
 # 1.2.4 包名更换
 
 - 应用标识与命名空间统一为 `io.github.chorusfruit233.studywithmiku`，Kotlin 主代码、单元测试与设备测试的 package 声明及目录同步迁移。版本 1.2.4、versionCode=7。

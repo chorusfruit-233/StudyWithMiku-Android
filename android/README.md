@@ -1,8 +1,10 @@
-# Study With Miku · Android 1.2.4
+# Study With Miku · Android 1.2.5
 
 原作：[shshouse/StudyWithMiku](https://github.com/shshouse/StudyWithMiku)，基线提交 `159db717f02debf71a5138764ed8e068f4577f94`。原生 Kotlin、Compose、Media3；Material 3 Expressive 主题、动态形状按钮和花瓣计时进度。支持 Android 8.0（API 26）以上，target API 35。
 
 包名（applicationId 与 namespace）：`io.github.chorusfruit233.studywithmiku`。新包名作为独立应用安装，可与旧版共存；本机资料不自动迁移，可登录同一账号恢复云端学习资料。
+
+启动图标使用 `mipmap`：API 26 起为独立前景／背景的 AdaptiveIcon，API 33 起增加 monochrome。前景与单色图案使用 108 dp 画布，缩放至中心 66 dp 安全区域；单色版本眼睛与笑脸使用透明镂空，支持启动器根据壁纸着色。普通与 roundIcon 均采用自适应资源，保留旧矢量图作默认回退。
 
 ## 原作功能映射
 

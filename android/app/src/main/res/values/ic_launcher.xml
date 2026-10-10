@@ -1,0 +1,4 @@
+<resources>
+    <color name="ic_launcher_background">#B7F5D7</color>
+    <item type="mipmap" name="ic_launcher_round">@mipmap/ic_launcher</item>
+</resources>

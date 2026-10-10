@@ -276,7 +276,7 @@ fun stickerExtension(id: Int) = when (id) { 4,11,13,14 -> "jpg"; 12,15 -> "gif";
     LazyColumn(Modifier.fillMaxSize(),contentPadding = PaddingValues(24.dp),verticalArrangement = Arrangement.spacedBy(16.dp)) {
         item {
             Text("Study With Miku",style = MaterialTheme.typography.headlineMedium)
-            Text("Love by SHSHOUSE · 原生 Android 1.2.4",style = MaterialTheme.typography.bodyMedium)
+            Text("Love by SHSHOUSE · 原生 Android 1.2.5",style = MaterialTheme.typography.bodyMedium)
             val since = Duration.between(LocalDate.of(2025,12,2).atStartOfDay(ZoneId.systemDefault()).toInstant(),Instant.now()).toDays()
             Text("原站已陪伴大家 $since 天",style = MaterialTheme.typography.bodySmall)
             listOf("原项目与源码" to "https://github.com/shshouse/StudyWithMiku","作者主页" to "https://space.bilibili.com/3493127123897196",
