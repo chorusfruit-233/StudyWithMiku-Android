@@ -5,7 +5,9 @@
 - 计时主页面与沉浸模式统一状态、操作和实际阶段时长；休息暂停显示继续休息，休息轮数归属刚结束的番茄轮。轮数单位为轮，时长保留可读小数，自定义长休息不再被短休息保存覆盖；每日目标上限与存储一致。
 - 计划区分添加与编辑，非日期目标不显示日期。达到 200 项上限时禁用添加，新增失败不会修改上一条计划；快速添加仍生成唯一数字 ID。删除任务、倒数日与歌单先确认，取消保留数据。记录翻月同步更新所选日期，窄屏详情采用纵向布局。
 - 音乐页区分歌词加载／空结果／失败；歌单失败保留上次成功结果，推荐卡片表示已载入。QQ 与网易分享链接按域名识别平台；空队列／未连接操作禁用，播放器窄屏布局保留触控区域，切歌清除旧拖动进度。
-- 最终本地 `assembleDebug testDebugUnitTest lintDebug assembleDebugAndroidTest` 成功，70 项单元测试通过、0 失败／错误／跳过，Lint 0 错误；Android 交互测试包编译通过。CI 模拟器执行结果将在完成后补充。
+- 最终本地 `assembleDebug testDebugUnitTest lintDebug assembleDebugAndroidTest` 成功，70 项单元测试通过、0 失败／错误／跳过，Lint 0 错误；Android 交互测试包编译通过。[GitHub Actions 38056241528](https://github.com/chorusfruit-233/StudyWithMiku-Android/actions/runs/38056241528) 成功，下载报告确认 70 项 JVM 测试和 10 项 Android 35 模拟器回归全部通过、0 失败／错误／跳过，Lint 0 错误。
+- 最终构建提交 `ec97ad0f4b28f098640e410176fb1a06a3b3d3e1`；云端 APK 确认为 1.2.6、versionCode=9、包名 `io.github.chorusfruit233.studywithmiku`，APK v2 签名与 SHA-256 校验通过：`8a58c770ece19ae8583d0ce07f39a9261a00ff91c0e9141e5495283a66e01345`。[私有 APK 草稿](https://github.com/chorusfruit-233/StudyWithMiku-Android/releases/tag/untagged-bcc1b048202eebda340d)。签名与上一份 1.2.5 不同，不能覆盖安装；卸载会清除本机资料。
+- [同步弹窗截图](validation/design-1.2.6/sync-choice.png) 与 [编辑窗口截图](validation/design-1.2.6/task-edit.png) 来自云端 Android 模拟器离线测试，均已核对按钮层级、选中状态和文字布局。截图采用合成资料，背景为不含主界面 Scaffold 的测试窗口，不作为主页面全屏布局或全部字体大小的验收。原始设备 XML 与验证说明见 [记录](validation/design-1.2.6/README.txt)。
 - Android 回归采用合成资料与独立 SharedPreferences，未使用真实用户账号；模拟器通过不等同于真机、全部字体大小或真实账号端到端验收。未修改后台保活或冻结策略。
 
 # 1.2.5 自适应与单色启动图标

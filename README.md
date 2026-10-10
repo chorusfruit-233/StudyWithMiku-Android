@@ -8,7 +8,7 @@
 
 ## 下载 APK
 
-打开 [Releases](https://github.com/chorusfruit-233/StudyWithMiku-Android/releases)，选择最新的 `Android APK 1.2.6` 草稿，下载 `.apk`。包名为 `io.github.chorusfruit233.studywithmiku`，支持 Android 8.0 及以上。仓库保持私有；草稿仅对有仓库写入权限的用户可见。
+打开 [Android APK 1.2.6 私有草稿](https://github.com/chorusfruit-233/StudyWithMiku-Android/releases/tag/untagged-bcc1b048202eebda340d)，下载 `.apk`。包名为 `io.github.chorusfruit233.studywithmiku`，支持 Android 8.0 及以上。仓库保持私有；草稿仅对有仓库写入权限的用户可见。
 
 向 `main` 推送 Android 源码会自动编译、运行单元测试与 Android 模拟器交互回归、运行 Lint 和验证 APK 签名，输出 APK、SHA-256 校验值和检查报告。也可在 Actions 中手动运行。由于账户的 Actions 产物存储额度已满，产物保存到私有 Release 草稿。
 
