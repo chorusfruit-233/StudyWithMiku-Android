@@ -1,3 +1,11 @@
+# 1.2.4 包名更换
+
+- 应用标识与命名空间统一为 `io.github.chorusfruit233.studywithmiku`，Kotlin 主代码、单元测试与设备测试的 package 声明及目录同步迁移。版本 1.2.4、versionCode=7。
+- 本地 `assembleDebug testDebugUnitTest lintDebug assembleDebugAndroidTest` 成功；58 项单元测试通过，0 失败／错误／跳过，Lint 0 错误。测试报告类名为新命名空间。
+- 本地 APK 的实际包名为 `io.github.chorusfruit233.studywithmiku`，APK 签名验证通过。合并清单中的 Application、入口与登录 Activity、播放器与计时服务均使用新命名空间；设备测试目标包名同步正确。
+- 本次未执行设备测试或真实账号端到端测试；设备测试 APK 只验证编译与目标包配置。
+- 新包名作为独立应用安装，可与旧版共存；本机数据不自动迁移。云端学习资料可通过同一账号恢复，无需卸载旧包名应用。
+
 # 1.2.3 一致资料反复弹窗修复
 
 - 同步判断使用两端有效资料，忽略仅有日期变化、已有日记录对应的今日派生计数、空日记录／空计划、原作默认字段补齐及浮点编码差异。今日计数中尚未进入日历的学习值先投影到对应日期，避免忽略真实新增学习。

@@ -1,6 +1,8 @@
-# Study With Miku · Android 1.2.3
+# Study With Miku · Android 1.2.4
 
 原作：[shshouse/StudyWithMiku](https://github.com/shshouse/StudyWithMiku)，基线提交 `159db717f02debf71a5138764ed8e068f4577f94`。原生 Kotlin、Compose、Media3；Material 3 Expressive 主题、动态形状按钮和花瓣计时进度。支持 Android 8.0（API 26）以上，target API 35。
+
+包名（applicationId 与 namespace）：`io.github.chorusfruit233.studywithmiku`。新包名作为独立应用安装，可与旧版共存；本机资料不自动迁移，可登录同一账号恢复云端学习资料。
 
 ## 原作功能映射
 

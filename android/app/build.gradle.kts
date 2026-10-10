@@ -4,14 +4,14 @@ plugins {
     id("org.jetbrains.kotlin.plugin.compose")
 }
 android {
-    namespace = "com.shshouse.studywithmiku"
+    namespace = "io.github.chorusfruit233.studywithmiku"
     compileSdk = 35
     defaultConfig {
-        applicationId = "com.shshouse.studywithmiku.offline"
+        applicationId = "io.github.chorusfruit233.studywithmiku"
         minSdk = 26
         targetSdk = 35
-        versionCode = 6
-        versionName = "1.2.3"
+        versionCode = 7
+        versionName = "1.2.4"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
     buildFeatures { compose = true }
