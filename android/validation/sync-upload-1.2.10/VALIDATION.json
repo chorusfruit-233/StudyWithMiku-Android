@@ -1,0 +1,27 @@
+{
+  "version": "1.2.10",
+  "versionCode": 13,
+  "package": "io.github.chorusfruit233.studywithmiku",
+  "sourceCommit": "f214b1c75e8d827fb34a9bc016a024470809b4db",
+  "debugRun": 38267583544,
+  "signedReleaseRun": 38267665980,
+  "unitTests": {
+    "tests": 95,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "debugDeviceTests": {
+    "tests": 25,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "debugLintErrors": 0,
+  "releaseLintErrors": 0,
+  "releaseDebuggable": false,
+  "releaseCertificateSha256": "e07a05095f2b19e1b7b37d48e67016da4b5cf78386a03020410a3a134e1f12ad",
+  "releaseApkSha256": "bfc53789a0b8e182a20eaaca3a02c4a321e6e01c14a45aa32985bf74de61d4d3",
+  "provenance": "Debug and signed Release built in GitHub Actions. Downloaded reports and APK verified. Device tests exercise Debug with synthetic account/HTTP fixtures; no real account upload.",
+  "releaseDeviceTested": false
+}

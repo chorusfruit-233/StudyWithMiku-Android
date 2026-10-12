@@ -8,13 +8,18 @@
 
 公开发行的签名正式包为 1.2.9；下方分别记录后续 1.2.10 修复和各版本的验证结果。
 
-## 1.2.10 学习资料合并与上传（验证进行中）
+## 1.2.10 学习资料合并与上传
 
 - 已定位用户截图的 NaN：`JSONObject.optDouble` 在缺失字段时返回 NaN，单端日期或缺少统计字段经过 `maxOf` 后无法写入 JSON。合并改用有限、非负的默认值，保留有效小数时长与较大计数，双方日记录和相同 ID 记录的附加字段均保留。
 - 对照原作 `useStudySync.js` 与 `getAuthHeaders`，确认浏览器只上传三项学习字段与两项日历字段、Content-Type 为 `application/json`，跨域请求不携带登录 Cookie。Android 已对齐这些格式，并在首个写入前检查两份文档；5xx 保留本地资料及待上传状态，提示具体失败步骤。
 - 修改前新增的六个场景全部失败：四项 NaN 合并、两项上传字段／Content-Type 差异；[原始预期失败报告](validation/sync-upload-1.2.10/README.txt) 保留定位证据。这不作为通过记录，也不能证明生产服务器 500 的内部原因。
 - 新增 API 500 步骤区分、共享 CookieJar 禁用、非法数值阻止首个写入、失败后重试以及 Android 原生 JSON、存储与生产弹窗回归。所有上传均为本地 HTTP 测试服务与合成资料，不操作真实账号。
-- 版本 1.2.10、versionCode=13，包名及固定证书目标沿用正式版。本地 `assembleDebug testDebugUnitTest lintDebug assembleDebugAndroidTest` 成功，95 项 JVM 单元测试通过、0 失败／错误／跳过，Debug Lint 0 错误；Android 测试 APK 编译成功。设备回归与签名结果将在完成后补充，真实账号上传兼容性仍需新版手机验证。
+- 版本 1.2.10、versionCode=13，包名及固定证书目标沿用正式版。本地 `assembleDebug testDebugUnitTest lintDebug assembleDebugAndroidTest` 成功，95 项 JVM 单元测试通过、0 失败／错误／跳过，Debug Lint 0 错误；Android 测试 APK 编译成功。设备回归与签名结果见下，真实账号上传兼容性仍需新版手机验证。
+- [Debug Actions 38267583544](https://github.com/chorusfruit-233/StudyWithMiku-Android/actions/runs/38267583544) 成功；下载报告确认 95 项 JVM 和 25 项 Android 35 测试通过，0 失败／错误／跳过，Debug Lint 0 错误。新增设备用例验证单端日期合并、严格原作 HTTP 上传格式、部分写入失败后的步骤提示、资料保留与手动重试，以及旧非法设置的本机持久化；既有同步、聊天、歌单和 WakeLock 回归仍通过。
+- [合并组件截图及原始报告](validation/sync-upload-1.2.10/README.txt) 采用合成资料和本地 MockWebServer，不使用真实账号；截图为生产弹窗的测试窗口，不代表主界面所有主题与字体大小验收。模拟接口匹配原作前端契约，不能作为生产服务器内部故障原因或实际账号已成功上传的证明。
+- [签名 Release Actions 38267665980](https://github.com/chorusfruit-233/StudyWithMiku-Android/actions/runs/38267665980) 成功恢复密钥、构建、测试、Lint、验证固定证书并创建草稿；95 项 Release 单元测试通过、Release Lint 0 错误。本版在 GitHub Actions 中签名构建，密钥从 Secrets 恢复后删除。
+- 源码构建提交为 `f214b1c75e8d827fb34a9bc016a024470809b4db`，APK 为 1.2.10／versionCode=13、包名 `io.github.chorusfruit233.studywithmiku`、`debuggable=false`，证书 SHA-256 沿用正式版。重新下载的 APK 签名、包名、版本和校验值均核对通过，SHA-256 为 `bfc53789a0b8e182a20eaaca3a02c4a321e6e01c14a45aa32985bf74de61d4d3`。
+- [1.2.10 Release 草稿](https://github.com/chorusfruit-233/StudyWithMiku-Android/releases/tag/untagged-99609854fb88cd03c313) 已提供固定签名 APK、SHA256SUMS、公开证书和 Release 报告，尚未公开发布。Debug 设备测试不作为签名 APK 真机或真实账号端到端验收。
 
 ## 1.2.9 后台权限与耗电管理
 

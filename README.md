@@ -14,7 +14,7 @@
 
 当前正式版为 **1.2.9**，可直接下载 [StudyWithMiku-Android-1.2.9-release.apk](https://github.com/chorusfruit-233/StudyWithMiku-Android/releases/download/v1.2.9/StudyWithMiku-Android-1.2.9-release.apk)。仓库、源码及已发布的 Release 均公开，下载无需仓库权限。
 
-当前源码版本为 **1.2.10**，修复学习资料合并时的 NaN 异常，并按原作格式上传学习资料与日历。新版验证完成后保存为签名 Release 草稿，公开下载入口以已发布版本为准。
+当前源码版本为 **1.2.10**，修复学习资料合并时的 NaN 异常，并按原作格式上传学习资料与日历。新版已通过构建与回归验证并保存为签名 Release 草稿，公开下载入口以已发布版本为准。
 
 | 项目 | 信息 |
 | --- | --- |
@@ -67,7 +67,7 @@ Debug APK 输出到 `android/app/build/outputs/apk/debug/app-debug.apk`，构建
 
 正式发行见 [Release 构建与发布指南](android/RELEASING.md)。`Android app` 工作流负责 Debug 构建和 Android 模拟器回归；`Android signed release` 负责固定签名的 Release 构建。工作流先保存 Release 草稿，维护者点击 **Publish release** 后才向公众展示。历史 Debug 草稿仍仅供有仓库写入权限的维护者查看。
 
-1.2.9 已通过 82 项 Release 单元测试和 Release Lint。相同应用源码的 Debug 构建通过 82 项单元测试与 22 项 Android 35 模拟器回归；这些结果不等同于正式包真机或真实账号端到端验收。具体验证范围见 [验证记录](android/VALIDATION.md)。
+1.2.10 已通过 95 项 Release 单元测试和 Release Lint。相同应用源码的 Debug 构建通过 95 项单元测试与 25 项 Android 35 模拟器回归；这些结果不等同于正式包真机或真实账号端到端验收。具体验证范围见 [验证记录](android/VALIDATION.md)。
 
 安装包体积主要来自 11 首音乐（约 65 MB）与 3 段视频（约 44 MB）。1.2.7 尚未启用 R8 代码裁剪及资源裁剪，音视频沿用原始编码。
 
