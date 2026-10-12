@@ -17,7 +17,8 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlin.math.roundToInt
 
-@Composable fun SettingsSheet(prefs: Preferences,store: MikuStore,engine: FocusEngine,onDismiss: () -> Unit,onAbout: () -> Unit) {
+@Composable fun SettingsSheet(prefs: Preferences,store: MikuStore,engine: FocusEngine,onDismiss: () -> Unit,onAbout: () -> Unit,
+    ignoresBatteryOptimizations: Boolean,onRequestBackgroundPermission: () -> Unit,onOpenSystemSettings: () -> Unit) {
     val clock by engine.state.collectAsStateWithLifecycle()
     val sheet = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     fun update(p: Preferences,resetClock: Boolean = false) {
@@ -64,6 +65,7 @@ import kotlin.math.roundToInt
                 Slider(prefs.overlayOpacity,{ update(prefs.copy(overlayOpacity = it)) },valueRange = 0f..0.8f)
                 SettingSwitch("保持屏幕常亮","应用打开时，让 Miku 留在屏幕上",prefs.keepScreenOn) { update(prefs.copy(keepScreenOn = it)) }
             }
+            BackgroundSettingsSection(ignoresBatteryOptimizations,onRequestBackgroundPermission,onOpenSystemSettings)
             Surface(shape = RoundedCornerShape(28.dp),color = MaterialTheme.colorScheme.primaryContainer) {
                 Row(Modifier.padding(18.dp),verticalAlignment = Alignment.CenterVertically,horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     Icon(Icons.Rounded.CloudSync,null,Modifier.size(30.dp),tint = MaterialTheme.colorScheme.primary)
@@ -85,6 +87,28 @@ import kotlin.math.roundToInt
             }
         }
     }
+}
+
+@Composable internal fun BackgroundSettingsSection(ignoresBatteryOptimizations: Boolean,onRequestPermission: () -> Unit,onOpenSettings: () -> Unit) {
+    SettingSection("后台运行") {
+        Text("后台计时",style = MaterialTheme.typography.titleMedium)
+        Text("计时开始后自动保持 CPU 运行，暂停或结束后释放。首次开始计时会自动申请后台运行权限，也可在这里重新获取。",
+            style = MaterialTheme.typography.bodySmall,color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text(if (ignoresBatteryOptimizations) "已允许忽略系统电池优化" else "尚未允许忽略系统电池优化",
+            style = MaterialTheme.typography.bodyMedium,color = if (ignoresBatteryOptimizations) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant)
+        FilledTonalButton(onClick = onRequestPermission,modifier = Modifier.fillMaxWidth()) { Text("获取后台运行权限") }
+        HorizontalDivider()
+        Text("请在系统设置的“电池 / 后台耗电管理”中，将 Study With Miku 设为“无限制”。部分手机称“不限制”或“允许后台运行”。",
+            style = MaterialTheme.typography.bodySmall,color = MaterialTheme.colorScheme.onSurfaceVariant)
+        OutlinedButton(onClick = onOpenSettings,modifier = Modifier.fillMaxWidth()) { Text("打开应用系统设置") }
+    }
+}
+
+@Composable internal fun BatteryGuidanceDialog(onDismiss: () -> Unit,onOpenSettings: () -> Unit) {
+    AlertDialog(onDismissRequest = onDismiss,icon = { Icon(Icons.Rounded.BatteryChargingFull,null) },title = { Text("允许后台稳定计时") },
+        text = { Text("请在系统设置中打开 Study With Miku 的应用信息，进入“电池 / 后台耗电管理”，选择“无限制”（部分手机称“不限制”或“允许后台运行”）。\n\n这样锁屏或切到后台后，计时和完成提醒更稳定。稍后也可从应用设置进入。") },
+        confirmButton = { TextButton(onClick = onOpenSettings) { Text("打开系统设置") } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text("稍后") } })
 }
 
 @Composable private fun SettingSection(title: String,content: @Composable ColumnScope.() -> Unit) {

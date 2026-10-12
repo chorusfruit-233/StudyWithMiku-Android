@@ -34,6 +34,7 @@ import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
     private val app get() = application as MikuApplication
+    private val backgroundAccess by lazy { BackgroundAccess(this) }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -44,7 +45,7 @@ class MainActivity : ComponentActivity() {
                 else window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
                 onDispose { window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON) }
             }
-            MikuTheme(prefs) { MikuApp(app) }
+            MikuTheme(prefs) { MikuApp(app,backgroundAccess) }
         }
     }
     override fun onStart() {
@@ -52,10 +53,11 @@ class MainActivity : ComponentActivity() {
         app.chat.start(); app.extras.start()
         if (app.timer.state.value.running) ContextCompat.startForegroundService(this,Intent(this,FocusService::class.java))
     }
+    override fun onResume() { super.onResume(); backgroundAccess.refresh() }
     override fun onStop() { app.timer.flush(); app.chat.stop(); app.extras.stop(); super.onStop() }
 }
 
-@Composable private fun MikuApp(app: MikuApplication) {
+@Composable private fun MikuApp(app: MikuApplication,backgroundAccess: BackgroundAccess) {
     val prefs by app.store.prefs.collectAsStateWithLifecycle()
     val timer by app.timer.state.collectAsStateWithLifecycle()
     val library by app.store.library.collectAsStateWithLifecycle()
@@ -75,6 +77,33 @@ class MainActivity : ComponentActivity() {
     val snackbar = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     fun message(text: String) { scope.launch { snackbar.showSnackbar(text) } }
+    val ignoresBatteryOptimizations by backgroundAccess.ignoresBatteryOptimizations.collectAsStateWithLifecycle()
+    var batteryGuidance by rememberSaveable { mutableStateOf(false) }
+    fun showBatteryGuidance() { backgroundAccess.markGuidanceShown(); batteryGuidance = true }
+    val backgroundPermission = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+        backgroundAccess.refresh()
+        showBatteryGuidance()
+    }
+    fun requestBackgroundPermission() {
+        when (backgroundAccess.requestPermission { backgroundPermission.launch(it) }) {
+            BackgroundRequestResult.LAUNCHED -> Unit
+            BackgroundRequestResult.ALREADY_ALLOWED -> showBatteryGuidance()
+            BackgroundRequestResult.UNAVAILABLE -> {
+                showBatteryGuidance()
+                message("无法打开权限页面，请在系统设置中允许应用后台运行")
+            }
+        }
+    }
+    fun openAppSystemSettings() {
+        if (!backgroundAccess.openAppSettings()) message("请在系统设置 → 应用 → Study With Miku 中打开电池或后台耗电管理")
+    }
+    LaunchedEffect(timer.running) {
+        if (timer.running) when (backgroundAccess.nextAutomaticPrompt()) {
+            BackgroundPrompt.REQUEST_PERMISSION -> requestBackgroundPermission()
+            BackgroundPrompt.SHOW_GUIDANCE -> showBatteryGuidance()
+            null -> Unit
+        }
+    }
     LaunchedEffect(playback.error) { playback.error?.let { snackbar.showSnackbar(it) } }
     val permission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { app.timer.toggle() }
     fun toggleTimer() {
@@ -129,7 +158,12 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
-    if (settings) SettingsSheet(prefs,app.store,app.timer,onDismiss = { settings = false },onAbout = { settings = false; about = true })
+    if (settings) SettingsSheet(prefs,app.store,app.timer,onDismiss = { settings = false },onAbout = { settings = false; about = true },
+        ignoresBatteryOptimizations = ignoresBatteryOptimizations,onRequestBackgroundPermission = ::requestBackgroundPermission,
+        onOpenSystemSettings = ::openAppSystemSettings)
+    if (batteryGuidance) BatteryGuidanceDialog(onDismiss = { batteryGuidance = false },onOpenSettings = {
+        batteryGuidance = false; openAppSystemSettings()
+    })
     if (about) AboutSheet { about = false }
     if (player) PlayerSheet(library,playback,app.store,music,onShare = { song ->
         if (!app.auth.state.value.loggedIn) app.openLogin()
