@@ -1,0 +1,22 @@
+{
+  "variant": "debug",
+  "version": "1.2.9",
+  "versionCode": 12,
+  "sourceCommit": "0f9eb03203d7af7a3e3195a8599a5fd5f10b585e",
+  "workflowRun": 38230310646,
+  "unitTests": {
+    "tests": 82,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "deviceTests": {
+    "tests": 22,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "lintErrors": 0,
+  "apkSha256": "b03700ce97b6bf330538023fc7bcf22f1471947b9e4989c0b651e2f3bd89b26e",
+  "apiLevel": 35
+}

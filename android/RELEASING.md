@@ -16,7 +16,7 @@ E0:7A:05:09:5F:2B:19:E1:B7:B3:7D:48:E6:70:16:DA:4B:5C:F7:83:86:A0:30:20:41:0A:3A
 
 ## GitHub Actions 签名构建
 
-在 **Settings → Secrets and variables → Actions → New repository secret** 配置：
+在 **Settings → Secrets and variables → Actions → New repository secret** 配置以下四项 **Repository secrets**。当前工作流没有指定 Environment，因此使用仓库级密钥：
 
 | 名称 | 内容 |
 | --- | --- |
@@ -24,6 +24,8 @@ E0:7A:05:09:5F:2B:19:E1:B7:B3:7D:48:E6:70:16:DA:4B:5C:F7:83:86:A0:30:20:41:0A:3A
 | `ANDROID_KEYSTORE_PASSWORD` | 密钥库密码 |
 | `ANDROID_KEY_ALIAS` | `StudyWithMiku` |
 | `ANDROID_KEY_PASSWORD` | 该别名的私钥密码 |
+
+GitHub 不会显示已保存的 Secret 值，点击编辑后输入框为空是正常现象；这不表示内容丢失。是否被工作流读取，以构建日志为准。重新填写时保存完整值；本项目 JKS 的 Base64 开头为 `/u3+7Q`，复制时保留开头的 `/` 和末尾填充符。
 
 在本机生成 Base64 文件，把内容粘贴到第一个 Secret；Base64 只是编码，生成的文件同样不要提交到 Git：
 

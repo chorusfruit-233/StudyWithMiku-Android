@@ -8,12 +8,19 @@
 
 公开发行的签名正式包仍为 1.2.7；下方分别记录后续 1.2.9、1.2.8 源码适配和已发布版本的验证结果。
 
-## 1.2.9 后台权限与耗电管理（验证进行中）
+## 1.2.9 后台权限与耗电管理
 
 - 计时 WakeLock 保持原有自动获取、超时续租与服务销毁时释放的方式；普通 `WAKE_LOCK` 权限已声明。新增 `REQUEST_IGNORE_BATTERY_OPTIMIZATIONS`，首次开始计时时申请系统电池优化豁免，并提示系统后台耗电管理设为“无限制”。
 - 自动申请与提示各自保存在独立的本机 SharedPreferences，拒绝或系统页面不支持时不会反复中断计时，手动入口始终保留。返回系统界面后读取真实豁免状态；应用没有把豁免等同于厂商的“无限制”。
 - 新增设备回归验证请求与提示跨重建的状态、拒绝后手动重试、已有豁免及撤销状态、厂商页面回退、两个设置按钮的独立行为，以及真实计时服务在不播放音乐时获取／释放 WakeLock。
-- 版本 1.2.9、versionCode=12，包名和固定证书目标沿用正式版。本地 `assembleDebug testDebugUnitTest lintDebug assembleDebugAndroidTest` 成功，82 项单元测试全部通过、0 失败／错误／跳过，Lint 0 错误；设备测试 APK 编译成功，设备执行与签名工作流结果将在完成后补充。
+- 版本 1.2.9、versionCode=12，包名和固定证书目标沿用正式版。本地 `assembleDebug testDebugUnitTest lintDebug assembleDebugAndroidTest` 成功，82 项单元测试全部通过、0 失败／错误／跳过，Lint 0 错误；设备测试 APK 编译成功，设备执行结果见下。
+- [Debug Actions 38230310646](https://github.com/chorusfruit-233/StudyWithMiku-Android/actions/runs/38230310646) 构建与模拟器测试成功，下载报告确认 82 项 JVM 与 22 项 Android 35 测试通过，0 失败／错误／跳过，Debug Lint 0 错误。真实计时服务在不播放音乐时持有 `PARTIAL_WAKE_LOCK`，暂停后释放，通过 `dumpsys power` 核对；原有同步、歌单、任务与聊天滚动回归均通过。
+- [设置组件截图与原始设备报告](validation/background-1.2.9/README.txt) 保留新增权限流程、设置入口、引导取消与 WakeLock 生命周期证据。权限状态使用合成值及独立 SharedPreferences，截图为生产组件测试窗口，不能作为厂商系统设置、所有主题或字体大小的验收。
+- 构建应用源码提交 `0f9eb03203d7af7a3e3195a8599a5fd5f10b585e`；下载 Debug APK 的包名、1.2.9／versionCode=12、API 26／35、签名及 SHA-256 核对通过。SHA-256 为 `b03700ce97b6bf330538023fc7bcf22f1471947b9e4989c0b651e2f3bd89b26e`。Debug 设备结果不作为新签名 Release 真机验收。
+- 本地 `assembleRelease testReleaseUnitTest lintRelease` 成功，82 项 Release 单元测试全部通过，Lint 0 错误。使用用户提供的 Base64 JKS，补齐缺失的开头 `/` 后，JKS 完整性和固定公钥证书均验证通过；签名仅在本地完成，临时 JKS 已删除，密码仅通过进程环境传给构建，没有写入 Git 或公开报告。
+- 首次 [签名 Actions 38230323343](https://github.com/chorusfruit-233/StudyWithMiku-Android/actions/runs/38230323343) 与 [重跑 38230940929](https://github.com/chorusfruit-233/StudyWithMiku-Android/actions/runs/38230940929) 均未读取到 `ANDROID_KEYSTORE_BASE64`，在恢复密钥时失败，跳过 Release 构建与发布。GitHub 编辑 Secret 不会回显原值，输入框为空不能作为丢失依据；本记录不宣称仓库 Secrets 已修复。后续云端签名需按 [签名指南](RELEASING.md) 确认四项 Repository secrets。
+- 正式签名 APK 包名正确、versionCode=12、`debuggable=false`，证书 SHA-256 与 1.2.7、1.2.8 一致：`e07a05095f2b19e1b7b37d48e67016da4b5cf78386a03020410a3a134e1f12ad`。APK 大小 129,368,044 字节，SHA-256 为 `886f7784238fb02dc7680578c86e5894798d1f3c03c72fa07422b657dcb248f7`。[1.2.9 Release 草稿](https://github.com/chorusfruit-233/StudyWithMiku-Android/releases/tag/untagged-754b88639a1e551113cc) 已保存 APK、校验值、公开证书资料和 Release 报告，尚未公开发布。
+- [Actions 38232372367](https://github.com/chorusfruit-233/StudyWithMiku-Android/actions/runs/38232372367) 成功核验已经签名的 APK、固定证书、包名、关闭调试和传送 SHA-256，并上传草稿；这是核验和上传，不是云端签名构建。临时分支仅包含 APK 及公开报告，已删除。重新下载的 APK、证书、SHA-256、源码提交和 82 项 Release 测试报告均核对通过。
 
 ## 1.2.8 原作 2026-10-09 更新适配
 

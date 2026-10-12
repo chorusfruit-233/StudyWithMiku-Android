@@ -1,0 +1,20 @@
+{
+  "variant": "release",
+  "version": "1.2.9",
+  "versionCode": 12,
+  "unitTests": {
+    "tests": 82,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "lintErrors": 0,
+  "signingVerified": true,
+  "debuggable": false,
+  "expectedCertificateSha256": "e07a05095f2b19e1b7b37d48e67016da4b5cf78386a03020410a3a134e1f12ad",
+  "sourceCommit": "0f9eb03203d7af7a3e3195a8599a5fd5f10b585e",
+  "provenance": "Local signing using the user-provided Base64 JKS; restored its missing leading slash, verified JKS integrity and the fixed public certificate. No key or password in source or published reports.",
+  "releaseDeviceTested": false,
+  "debugDeviceTestRun": 38230310646,
+  "debugDeviceTests": 22
+}
