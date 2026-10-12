@@ -26,6 +26,8 @@ data class SharedSong(val platform: String, val playlistId: String, val index: I
 data class ChatReply(val replyToId: String,val text: String)
 data class CloudStudy(val data: JSONObject = JSONObject(), val calendar: JSONObject = JSONObject())
 
+internal fun JSONObject.finiteDouble(key: String,fallback: Double = 0.0) = optDouble(key,fallback).takeIf { it.isFinite() } ?: fallback
+
 object StudyProtocol {
     fun callbackToken(url: String): String? {
         val uri = runCatching { URI(url) }.getOrNull() ?: return null
@@ -152,19 +154,27 @@ object StudyProtocol {
         val data = deepCopy(remote.data)
         val stats = deepCopy(remote.data.optJSONObject("stats") ?: JSONObject())
         val localStats = local.data.optJSONObject("stats") ?: JSONObject()
-        listOf("totalStudyTime","totalPomodoros").forEach { stats.put(it,maxOf(stats.optDouble(it),localStats.optDouble(it))) }
+        fun value(objectValue: JSONObject,key: String) = objectValue.finiteDouble(key).coerceAtLeast(0.0)
+        listOf("totalStudyTime","totalPomodoros").forEach { stats.put(it,maxOf(value(stats,it),value(localStats,it))) }
         val today = jsDate(LocalDate.now())
         listOf("todayStudyTime","todayPomodoros").forEach { stats.put(it,maxOf(
-            if (stats.optString("lastDate") == today) stats.optDouble(it) else 0.0,
-            if (localStats.optString("lastDate") == today) localStats.optDouble(it) else 0.0)) }
+            if (stats.optString("lastDate") == today) value(stats,it) else 0.0,
+            if (localStats.optString("lastDate") == today) value(localStats,it) else 0.0)) }
         stats.put("lastDate",today)
         data.put("stats",stats)
         fun combined(a: JSONArray?,b: JSONArray?): JSONArray {
             val byId = linkedMapOf<String,JSONObject>()
             listOf(b,a).forEach { arr -> if (arr != null) for (i in 0 until arr.length()) {
-                arr.optJSONObject(i)?.let { item -> if (item.optString("id").isNotBlank()) byId[item.optString("id")] = item }
+                arr.optJSONObject(i)?.let { item ->
+                    val id = item.optString("id")
+                    if (id.isNotBlank()) {
+                        val combined = byId[id]?.let(::deepCopy) ?: JSONObject()
+                        item.keys().forEach { key -> combined.put(key,item.get(key)) }
+                        byId[id] = combined
+                    }
+                }
             } }
-            return JSONArray(byId.values.toList())
+            return JSONArray().apply { byId.values.forEach { put(it) } }
         }
         data.put("todos",combined(local.data.optJSONArray("todos"),remote.data.optJSONArray("todos")))
         val settings = deepCopy(remote.data.optJSONObject("settings") ?: JSONObject())
@@ -178,8 +188,12 @@ object StudyProtocol {
         dates.forEach { date ->
             val l = local.calendar.optJSONObject("dailyLog")?.optJSONObject(date) ?: JSONObject()
             val r = remote.calendar.optJSONObject("dailyLog")?.optJSONObject(date) ?: JSONObject()
-            if (l.length() > 0 || r.length() > 0) log.put(date,deepCopy(r).put("studyTime",maxOf(l.optDouble("studyTime"),r.optDouble("studyTime")))
-                .put("pomodoros",maxOf(l.optInt("pomodoros"),r.optInt("pomodoros"))))
+            if (l.length() > 0 || r.length() > 0) {
+                val day = deepCopy(l)
+                r.keys().forEach { key -> day.put(key,r.get(key)) }
+                log.put(date,day.put("studyTime",maxOf(value(l,"studyTime"),value(r,"studyTime")))
+                    .put("pomodoros",maxOf(value(l,"pomodoros"),value(r,"pomodoros"))))
+            }
             val array = combined(local.calendar.optJSONObject("plans")?.optJSONArray(date),remote.calendar.optJSONObject("plans")?.optJSONArray(date))
             if (array.length() > 0) plans.put(date,array)
         }

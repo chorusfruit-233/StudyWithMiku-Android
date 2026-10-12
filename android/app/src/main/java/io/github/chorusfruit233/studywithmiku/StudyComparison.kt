@@ -38,9 +38,9 @@ internal object StudyComparison {
         // Preserve that credit before ignoring the date/counters that otherwise only roll at midnight.
         val date = runCatching { LocalDate.parse(stats.optString("lastDate"),
             DateTimeFormatter.ofPattern("EEE MMM dd yyyy",Locale.US)).toString() }.getOrNull()
-        if (date != null && (stats.optDouble("todayStudyTime",0.0) > 0 || stats.optInt("todayPomodoros",0) > 0)) {
+        if (date != null && (stats.finiteDouble("todayStudyTime") > 0 || stats.optInt("todayPomodoros",0) > 0)) {
             val day = daily.objectAt(date)
-            day.put("studyTime",maxOf(day.optDouble("studyTime",0.0),stats.optDouble("todayStudyTime",0.0)))
+            day.put("studyTime",maxOf(day.finiteDouble("studyTime"),stats.finiteDouble("todayStudyTime")))
             day.put("pomodoros",maxOf(day.optInt("pomodoros",0),stats.optInt("todayPomodoros",0)))
         }
         listOf("lastDate","todayStudyTime","todayPomodoros").forEach { stats.remove(it) }

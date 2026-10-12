@@ -322,13 +322,13 @@ class MikuStore(private val context: Context) : StudySyncStore {
             saveTodos(todos)
             study.data.optJSONObject("settings")?.let { s ->
                 val p = _prefs.value
-                val focus = StudyProtocol.durationSeconds(s.optDouble("focusDuration",p.focusSeconds/60.0)).coerceIn(6,6000)
-                val rest = StudyProtocol.durationSeconds(s.optDouble("breakDuration",p.breakSeconds/60.0)).coerceIn(6,6000)
-                val countdown = StudyProtocol.durationSeconds(s.optDouble("countdownDuration",p.countdownSeconds/60.0)).coerceIn(6,36000)
+                val focus = StudyProtocol.durationSeconds(s.finiteDouble("focusDuration",p.focusSeconds/60.0)).coerceIn(6,6000)
+                val rest = StudyProtocol.durationSeconds(s.finiteDouble("breakDuration",p.breakSeconds/60.0)).coerceIn(6,6000)
+                val countdown = StudyProtocol.durationSeconds(s.finiteDouble("countdownDuration",p.countdownSeconds/60.0)).coerceIn(6,36000)
                 updatePreferences(p.copy(focusMinutes = (focus+59)/60,breakMinutes = (rest+59)/60,countdownMinutes = (countdown+59)/60,
                     focusSeconds = focus,breakSeconds = rest,countdownSeconds = countdown,longBreakSeconds = rest*2,longBreakMinutes = (rest*2+59)/60,
                     timerMode = s.optString("timerMode",p.timerMode).takeIf { it in listOf("pomodoro","countdown","stopwatch") } ?: "pomodoro",
-                    pomodoroCount = s.optInt("pomodoroCount",4).coerceIn(1,20),notificationVolume = s.optDouble("notificationVolume",0.6).toFloat().coerceIn(0f,1f),
+                    pomodoroCount = s.optInt("pomodoroCount",4).coerceIn(1,20),notificationVolume = s.finiteDouble("notificationVolume",0.6).toFloat().coerceIn(0f,1f),
                     pauseMusicDuringBreak = s.optBoolean("pauseMusicDuringBreak",true),showHitokoto = s.optBoolean("showHitokoto",true),hidePomodoroOnIdle = s.optBoolean("hidePomodoroOnIdle",false)))
                 saveCountdowns(s.optJSONArray("countdowns")?.objects()?.mapNotNull { o ->
                     val date = o.optString("date"); if (StudyProtocol.validDate(date)) CountdownDay(o.optString("id"),o.optString("title"),date) else null

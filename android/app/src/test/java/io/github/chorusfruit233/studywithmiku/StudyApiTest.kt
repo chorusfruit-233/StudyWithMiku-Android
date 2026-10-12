@@ -10,7 +10,7 @@ import java.util.concurrent.TimeUnit
 
 class StudyApiTest {
     private fun mock(test: (MockWebServer,StudyApi)->Unit) {
-        MockWebServer().use { server -> server.start(); test(server,StudyApi(server.url("/").toString().trimEnd('/'),cookies = { "session=test-session" })) }
+        MockWebServer().use { server -> server.start(); test(server,StudyApi(server.url("/").toString().trimEnd('/'))) }
     }
     @Test fun downloadsBothDocumentsAndSendsOriginalAuthenticationHeaders() = mock { server,api ->
         server.enqueue(MockResponse().setBody("""{"data":{"stats":{"totalStudyTime":60}}}"""))
@@ -20,7 +20,8 @@ class StudyApiTest {
         val first = server.takeRequest(2,TimeUnit.SECONDS)!!; val second = server.takeRequest(2,TimeUnit.SECONDS)!!
         assertEquals("/api/study/data",first.path); assertEquals("/api/study/calendar",second.path)
         assertEquals("GET",first.method); assertEquals("Bearer test-token",first.getHeader("Authorization"))
-        assertEquals("session=test-session",first.getHeader("Cookie")); assertEquals("no-store",first.getHeader("Cache-Control"))
+        assertEquals("application/json",first.getHeader("Content-Type")); assertEquals("application/json",second.getHeader("Content-Type"))
+        assertNull(first.getHeader("Cookie")); assertEquals("no-store",first.getHeader("Cache-Control"))
     }
     @Test fun uploadsJsonDocumentsAndAcceptsNoContentReplies() = mock { server,api ->
         server.enqueue(MockResponse().setResponseCode(204)); server.enqueue(MockResponse().setResponseCode(204))
@@ -57,6 +58,7 @@ class StudyApiTest {
     @Test fun publicProfilesDoNotReceiveBearerTokens() = mock { server,api ->
         server.enqueue(MockResponse().setBody("{\"profiles\":{}}"))
         api.request("/api/study/profiles?ids=uid")
-        assertNull(server.takeRequest().getHeader("Authorization"))
+        val request = server.takeRequest()
+        assertNull(request.getHeader("Authorization")); assertNull(request.getHeader("Cookie"))
     }
 }

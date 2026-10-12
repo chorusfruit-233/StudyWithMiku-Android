@@ -87,4 +87,19 @@ class StudyPersistenceTest {
         assertEquals("keep",snapshot.calendar.getJSONObject("dailyLog").getJSONObject(LocalDate.now().toString()).getString("futureDay"))
         assertEquals("keep",snapshot.calendar.getJSONObject("plans").getJSONArray(LocalDate.now().toString()).getJSONObject(0).getString("futurePlan"))
     }
+
+    @Test fun nonFiniteLegacySettingsCannotPoisonNativePreferenceStorage() = isolated { context ->
+        val remote = remote()
+        remote.data.getJSONObject("settings").put("focusDuration","NaN").put("breakDuration","Infinity")
+            .put("countdownDuration","NaN").put("notificationVolume","NaN")
+        val store = MikuStore(context); val before = store.prefs.value
+        store.switchStudyOwner("fixture-account"); store.applyStudy(remote)
+        val reopened = MikuStore(context)
+        assertEquals(before.focusSeconds,reopened.prefs.value.focusSeconds)
+        assertEquals(before.breakSeconds,reopened.prefs.value.breakSeconds)
+        assertEquals(before.countdownSeconds,reopened.prefs.value.countdownSeconds)
+        assertEquals(0.6f,reopened.prefs.value.notificationVolume,0.0f)
+        assertEquals(2_400_500L,reopened.studyTotals().millis)
+        assertTrue(reopened.prefs.value.notificationVolume.isFinite())
+    }
 }

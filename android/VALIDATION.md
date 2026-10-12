@@ -1,12 +1,20 @@
 # 验证记录
 
-## 公开发布状态（2026-10-10）
+## 公开发布状态（2026-10-12）
 
-仓库已公开，[v1.2.7](https://github.com/chorusfruit-233/StudyWithMiku-Android/releases/tag/v1.2.7) 已正式发布。GitHub 元数据确认仓库为 `public`、该版本 `draft=false`；未登录的网页视图能打开正式 Release，下载链接返回 HTTP 206 与有效 APK 文件头。Release 提供 APK、文件校验值、公开证书资料和 Release 检查报告。
+仓库已公开，当前正式版为 [v1.2.9](https://github.com/chorusfruit-233/StudyWithMiku-Android/releases/tag/v1.2.9)。GitHub 元数据确认 `draft=false`，发布时间为 `2026-10-12T14:10:49Z`。此前 [v1.2.7](https://github.com/chorusfruit-233/StudyWithMiku-Android/releases/tag/v1.2.7) 也已正式发布。Release 提供 APK、文件校验值、公开证书资料和 Release 检查报告。
 
 下文保留各版本真实构建、测试结果与验收范围。仓库公开不会自动发布历史 Debug 草稿；因此以草稿标识保留旧产物来源，不将其作为公众下载入口。本目录的回归报告与截图可随源码公开查看。
 
-公开发行的签名正式包仍为 1.2.7；下方分别记录后续 1.2.9、1.2.8 源码适配和已发布版本的验证结果。
+公开发行的签名正式包为 1.2.9；下方分别记录后续 1.2.10 修复和各版本的验证结果。
+
+## 1.2.10 学习资料合并与上传（验证进行中）
+
+- 已定位用户截图的 NaN：`JSONObject.optDouble` 在缺失字段时返回 NaN，单端日期或缺少统计字段经过 `maxOf` 后无法写入 JSON。合并改用有限、非负的默认值，保留有效小数时长与较大计数，双方日记录和相同 ID 记录的附加字段均保留。
+- 对照原作 `useStudySync.js` 与 `getAuthHeaders`，确认浏览器只上传三项学习字段与两项日历字段、Content-Type 为 `application/json`，跨域请求不携带登录 Cookie。Android 已对齐这些格式，并在首个写入前检查两份文档；5xx 保留本地资料及待上传状态，提示具体失败步骤。
+- 修改前新增的六个场景全部失败：四项 NaN 合并、两项上传字段／Content-Type 差异；[原始预期失败报告](validation/sync-upload-1.2.10/README.txt) 保留定位证据。这不作为通过记录，也不能证明生产服务器 500 的内部原因。
+- 新增 API 500 步骤区分、共享 CookieJar 禁用、非法数值阻止首个写入、失败后重试以及 Android 原生 JSON、存储与生产弹窗回归。所有上传均为本地 HTTP 测试服务与合成资料，不操作真实账号。
+- 版本 1.2.10、versionCode=13，包名及固定证书目标沿用正式版。本地 `assembleDebug testDebugUnitTest lintDebug assembleDebugAndroidTest` 成功，95 项 JVM 单元测试通过、0 失败／错误／跳过，Debug Lint 0 错误；Android 测试 APK 编译成功。设备回归与签名结果将在完成后补充，真实账号上传兼容性仍需新版手机验证。
 
 ## 1.2.9 后台权限与耗电管理
 
@@ -19,7 +27,7 @@
 - 构建应用源码提交 `0f9eb03203d7af7a3e3195a8599a5fd5f10b585e`；下载 Debug APK 的包名、1.2.9／versionCode=12、API 26／35、签名及 SHA-256 核对通过。SHA-256 为 `b03700ce97b6bf330538023fc7bcf22f1471947b9e4989c0b651e2f3bd89b26e`。Debug 设备结果不作为新签名 Release 真机验收。
 - 本地 `assembleRelease testReleaseUnitTest lintRelease` 成功，82 项 Release 单元测试全部通过，Lint 0 错误。使用用户提供的 Base64 JKS，补齐缺失的开头 `/` 后，JKS 完整性和固定公钥证书均验证通过；签名仅在本地完成，临时 JKS 已删除，密码仅通过进程环境传给构建，没有写入 Git 或公开报告。
 - 首次 [签名 Actions 38230323343](https://github.com/chorusfruit-233/StudyWithMiku-Android/actions/runs/38230323343) 与 [重跑 38230940929](https://github.com/chorusfruit-233/StudyWithMiku-Android/actions/runs/38230940929) 均未读取到 `ANDROID_KEYSTORE_BASE64`，在恢复密钥时失败，跳过 Release 构建与发布。GitHub 编辑 Secret 不会回显原值，输入框为空不能作为丢失依据；本记录不宣称仓库 Secrets 已修复。后续云端签名需按 [签名指南](RELEASING.md) 确认四项 Repository secrets。
-- 正式签名 APK 包名正确、versionCode=12、`debuggable=false`，证书 SHA-256 与 1.2.7、1.2.8 一致：`e07a05095f2b19e1b7b37d48e67016da4b5cf78386a03020410a3a134e1f12ad`。APK 大小 129,368,044 字节，SHA-256 为 `886f7784238fb02dc7680578c86e5894798d1f3c03c72fa07422b657dcb248f7`。[1.2.9 Release 草稿](https://github.com/chorusfruit-233/StudyWithMiku-Android/releases/tag/untagged-754b88639a1e551113cc) 已保存 APK、校验值、公开证书资料和 Release 报告，尚未公开发布。
+- 正式签名 APK 包名正确、versionCode=12、`debuggable=false`，证书 SHA-256 与 1.2.7、1.2.8 一致：`e07a05095f2b19e1b7b37d48e67016da4b5cf78386a03020410a3a134e1f12ad`。APK 大小 129,368,044 字节，SHA-256 为 `886f7784238fb02dc7680578c86e5894798d1f3c03c72fa07422b657dcb248f7`。[公开 Release v1.2.9](https://github.com/chorusfruit-233/StudyWithMiku-Android/releases/tag/v1.2.9) 已提供 APK、校验值、公开证书资料和 Release 报告。
 - [Actions 38232372367](https://github.com/chorusfruit-233/StudyWithMiku-Android/actions/runs/38232372367) 成功核验已经签名的 APK、固定证书、包名、关闭调试和传送 SHA-256，并上传草稿；这是核验和上传，不是云端签名构建。临时分支仅包含 APK 及公开报告，已删除。重新下载的 APK、证书、SHA-256、源码提交和 82 项 Release 测试报告均核对通过。
 
 ## 1.2.8 原作 2026-10-09 更新适配

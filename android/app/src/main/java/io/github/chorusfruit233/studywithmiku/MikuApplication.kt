@@ -1,7 +1,6 @@
 package io.github.chorusfruit233.studywithmiku
 
 import android.app.Application
-import android.webkit.CookieManager
 import android.os.Build
 import coil.ImageLoader
 import coil.ImageLoaderFactory
@@ -28,7 +27,7 @@ class MikuApplication : Application(), ImageLoaderFactory {
         store = MikuStore(this)
         timer = FocusEngine(this,store)
         onlineMusic = OnlineMusic(this,store)
-        val api = StudyApi(cookies = { CookieManager.getInstance().getCookie(ACCOUNT_SITE) ?: "" })
+        val api = StudyApi()
         auth = StudyAuth(this,api)
         chat = ChatClient(auth,api)
         sync = CloudSync(store,timer,auth,api)

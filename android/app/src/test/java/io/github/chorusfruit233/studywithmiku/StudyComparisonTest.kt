@@ -4,6 +4,7 @@ import org.json.JSONArray
 import org.json.JSONObject
 import org.junit.Assert.*
 import org.junit.Test
+import java.time.LocalDate
 
 class StudyComparisonTest {
     private fun fixture() = CloudStudy(JSONObject("""{
@@ -86,5 +87,15 @@ class StudyComparisonTest {
         first.data.put("todos",JSONArray().put(todo).put(another))
         second.data.put("todos",JSONArray().put(another).put(todo))
         assertFalse(StudyComparison.same(first,second))
+    }
+
+    @Test fun invalidDerivedTodayTimeDoesNotPoisonCalendarComparison() {
+        val today = LocalDate.now()
+        val first = CloudStudy(JSONObject("""{"stats":{"totalPomodoros":1,"lastDate":"${StudyProtocol.jsDate(today)}","todayStudyTime":"NaN","todayPomodoros":1}}"""),
+            JSONObject("""{"dailyLog":{"$today":{"studyTime":0,"pomodoros":1}}}"""))
+        val second = copy(first)
+        second.data.getJSONObject("stats").put("todayStudyTime",0)
+        assertTrue(StudyComparison.same(first,second))
+        assertEquals("NaN",first.data.getJSONObject("stats").getString("todayStudyTime"))
     }
 }

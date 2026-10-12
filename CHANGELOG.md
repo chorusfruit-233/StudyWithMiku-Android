@@ -1,8 +1,16 @@
 # 更新记录
 
-当前公开正式版：[v1.2.7](https://github.com/chorusfruit-233/StudyWithMiku-Android/releases/tag/v1.2.7)。此前版本的构建记录见 [验证文档](android/VALIDATION.md)，历史 Debug 草稿未公开发布。
+当前公开正式版：[v1.2.9](https://github.com/chorusfruit-233/StudyWithMiku-Android/releases/tag/v1.2.9)。此前版本的构建记录见 [验证文档](android/VALIDATION.md)，历史 Debug 草稿未公开发布。
 
-## 1.2.9（待公开发布）
+## 1.2.10（待公开发布）
+
+- 修复只在一端存在的日期、缺少学习时长和旧非有限数值导致的合并 NaN 异常；保留有效的较大学习值、小数秒和双方记录附加字段。
+- 上传按原作投影为 `stats/todos/settings` 与 `dailyLog/plans`；只保留本地的顶层附加信息不进入上传，记录内部的附加字段仍保留。
+- 账号请求使用 Bearer 认证，不附带 WebView 或共享客户端 Cookie；JSON 使用原作的 `application/json` 和 UTF-8 编码。
+- 上传前检查两份数据中的非法数值与文档结构；服务返回错误时区分学习资料和日历，保留本地待上传状态，支持重试。
+- 防止旧资料中的非法时长／音量字符串使本机设置保存失败。
+
+## 1.2.9
 
 - 首次开始计时时自动申请系统电池优化豁免；拒绝后不反复自动弹出，设置中保留“获取后台运行权限”按钮。
 - 增加系统后台耗电管理设为“无限制”的提示与应用系统设置入口；从系统设置返回后刷新实际授权状态。

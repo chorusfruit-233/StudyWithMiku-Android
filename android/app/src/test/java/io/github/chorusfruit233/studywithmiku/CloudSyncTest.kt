@@ -228,4 +228,23 @@ class CloudSyncTest {
         assertNull(sync.state.value.conflict); assertTrue(sync.state.value.ready)
         assertEquals("u",store.studyOwner); assertEquals(0,api.writes)
     }
+
+    @Test fun sparseMergeUploadFailureKeepsFiniteLocalHistoryAndCanRetry() = scenario {
+        val store = Store()
+        val remote = study(120,"remote")
+        val day = remote.calendar.getJSONObject("dailyLog").remove("2026-10-07")
+        remote.calendar.getJSONObject("dailyLog").put("2026-10-08",day)
+        val api = Api(remote); val sync = coordinator(store,api)
+        runCurrent(); assertNotNull(sync.state.value.conflict)
+        api.error = StudyApiException(500,"上传日历")
+        sync.resolve(0); runCurrent()
+        assertTrue(store.pendingStudyUpload)
+        assertTrue(sync.state.value.error!!.contains("上传日历"))
+        assertEquals(30.0,store.local.calendar.getJSONObject("dailyLog").getJSONObject("2026-10-07").getDouble("studyTime"),0.0)
+        assertEquals(120.0,store.local.calendar.getJSONObject("dailyLog").getJSONObject("2026-10-08").getDouble("studyTime"),0.0)
+        assertEquals("local",store.local.data.getJSONArray("todos").getJSONObject(0).getString("text"))
+        api.error = null; sync.syncNow(); runCurrent()
+        assertFalse(store.pendingStudyUpload); assertNull(sync.state.value.error)
+        assertEquals(2,api.writes)
+    }
 }

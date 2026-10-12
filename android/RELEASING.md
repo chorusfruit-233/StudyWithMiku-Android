@@ -1,6 +1,6 @@
 # Release 构建、签名与公开发布
 
-仓库及已发布的 Release 均公开。当前正式版为 [v1.2.7](https://github.com/chorusfruit-233/StudyWithMiku-Android/releases/tag/v1.2.7)，可直接下载 `StudyWithMiku-Android-1.2.7-release.apk`。未发布的草稿仅对有仓库写入权限的维护者可见。
+仓库及已发布的 Release 均公开。当前正式版为 [v1.2.9](https://github.com/chorusfruit-233/StudyWithMiku-Android/releases/tag/v1.2.9)，可直接下载 `StudyWithMiku-Android-1.2.9-release.apk`。未发布的草稿仅对有仓库写入权限的维护者可见。
 
 ## 正式签名
 
@@ -35,7 +35,7 @@ python -c 'import base64,pathlib; pathlib.Path("StudyWithMiku-secret.b64").write
 
 发布新版本时：
 
-1. 更新 `android/app/build.gradle.kts` 中的 `versionName` 与 `versionCode`，更新 [CHANGELOG.md](../CHANGELOG.md) 和 [.github/release-notes.md](../.github/release-notes.md)。当前 `v1.2.7` 已发布，新版本必须提高版本号。
+1. 更新 `android/app/build.gradle.kts` 中的 `versionName` 与 `versionCode`，更新 [CHANGELOG.md](../CHANGELOG.md) 和 [.github/release-notes.md](../.github/release-notes.md)。当前 `v1.2.9` 已发布，新版本必须提高版本号。
 2. 提交并推送源码。在 **Actions → Android signed release → Run workflow** 选择 `main` 运行；也可推送与 `versionName` 一致的 `v<versionName>` 标签触发构建。标签版本必须与 APK 版本一致。
 3. 检查构建、Release 单元测试、Lint 和 APK 签名验证结果。进入工作流生成的 Release 草稿，确认版本、说明及附件。
 4. 点击 **Publish release**。发布后，Release 页面和 APK 附件可公开访问，适合作为用户下载入口。

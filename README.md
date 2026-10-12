@@ -12,16 +12,16 @@
 
 **[下载最新正式版](https://github.com/chorusfruit-233/StudyWithMiku-Android/releases/latest)** · [全部已发布版本](https://github.com/chorusfruit-233/StudyWithMiku-Android/releases)
 
-当前正式版为 **1.2.7**，可直接下载 [StudyWithMiku-Android-1.2.7-release.apk](https://github.com/chorusfruit-233/StudyWithMiku-Android/releases/download/v1.2.7/StudyWithMiku-Android-1.2.7-release.apk)。仓库、源码及已发布的 Release 均公开，下载无需仓库权限。
+当前正式版为 **1.2.9**，可直接下载 [StudyWithMiku-Android-1.2.9-release.apk](https://github.com/chorusfruit-233/StudyWithMiku-Android/releases/download/v1.2.9/StudyWithMiku-Android-1.2.9-release.apk)。仓库、源码及已发布的 Release 均公开，下载无需仓库权限。
 
-当前源码版本为 **1.2.9**，新增首次计时自动申请后台运行权限、设置中的手动入口及“后台耗电管理设为无限制”提示。1.2.8 的歌单管理、聊天室回复与原作资料更新均保留；新版已完成构建与回归验证，签名 APK 保存为 Release 草稿，公开下载入口以已发布版本为准。
+当前源码版本为 **1.2.10**，修复学习资料合并时的 NaN 异常，并按原作格式上传学习资料与日历。新版验证完成后保存为签名 Release 草稿，公开下载入口以已发布版本为准。
 
 | 项目 | 信息 |
 | --- | --- |
 | 系统要求 | Android 8.0（API 26）及以上 |
 | 包名 | `io.github.chorusfruit233.studywithmiku` |
 | 正式签名 | 固定 StudyWithMiku 证书，关闭调试 |
-| 安装包大小 | 1.2.7 约 129 MB，包含全部离线音乐与场景视频 |
+| 安装包大小 | 1.2.9 约 129 MB，包含全部离线音乐与场景视频 |
 
 Release 附带 `SHA256SUMS.txt`、`SIGNING-CERTIFICATE.txt` 和检查报告，可用于核对文件与签名。
 
@@ -51,7 +51,7 @@ Release 附带 `SHA256SUMS.txt`、`SIGNING-CERTIFICATE.txt` 和检查报告，�
 
 首次关联有差异的本地与云端资料时，选择“使用云端资料”“保留本地并上传”或“合并并同步”，再点击确认。合并按原作规则保留每天较大的学习值，并对待办、计划等按 ID 去重。
 
-读取成功并保存后才关闭同步窗口；失败会保留本地资料与选择框。已接受且没有变化的资料不会重复要求选择，云端更新与本地修改同时出现时会再次核对。切换账号时，账号与访客资料分别保存。同步范围沿用原作；本地导入音乐、收藏、播放队列与主题等 Android 扩展保存在本机。
+读取成功并保存后才关闭同步窗口；失败会保留本地资料与选择框。合并支持只在一端存在的日期及缺失计数字段，保留有效的较大值；上传失败会明确标明“学习资料”或“日历”，本地资料及待上传状态保留，可重试。已接受且没有变化的资料不会重复要求选择，云端更新与本地修改同时出现时会再次核对。切换账号时，账号与访客资料分别保存。同步范围沿用原作；本地导入音乐、收藏、播放队列与主题等 Android 扩展保存在本机。
 
 ## 开发与构建
 
