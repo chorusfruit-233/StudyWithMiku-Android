@@ -13,6 +13,10 @@ data class Recommendation(val name: String, val description: String, val platfor
 data class LyricLine(val timeMs: Long, val text: String)
 
 object MusicProtocol {
+    fun audioContentType(type: String?): Boolean {
+        val mime = type.orEmpty().lowercase(java.util.Locale.ROOT).substringBefore(';').trim()
+        return !mime.startsWith("text/") && !mime.contains("json") && !mime.contains("html") && !mime.contains("mpegurl")
+    }
     fun validate(config: MusicConfig) {
         val uri = runCatching { URI(config.api.trim()) }.getOrNull()
         require(uri != null && uri.scheme in listOf("https","http") && !uri.host.isNullOrBlank() &&

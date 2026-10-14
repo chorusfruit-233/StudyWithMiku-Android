@@ -36,10 +36,7 @@ class AudioCache(private val context: Context,private val store: MikuStore,
     private val executor = Executors.newFixedThreadPool(2)
     private val http = DefaultHttpDataSource.Factory().setUserAgent("StudyWithMiku-Android/${BuildConfig.VERSION_NAME}")
         .setAllowCrossProtocolRedirects(true).setConnectTimeoutMs(15_000).setReadTimeoutMs(20_000)
-        .setContentTypePredicate { type ->
-            val mime = type.lowercase().substringBefore(';').trim()
-            !mime.startsWith("text/") && !mime.contains("json") && !mime.contains("mpegurl")
-        }
+        .setContentTypePredicate { type: String? -> MusicProtocol.audioContentType(type) }
     val manager = DownloadManager(context,database,cache,http,executor).apply {
         maxParallelDownloads = 2
         // A reopened queue waits for a user action before starting a foreground service.

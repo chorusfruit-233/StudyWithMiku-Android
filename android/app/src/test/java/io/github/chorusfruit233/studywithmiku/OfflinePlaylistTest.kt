@@ -5,6 +5,10 @@ import org.junit.Assert.*
 import org.junit.Test
 
 class OfflinePlaylistTest {
+    @Test fun audioEndpointsMayOmitMimeButTypedErrorPagesAreRejected() {
+        listOf(null,"","audio/mpeg","Audio/Flac; charset=utf-8","application/octet-stream").forEach { assertTrue(MusicProtocol.audioContentType(it)) }
+        listOf("application/json","text/html","application/xhtml+xml","application/vnd.apple.mpegurl").forEach { assertFalse(MusicProtocol.audioContentType(it)) }
+    }
     private val config = MusicConfig(id = "42",name = "Fixture")
     private fun song(uri: String = "https://example.test/audio?token=first",config: MusicConfig = this.config) =
         MusicProtocol.songs("""[{"id":"track-1","name":"Track","author":"Artist","url":"$uri"}]""",config).single()

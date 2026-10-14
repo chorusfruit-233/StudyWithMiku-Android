@@ -59,12 +59,13 @@ class AudioCacheTest {
         repeat(samples) { i -> b.putShort((kotlin.math.sin(i * 2.0 * Math.PI * 440 / 22_050) * 800).toInt().toShort()) }
         return b.array()
     }
-    private fun server(bytes: ByteArray,slow: Boolean = false) = MockWebServer().apply {
+    private fun server(bytes: ByteArray,slow: Boolean = false,omitType: Boolean = false) = MockWebServer().apply {
         dispatcher = object : Dispatcher() {
             override fun dispatch(request: RecordedRequest): MockResponse {
                 val start = request.getHeader("Range")?.substringAfter("bytes=")?.substringBefore('-')?.toIntOrNull() ?: 0
-                val response = MockResponse().setHeader("Content-Type","audio/wav").setHeader("Accept-Ranges","bytes")
+                val response = MockResponse().setHeader("Accept-Ranges","bytes")
                     .setBody(Buffer().write(bytes,start,bytes.size-start))
+                if (!omitType) response.setHeader("Content-Type","audio/wav")
                 if (start > 0) response.setResponseCode(206).setHeader("Content-Range","bytes $start-${bytes.lastIndex}/${bytes.size}")
                 if (slow) response.throttleBody(8192,100,TimeUnit.MILLISECONDS)
                 return response
@@ -86,7 +87,7 @@ class AudioCacheTest {
     private fun song(uri: String) = Song("fixture-audio","Offline fixture","Fixture",uri,platform = "netease",audioCacheKey = "fixture-key")
 
     @Test fun completeAudioSurvivesRecreationAndPlaysWithServerGoneAndRenewedUrl() = fixture { context,store,directory,name ->
-        val server = server(wave())
+        val server = server(wave(),omitType = true)
         val track = song(server.url("/track.wav").toString())
         var cache = withContext(Dispatchers.Main) { AudioCache(context,store,directory,name) }
         try {
