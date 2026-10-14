@@ -1,18 +1,22 @@
 # 验证记录
 
-## 公开发布状态（2026-10-12）
+## 公开发布状态（2026-10-14 核对）
 
 仓库已公开，当前正式版为 [v1.2.9](https://github.com/chorusfruit-233/StudyWithMiku-Android/releases/tag/v1.2.9)。GitHub 元数据确认 `draft=false`，发布时间为 `2026-10-12T14:10:49Z`。此前 [v1.2.7](https://github.com/chorusfruit-233/StudyWithMiku-Android/releases/tag/v1.2.7) 也已正式发布。Release 提供 APK、文件校验值、公开证书资料和 Release 检查报告。
 
 下文保留各版本真实构建、测试结果与验收范围。仓库公开不会自动发布历史 Debug 草稿；因此以草稿标识保留旧产物来源，不将其作为公众下载入口。本目录的回归报告与截图可随源码公开查看。
 
-公开发行的签名正式包为 1.2.9；下方分别记录后续 1.2.10 修复和各版本的验证结果。
+公开发行的签名正式包为 1.2.9；下方分别记录后续 1.2.11 缓存、1.2.10 同步修复和各版本的验证结果。
 
 ## 1.2.11 网络歌单音频缓存
 
-- 版本 1.2.11／versionCode=14，新增 Media3 持久化下载与只读播放缓存、离线歌单和缓存管理。
-- 新增 JVM 歌单序列化、临时 URL／曲目归属复用、接口／音质隔离和离线队列过滤检查；Android 回归覆盖关闭本地服务后的实际播放与跳转、缓存重建、部分下载恢复、错误响应、真实下载服务与 MediaController，以及清除确认。
-- 验证与签名构建进行中；待补充最终报告及 APK 证书结果。测试使用合成 PCM 音频和本地 MockWebServer，不使用真实账号。
+- 版本 1.2.11／versionCode=14，新增显式整张网络歌单音频缓存、进度、暂停／继续和确认清除，私有文件目录中的音频及下载索引在重启后保留。播放器和交叉淡入只读同一个缓存，完整缓存及内置曲目可加入离线队列，部分／失败文件不标记离线可用。
+- 各歌单与音质分别保存；曲目身份按平台、接口与音质确定，更新临时 URL 或在另一歌单出现同曲目不会重复下载。端点缺失 Content-Type 时仍可读取音频，JSON／HTML 类型错误响应拒绝作为音频下载。
+- 断点检查最初只观察已读字节，尚未有已提交缓存块；改为 256 KiB 分段提交，用较长合成音频检查暂停、重建缓存、正数 HTTP Range 偏移续传、完成和清除。暂停或已排队歌曲只显示统一的继续／暂停入口，补全按钮仅用于缺失或失败曲目。
+- 构建源码为 `6d3eeacbc67b463f8a3d6509c68df20d4f24e983`。[Debug Actions 38653426858](https://github.com/chorusfruit-233/StudyWithMiku-Android/actions/runs/38653426858) 成功，下载报告确认 99 项 JVM 和 31 项 Android 35 测试通过，0 失败／错误／跳过，Debug Lint 0 错误。此前同步、聊天、任务与 WakeLock 回归仍通过。
+- 新增设备测试关闭本地音频服务后，通过 ExoPlayer 实际播放与跳转；缓存重建仍可用，临时 URL 更新仍读本地音频。另通过真实 MusicDownloadService 与 MediaController 验证后台下载链路和离线播放，覆盖按音质持久化切换、离线队列过滤、重复操作入口和清除确认。[原始设备报告与组件截图](validation/music-cache-1.2.11/README.txt) 使用合成 PCM WAV、本地 MockWebServer 和测试窗口，不使用真实账号或生产歌曲下载。
+- [签名 Release Actions 38653430117](https://github.com/chorusfruit-233/StudyWithMiku-Android/actions/runs/38653430117) 成功，99 项 Release 单元测试通过，Release Lint 0 错误。重新下载 APK 后核对固定证书、包名、版本、`debuggable=false` 和 SHA-256；证书为 `e07a05095f2b19e1b7b37d48e67016da4b5cf78386a03020410a3a134e1f12ad`，APK SHA-256 为 `4a6978f33cc8656921d4c1e05190680eb8af85080a04ef85485c9825f1239278`。
+- [1.2.11 Release 草稿](https://github.com/chorusfruit-233/StudyWithMiku-Android/releases/tag/untagged-358e5ae0016650ee3c35) 提供固定签名 APK、SHA256SUMS、公开证书和 Release 报告。尚未公开发布；Debug 设备测试不作为签名 Release 真机、实际音乐供应商或真实账号端到端验收。
 
 ## 1.2.10 学习资料合并与上传
 

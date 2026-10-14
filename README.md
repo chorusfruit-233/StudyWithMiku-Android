@@ -14,7 +14,7 @@
 
 当前正式版为 **1.2.9**，可直接下载 [StudyWithMiku-Android-1.2.9-release.apk](https://github.com/chorusfruit-233/StudyWithMiku-Android/releases/download/v1.2.9/StudyWithMiku-Android-1.2.9-release.apk)。仓库、源码及已发布的 Release 均公开，下载无需仓库权限。
 
-当前源码版本为 **1.2.11**，新增网络歌单音频缓存与离线播放，保留 1.2.10 的同步修复。新版验证与签名构建进度见验证记录，公开下载入口以已发布版本为准。
+当前源码版本为 **1.2.11**，新增网络歌单音频缓存与离线播放，保留 1.2.10 的同步修复。新版已通过回归验证，并保存为固定签名 Release 草稿，公开下载入口以已发布版本为准。
 
 | 项目 | 信息 |
 | --- | --- |
@@ -67,7 +67,7 @@ Debug APK 输出到 `android/app/build/outputs/apk/debug/app-debug.apk`，构建
 
 正式发行见 [Release 构建与发布指南](android/RELEASING.md)。`Android app` 工作流负责 Debug 构建和 Android 模拟器回归；`Android signed release` 负责固定签名的 Release 构建。工作流先保存 Release 草稿，维护者点击 **Publish release** 后才向公众展示。历史 Debug 草稿仍仅供有仓库写入权限的维护者查看。
 
-已完成版本的构建、JVM 测试、Android 35 设备回归和固定签名结果见 [验证记录](android/VALIDATION.md)。设备测试使用合成资料和本地测试服务，真实账号与正式包真机验收另行确认。
+1.2.11 已通过 99 项 Release 单元测试与 Release Lint；相同应用源码的 Debug 构建通过 99 项单元测试及 31 项 Android 35 回归，包括断网播放、缓存重建、断点续传及真实下载服务。设备测试使用合成音频和本地服务，不作为签名包真机或真实账号验收。具体范围见 [验证记录](android/VALIDATION.md)。
 
 安装包体积主要来自 11 首音乐（约 65 MB）与 3 段视频（约 44 MB）。1.2.7 尚未启用 R8 代码裁剪及资源裁剪，音视频沿用原始编码。
 

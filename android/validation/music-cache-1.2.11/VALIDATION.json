@@ -1,0 +1,21 @@
+{
+  "date": "2026-10-14",
+  "sourceCommit": "6d3eeacbc67b463f8a3d6509c68df20d4f24e983",
+  "versionName": "1.2.11",
+  "versionCode": 14,
+  "packageName": "io.github.chorusfruit233.studywithmiku",
+  "debugRun": 38653426858,
+  "releaseRun": 38653430117,
+  "debugJvm": 99,
+  "releaseJvm": 99,
+  "android35Tests": 31,
+  "failures": 0,
+  "errors": 0,
+  "skipped": 0,
+  "lintErrors": 0,
+  "releaseApkBytes": 129401296,
+  "releaseApkSha256": "4a6978f33cc8656921d4c1e05190680eb8af85080a04ef85485c9825f1239278",
+  "certificateSha256": "e07a05095f2b19e1b7b37d48e67016da4b5cf78386a03020410a3a134e1f12ad",
+  "releaseDraftUrl": "https://github.com/chorusfruit-233/StudyWithMiku-Android/releases/tag/untagged-358e5ae0016650ee3c35",
+  "scope": "Android 35 tests use the Debug APK, generated WAV audio and local MockWebServer. Server shutdown verifies actual offline playback and seeking. Tests include production DownloadService and MediaController. No real accounts or production audio downloads; no signed Release device acceptance."
+}
