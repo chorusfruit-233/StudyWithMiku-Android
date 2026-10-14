@@ -8,11 +8,14 @@ import androidx.media3.database.StandaloneDatabaseProvider
 import androidx.media3.datasource.DefaultDataSource
 import androidx.media3.datasource.DefaultHttpDataSource
 import androidx.media3.datasource.cache.CacheDataSource
+import androidx.media3.datasource.cache.CacheDataSink
 import androidx.media3.datasource.cache.ContentMetadata
 import androidx.media3.datasource.cache.NoOpCacheEvictor
 import androidx.media3.datasource.cache.SimpleCache
 import androidx.media3.exoplayer.offline.Download
 import androidx.media3.exoplayer.offline.DownloadManager
+import androidx.media3.exoplayer.offline.DefaultDownloadIndex
+import androidx.media3.exoplayer.offline.DefaultDownloaderFactory
 import androidx.media3.exoplayer.offline.DownloadRequest
 import androidx.media3.exoplayer.offline.DownloadService
 import kotlinx.coroutines.*
@@ -37,7 +40,10 @@ class AudioCache(private val context: Context,private val store: MikuStore,
     private val http = DefaultHttpDataSource.Factory().setUserAgent("StudyWithMiku-Android/${BuildConfig.VERSION_NAME}")
         .setAllowCrossProtocolRedirects(true).setConnectTimeoutMs(15_000).setReadTimeoutMs(20_000)
         .setContentTypePredicate { type: String? -> MusicProtocol.audioContentType(type) }
-    val manager = DownloadManager(context,database,cache,http,executor).apply {
+    // Small committed fragments retain useful progress even when the process is killed mid-song.
+    private val downloadFactory = CacheDataSource.Factory().setCache(cache).setUpstreamDataSourceFactory(http)
+        .setCacheWriteDataSinkFactory(CacheDataSink.Factory().setCache(cache).setFragmentSize(256 * 1024L))
+    val manager = DownloadManager(context,DefaultDownloadIndex(database),DefaultDownloaderFactory(downloadFactory,executor)).apply {
         maxParallelDownloads = 2
         // A reopened queue waits for a user action before starting a foreground service.
         pauseDownloads()

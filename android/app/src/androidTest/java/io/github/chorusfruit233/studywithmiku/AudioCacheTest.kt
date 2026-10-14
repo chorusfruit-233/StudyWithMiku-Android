@@ -61,6 +61,7 @@ class AudioCacheTest {
         return b.array()
     }
     private fun server(bytes: ByteArray,slow: Boolean = false,omitType: Boolean = false) = MockWebServer().apply {
+        val requests = java.util.concurrent.atomic.AtomicInteger()
         dispatcher = object : Dispatcher() {
             override fun dispatch(request: RecordedRequest): MockResponse {
                 val start = request.getHeader("Range")?.substringAfter("bytes=")?.substringBefore('-')?.toIntOrNull() ?: 0
@@ -68,7 +69,7 @@ class AudioCacheTest {
                     .setBody(Buffer().write(bytes,start,bytes.size-start))
                 if (!omitType) response.setHeader("Content-Type","audio/wav")
                 if (start > 0) response.setResponseCode(206).setHeader("Content-Range","bytes $start-${bytes.lastIndex}/${bytes.size}")
-                if (slow) response.throttleBody(8192,100,TimeUnit.MILLISECONDS)
+                if (slow && requests.incrementAndGet() == 1) response.throttleBody(8192,100,TimeUnit.MILLISECONDS)
                 return response
             }
         }
@@ -117,13 +118,13 @@ class AudioCacheTest {
         } finally { withContext(Dispatchers.Main) { cache.release() }; runCatching { server.shutdown() } }
     }
     @Test fun interruptedDownloadIsNotOfflineReadyAndResumesFromPersistedBytes() = fixture { context,store,directory,name ->
-        server(wave(8),slow = true).use { server ->
+        server(wave(64),slow = true).use { server ->
             val track = song(server.url("/slow.wav").toString())
             var cache = withContext(Dispatchers.Main) { AudioCache(context,store,directory,name) }
             try {
                 await(cache) { it.initialized }
                 withContext(Dispatchers.Main) { cache.manager.addDownload(AudioCache.request(track)); cache.manager.resumeDownloads() }
-                await(cache) { (it.songs[track.cacheKey]?.bytes ?: 0) > 0 && !it.ready(track) }
+                await(cache) { it.bytes >= 256 * 1024 && !it.ready(track) }
                 withContext(Dispatchers.Main) { cache.manager.pauseDownloads() }
                 await(cache) { it.paused }
                 withTimeout(5000) { while (withContext(Dispatchers.Main) { cache.manager.currentDownloads.any { it.state == Download.STATE_DOWNLOADING } }) delay(50) }
