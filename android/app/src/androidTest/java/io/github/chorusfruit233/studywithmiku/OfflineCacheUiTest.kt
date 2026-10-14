@@ -19,8 +19,8 @@ class OfflineCacheUiTest {
         val playlist = OfflinePlaylist(MusicConfig(name = "测试离线歌单"),listOf(
             Song("one","Complete","Fixture","https://example.test/one",platform = "netease"),
             Song("two","Partial","Fixture","https://example.test/two",platform = "netease")))
-        var state by mutableStateOf(AudioCacheState(mapOf("one" to CachedAudio(AudioCacheStatus.COMPLETE,100,100f),
-            "two" to CachedAudio(AudioCacheStatus.PAUSED,50,50f)),listOf(playlist),150,paused = true,initialized = true))
+        var state by mutableStateOf(AudioCacheState(mapOf("one" to CachedAudio(AudioCacheStatus.COMPLETE,100,100f)),
+            listOf(playlist),100,initialized = true))
         var downloads = 0; var resumed = 0; var cleared = 0; var played = emptyList<Song>()
         compose.setContent {
             MikuTheme(Preferences(animateScene = false)) {
@@ -30,6 +30,8 @@ class OfflineCacheUiTest {
             }
         }
         compose.onNodeWithText("补全当前歌单缓存").performClick()
+        compose.runOnIdle { state = state.copy(songs = state.songs + ("two" to CachedAudio(AudioCacheStatus.PAUSED,50,50f)),bytes = 150,paused = true) }
+        compose.onNodeWithText("补全当前歌单缓存").assertDoesNotExist()
         compose.onNodeWithText("继续全部缓存").performClick()
         compose.onNodeWithText("离线播放").performScrollTo().performClick()
         compose.runOnIdle { assertEquals(1,downloads); assertEquals(1,resumed); assertEquals(listOf("one"),played.map { it.id }) }

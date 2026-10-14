@@ -20,6 +20,7 @@ import androidx.compose.ui.unit.dp
     val ready = state.readySongs(playlist).size
     val remote = playlist.songs.filter { it.online }
     val failed = remote.count { state.songs[it.cacheKey]?.status == AudioCacheStatus.FAILED }
+    val needsDownload = remote.any { state.songs[it.cacheKey]?.status.let { status -> status == null || status == AudioCacheStatus.FAILED } }
     val complete = playlist.songs.isNotEmpty() && ready == playlist.songs.size
     val size = Formatter.formatShortFileSize(LocalContext.current,state.bytes)
     Surface(shape = RoundedCornerShape(24.dp),color = MaterialTheme.colorScheme.surfaceContainer) {
@@ -39,7 +40,7 @@ import androidx.compose.ui.unit.dp
             if (failed > 0) Text("$failed 首缓存失败。可刷新歌单后重试，已完成的缓存会保留。",
                 style = MaterialTheme.typography.bodySmall,color = MaterialTheme.colorScheme.error)
             if (complete) Text("当前歌单已离线可用",color = MaterialTheme.colorScheme.primary,style = MaterialTheme.typography.labelLarge)
-            else if (remote.isNotEmpty()) FilledTonalButton(onClick = onDownload,enabled = !loading && state.initialized) {
+            else if (needsDownload) FilledTonalButton(onClick = onDownload,enabled = !loading && state.initialized) {
                 Icon(Icons.Rounded.Download,null,Modifier.size(18.dp)); Spacer(Modifier.width(8.dp))
                 Text(if (failed > 0 || ready > 0) "补全当前歌单缓存" else "缓存当前歌单")
             }
