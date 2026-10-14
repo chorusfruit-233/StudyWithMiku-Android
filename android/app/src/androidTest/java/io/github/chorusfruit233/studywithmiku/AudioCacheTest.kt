@@ -7,6 +7,7 @@ import androidx.compose.material3.Text
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.exoplayer.offline.Download
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.test.platform.app.InstrumentationRegistry
 import kotlinx.coroutines.*
@@ -125,16 +126,20 @@ class AudioCacheTest {
                 await(cache) { (it.songs[track.cacheKey]?.bytes ?: 0) > 0 && !it.ready(track) }
                 withContext(Dispatchers.Main) { cache.manager.pauseDownloads() }
                 await(cache) { it.paused }
-                assertFalse(cache.state.value.ready(track))
+                withTimeout(5000) { while (withContext(Dispatchers.Main) { cache.manager.currentDownloads.any { it.state == Download.STATE_DOWNLOADING } }) delay(50) }
+                assertFalse("Paused partial audio must not be offline ready",cache.state.value.ready(track))
+                val before = cache.cache.getCachedBytes(track.cacheKey,0,Long.MAX_VALUE)
+                assertTrue("Pause must commit some audio bytes; cached=$before",before > 0)
                 withContext(Dispatchers.Main) { cache.release() }
                 cache = withContext(Dispatchers.Main) { AudioCache(context,store,directory,name) }
                 await(cache) { it.initialized }
-                assertFalse(cache.state.value.ready(track))
+                assertFalse("Reopened partial audio must not be offline ready",cache.state.value.ready(track))
                 withContext(Dispatchers.Main) { cache.manager.resumeDownloads() }
                 await(cache) { it.ready(track) }
-                assertTrue(server.requestCount >= 2)
+                assertTrue("Resume must make a second request; requests=${server.requestCount}",server.requestCount >= 2)
                 val requests = (0 until server.requestCount).mapNotNull { server.takeRequest(1,TimeUnit.SECONDS) }
-                assertTrue(requests.drop(1).any { it.getHeader("Range")?.let { range -> range != "bytes=0-" } == true })
+                assertTrue("Resume should use saved bytes ($before); ranges=${requests.map { it.getHeader("Range") }}",
+                    requests.drop(1).any { it.getHeader("Range")?.substringAfter("bytes=")?.substringBefore('-')?.toLongOrNull()?.let { start -> start > 0 } == true })
                 withContext(Dispatchers.Main) { cache.manager.removeAllDownloads() }
                 await(cache) { it.initialized && it.songs.isEmpty() && it.bytes == 0L }
                 assertFalse(cache.state.value.ready(track))

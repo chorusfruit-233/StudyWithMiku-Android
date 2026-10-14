@@ -64,6 +64,8 @@ jobs:
           if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
             test "$(gh release view "$RELEASE_TAG" --json isDraft --jq '.isDraft')" = "true" || { echo 'Version already published; increase versionName and versionCode.'; exit 1; }
             gh release upload "$RELEASE_TAG" artifacts/release/* --clobber
+            gh release edit "$RELEASE_TAG" --tag "$RELEASE_TAG" --target "$GITHUB_SHA" --draft=true \
+              --title "Study With Miku Android $RELEASE_VERSION · Release" --notes-file .github/release-notes.md
           else
             gh release create "$RELEASE_TAG" artifacts/release/* --draft --target "$GITHUB_SHA" \
               --title "Study With Miku Android $RELEASE_VERSION · Release" --notes-file .github/release-notes.md

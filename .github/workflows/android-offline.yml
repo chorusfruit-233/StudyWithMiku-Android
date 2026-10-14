@@ -44,12 +44,17 @@ jobs:
           profile: pixel_2
           disable-animations: true
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
-          script: |
-            cd android && ./gradlew connectedDebugAndroidTest
-            mkdir -p android/app/build/reports/design-screenshots
-            adb pull /sdcard/Download/studywithmiku-design/. android/app/build/reports/design-screenshots/
-            test -f android/app/build/reports/design-screenshots/sync-choice.png && test -s android/app/build/reports/design-screenshots/sync-choice.png
-            test -f android/app/build/reports/design-screenshots/task-edit.png && test -s android/app/build/reports/design-screenshots/task-edit.png
+          script: bash .github/scripts/check-device-tests.sh
+      - name: Save verification reports even when device tests fail
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Android-verification-reports
+          path: |
+            android/app/build/reports/
+            android/app/build/test-results/
+            android/app/build/outputs/androidTest-results/
+          retention-days: 14
       - name: Prepare APK artifact
         id: debug_apk
         working-directory: android

@@ -108,7 +108,10 @@ class AudioCache(private val context: Context,private val store: MikuStore,
     /** Used by isolated instrumentation fixtures only; the application singleton lives for its process. */
     internal suspend fun release() {
         scope.coroutineContext[Job]?.cancelAndJoin()
-        manager.release(); cache.release(); database.close(); executor.shutdownNow()
+        manager.release()
+        executor.shutdownNow()
+        withContext(Dispatchers.IO) { check(executor.awaitTermination(5,java.util.concurrent.TimeUnit.SECONDS)) }
+        cache.release(); database.close()
     }
     companion object {
         fun request(song: Song) = DownloadRequest.Builder(song.cacheKey,Uri.parse(song.uri)).setCustomCacheKey(song.cacheKey)
