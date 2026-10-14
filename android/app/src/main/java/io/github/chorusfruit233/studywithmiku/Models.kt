@@ -22,8 +22,10 @@ data class DayLog(val millis: Long = 0, val sessions: Int = 0)
 data class Song(val id: String, val title: String, val artist: String, val uri: String,
                 val cover: String = "", val builtin: Boolean = false,
                 val platform: String = "", val lyrics: String = "", val playlistId: String = "",
-                val playlistIndex: Int = -1, val playlistName: String = "", val publicCover: String = "", val webTitle: String = "") {
+                val playlistIndex: Int = -1, val playlistName: String = "", val publicCover: String = "", val webTitle: String = "",
+                val audioCacheKey: String = "") {
     val online get() = platform.isNotEmpty()
+    val cacheKey get() = audioCacheKey.ifBlank { id }
 }
 data class Playlist(val id: String, val name: String, val songIds: List<String>)
 data class Library(val songs: List<Song> = emptyList(), val favorites: Set<String> = emptySet(),

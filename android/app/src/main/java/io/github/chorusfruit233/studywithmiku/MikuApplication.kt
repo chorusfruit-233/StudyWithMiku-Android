@@ -8,6 +8,7 @@ import coil.decode.GifDecoder
 import coil.decode.ImageDecoderDecoder
 
 class MikuApplication : Application(), ImageLoaderFactory {
+    val audioCache by lazy { AudioCache(this,store) }
     lateinit var store: MikuStore
         private set
     lateinit var timer: FocusEngine

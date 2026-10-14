@@ -56,10 +56,25 @@ class OnlineMusic(context: Context, private val store: MikuStore,private val pla
     private var initialized = false
     private val specialOrder = JSONArray(context.assets.open("special-song-order.json").bufferedReader().use { it.readText() }).strings()
     fun ensureLoaded() { if (!initialized) { initialized = true; load(_state.value.config) } }
-    fun retry() = load(attempted,saveCustom = attemptedSaveCustom)
-    fun deleteSavedPlaylist(item: SavedNetworkPlaylist) = store.deleteNetworkPlaylist(item.platform,item.id)
-    fun load(config: MusicConfig = _state.value.config,saveCustom: Boolean = false, onLoaded: (List<Song>) -> Unit = {}) {
+    fun retry() = load(attempted,saveCustom = attemptedSaveCustom,forceRefresh = true)
+    fun currentPlaylist(): OfflinePlaylist = store.readNetworkSnapshot(_state.value.config)
+        ?: OfflinePlaylist(_state.value.config,_state.value.ids.mapNotNull { id -> store.library.value.songs.find { it.id == id } })
+    fun openOffline(playlist: OfflinePlaylist,readyOnly: Boolean = false,cache: AudioCacheState = AudioCacheState()) {
         job?.cancel()
+        val songs = if (readyOnly) cache.readySongs(playlist) else playlist.songs
+        store.cacheOnline(playlist.config,playlist.songs)
+        _state.value = OnlineMusicState(playlist.config,songs.map { it.id },cached = true)
+        initialized = true
+    }
+    fun deleteSavedPlaylist(item: SavedNetworkPlaylist) = store.deleteNetworkPlaylist(item.platform,item.id)
+    fun load(config: MusicConfig = _state.value.config,saveCustom: Boolean = false,forceRefresh: Boolean = false, onLoaded: (List<Song>) -> Unit = {}) {
+        job?.cancel()
+        if (!forceRefresh) store.readNetworkSnapshot(config)?.let { snapshot ->
+            openOffline(snapshot)
+            if (saveCustom) store.saveNetworkPlaylist(snapshot.config.platform,snapshot.config.id,snapshot.config.name)
+            onLoaded(snapshot.songs)
+            return
+        }
         attempted = config
         attemptedSaveCustom = saveCustom
         _state.value = _state.value.copy(loading = true,loadingName = config.name,error = null)

@@ -19,6 +19,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
@@ -47,7 +48,9 @@ object RemoteCovers {
     }
 }
 
-@Composable fun NetworkMusicPanel(state: OnlineMusicState,online: OnlineMusic,onSelect: () -> Unit,onMessage: (String) -> Unit) {
+@Composable fun NetworkMusicPanel(state: OnlineMusicState,online: OnlineMusic,onSelect: () -> Unit,onMessage: (String) -> Unit,
+    audioCache: AudioCache = (LocalContext.current.applicationContext as MikuApplication).audioCache,
+    onOfflinePlay: (List<Song>) -> Unit = {}) {
     var custom by remember { mutableStateOf(false) }
     var deleting by remember { mutableStateOf<SavedNetworkPlaylist?>(null) }
     val savedPlaylists by online.savedPlaylists.collectAsStateWithLifecycle()
@@ -63,7 +66,7 @@ object RemoteCovers {
                             style = MaterialTheme.typography.titleMedium,maxLines = 2,overflow = TextOverflow.Ellipsis)
                         Text(if (state.loading && state.ids.isNotEmpty()) "当前歌单仍可播放，加载完成后切换" else "${platformName(state.config.platform)} · ${state.ids.size} 首${if (state.cached) " · 上次加载" else ""}",style = MaterialTheme.typography.bodySmall)
                     }
-                    IconButton(onClick = { onSelect(); online.load() },enabled = !state.loading) { Icon(Icons.Rounded.Refresh,"刷新当前歌单") }
+                    IconButton(onClick = { onSelect(); online.load(forceRefresh = true) },enabled = !state.loading) { Icon(Icons.Rounded.Refresh,"刷新当前歌单") }
                 }
                 if (state.loading) LinearProgressIndicator(Modifier.fillMaxWidth())
                 Row(Modifier.horizontalScroll(rememberScrollState()),horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -85,6 +88,15 @@ object RemoteCovers {
                 }
             }
         }
+        val cacheState by audioCache.state.collectAsStateWithLifecycle()
+        val offlinePlaylist = remember(state) { online.currentPlaylist() }
+        OfflineCachePanel(cacheState,offlinePlaylist,state.loading,
+            onDownload = { runCatching { audioCache.download(online.currentPlaylist()) }.onFailure { onMessage("无法开始缓存，请重试") } },
+            onPause = { audioCache.pause() },onResume = { audioCache.resume() },onClear = { audioCache.clear() },
+            onPlay = { playlist ->
+                onSelect(); online.openOffline(playlist,readyOnly = true,cache = cacheState)
+                onOfflinePlay(cacheState.readySongs(playlist))
+            })
         state.error?.let { error ->
             Surface(shape = RoundedCornerShape(20.dp),color = MaterialTheme.colorScheme.errorContainer) {
                 Column(Modifier.padding(16.dp),verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -96,7 +108,7 @@ object RemoteCovers {
             }
         }
         Text("我的网络歌单",style = MaterialTheme.typography.titleLarge)
-        if (savedPlaylists.isEmpty()) Text("获取自定义歌单后会保存在这里，方便下次切换。播放仍需联网。",
+        if (savedPlaylists.isEmpty()) Text("获取自定义歌单后会保存在这里。缓存音频后可离线播放。",
             style = MaterialTheme.typography.bodyMedium,color = MaterialTheme.colorScheme.onSurfaceVariant)
         else LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             items(savedPlaylists,key = { "${it.platform}:${it.id}" }) { item ->

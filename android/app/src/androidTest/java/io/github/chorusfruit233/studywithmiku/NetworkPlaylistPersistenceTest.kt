@@ -15,6 +15,27 @@ import org.junit.Test
 import java.util.UUID
 
 class NetworkPlaylistPersistenceTest {
+    @Test fun switchingCachedPlaylistsOfflinePreservesSharedMembershipAndAudioQuality() = isolated { context,store ->
+        val first = MusicConfig(id = "42",name = "First playlist")
+        val second = first.copy(id = "99",name = "Second playlist",bitrate = "320")
+        val json = """[{"id":"shared-track","name":"Shared","url":"https://example.test/audio.mp3"}]"""
+        val firstSongs = MusicProtocol.songs(json,first)
+        val secondSongs = MusicProtocol.songs(json,second)
+        store.cacheOnline(first,firstSongs); store.cacheOnline(second,secondSongs)
+        store.saveOfflinePlaylist(OfflinePlaylist(first,firstSongs)); store.saveOfflinePlaylist(OfflinePlaylist(second,secondSongs))
+        val reopened = MikuStore(context)
+        assertEquals(2,reopened.readOfflinePlaylists().size)
+        val online = OnlineMusic(context,reopened)
+        runBlocking { withContext(Dispatchers.Main) { online.load(first) } }
+        assertTrue(online.state.value.cached); assertFalse(online.state.value.loading); assertNull(online.state.value.error)
+        assertEquals(firstSongs.single().cacheKey,reopened.library.value.songs.find { it.id == firstSongs.single().id }!!.cacheKey)
+        runBlocking { withContext(Dispatchers.Main) { online.load(second) } }
+        assertEquals(secondSongs.single().cacheKey,reopened.library.value.songs.find { it.id == secondSongs.single().id }!!.cacheKey)
+        assertNotEquals(firstSongs.single().cacheKey,secondSongs.single().cacheKey)
+        reopened.clearOfflinePlaylists()
+        assertTrue(MikuStore(context).readOfflinePlaylists().isEmpty())
+        assertNotNull(reopened.readNetworkSnapshot(first))
+    }
     private fun isolated(test: (Context,MikuStore) -> Unit) {
         val target = InstrumentationRegistry.getInstrumentation().targetContext
         val name = "network_playlist_fixture_${UUID.randomUUID()}"

@@ -24,8 +24,8 @@ android {
         applicationId = "io.github.chorusfruit233.studywithmiku"
         minSdk = 26
         targetSdk = 35
-        versionCode = 13
-        versionName = "1.2.10"
+        versionCode = 14
+        versionName = "1.2.11"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
     buildFeatures { compose = true; buildConfig = true }
@@ -69,6 +69,8 @@ dependencies {
     // This release exposes the actual Material 3 Expressive theme and morphing buttons.
     implementation("androidx.compose.material3:material3:1.4.0-alpha18")
     implementation("androidx.media3:media3-exoplayer:1.7.1")
+    implementation("androidx.media3:media3-datasource:1.7.1")
+    implementation("androidx.media3:media3-database:1.7.1")
     implementation("androidx.media3:media3-session:1.7.1")
     implementation("androidx.media3:media3-ui:1.7.1")
     implementation("com.squareup.okhttp3:okhttp:4.12.0")

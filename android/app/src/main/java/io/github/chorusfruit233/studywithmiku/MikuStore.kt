@@ -142,7 +142,7 @@ class MikuStore(private val context: Context) : StudySyncStore {
     }.getOrDefault(FocusClock())
     private fun song(o: JSONObject) = Song(o.getString("id"),o.getString("title"),o.getString("artist"),
         o.getString("uri"),o.optString("cover"),o.optBoolean("builtin"),o.optString("platform"),o.optString("lyrics"),
-        o.optString("playlistId"),o.optInt("playlistIndex",-1),o.optString("playlistName"),o.optString("publicCover"),o.optString("webTitle"))
+        o.optString("playlistId"),o.optInt("playlistIndex",-1),o.optString("playlistName"),o.optString("publicCover"),o.optString("webTitle"),o.optString("audioCacheKey"))
     private fun readLibrary(): Library {
         val builtins = JSONArray(context.assets.open("library.json").bufferedReader().use { it.readText() }).objects().map(::song)
         val imported = arr("songs").objects().map(::song).filter { it.online || File(Uri.parse(it.uri).path ?: "").exists() }
@@ -155,7 +155,7 @@ class MikuStore(private val context: Context) : StudySyncStore {
         disk.edit().putString("songs",JSONArray().apply { l.songs.filterNot { it.builtin }.forEach {
             put(JSONObject().put("id",it.id).put("title",it.title).put("artist",it.artist).put("uri",it.uri).put("cover",it.cover)
                 .put("platform",it.platform).put("lyrics",it.lyrics).put("playlistId",it.playlistId).put("playlistIndex",it.playlistIndex)
-                .put("playlistName",it.playlistName).put("publicCover",it.publicCover).put("webTitle",it.webTitle)) } }.toString())
+                .put("playlistName",it.playlistName).put("publicCover",it.publicCover).put("webTitle",it.webTitle).put("audioCacheKey",it.audioCacheKey)) } }.toString())
             .putString("favorites",JSONArray(l.favorites.toList()).toString())
             .putString("playlists",JSONArray().apply { l.playlists.forEach {
                 put(JSONObject().put("id",it.id).put("name",it.name).put("songs",JSONArray(it.songIds))) } }.toString()).apply()
@@ -225,6 +225,9 @@ class MikuStore(private val context: Context) : StudySyncStore {
         _networkPlaylists.value = list
     }
     @Synchronized fun cacheOnline(config: MusicConfig, songs: List<Song>) {
+        val snapshots = obj("network_snapshots")
+        snapshots.put(OfflinePlaylist.key(config),OfflinePlaylist(config,songs).toJson())
+        disk.edit().putString("network_snapshots",snapshots.toString()).apply()
         val ids = songs.map { it.id }.toSet()
         val l = _library.value
         saveLibrary(l.copy(songs = l.songs.filterNot { it.id in ids } + songs))
@@ -232,6 +235,14 @@ class MikuStore(private val context: Context) : StudySyncStore {
             .put("id",config.id).put("bitrate",config.bitrate).put("name",config.name).toString())
             .putString("network_ids",JSONArray(songs.map { it.id }).toString()).apply()
     }
+    fun readNetworkSnapshot(config: MusicConfig): OfflinePlaylist? = obj("network_snapshots")
+        .optJSONObject(OfflinePlaylist.key(config))?.let { runCatching { OfflinePlaylist.fromJson(it) }.getOrNull() }
+    fun readOfflinePlaylists() = arr("offline_playlists").objects().mapNotNull { runCatching { OfflinePlaylist.fromJson(it) }.getOrNull() }
+    @Synchronized fun saveOfflinePlaylist(playlist: OfflinePlaylist) {
+        val list = readOfflinePlaylists().filterNot { it.key == playlist.key } + playlist
+        disk.edit().putString("offline_playlists",JSONArray(list.map { it.toJson() }).toString()).apply()
+    }
+    fun clearOfflinePlaylists() { disk.edit().remove("offline_playlists").apply() }
     fun addCountdown(title: String,date: String): Boolean {
         if (title.isBlank() || !StudyProtocol.validDate(date) || _countdowns.value.size >= 20) return false
         saveCountdowns(_countdowns.value + CountdownDay(System.currentTimeMillis().toString(),title.trim().take(40),date))

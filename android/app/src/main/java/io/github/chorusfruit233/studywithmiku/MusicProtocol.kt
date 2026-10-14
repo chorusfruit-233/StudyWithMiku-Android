@@ -58,9 +58,14 @@ object MusicProtocol {
             Song("online_${config.platform}_$key",display,artist,url,
                 httpUrl(o.optString("pic").ifBlank { o.optString("cover") },config.api),
                 platform = config.platform,lyrics = o.optString("lrc").let { if (it.startsWith("[")) it else httpUrl(it,config.api) },
-                playlistId = config.id,playlistIndex = i,playlistName = config.name)
+                playlistId = config.id,playlistIndex = i,playlistName = config.name,
+                audioCacheKey = audioKey("online_${config.platform}_$key",config))
         }.distinctBy { it.id }
     }
+    // Playlist membership and expiring URLs do not change an audio resource's identity.
+    // Different providers and qualities must never share bytes.
+    fun audioKey(songId: String,config: MusicConfig): String = songId + "_" + MessageDigest.getInstance("SHA-256")
+        .digest("${config.api.trim()}|${config.bitrate}".toByteArray(Charsets.UTF_8)).take(12).joinToString("") { "%02x".format(it) }
     fun lyrics(text: String): List<LyricLine> {
         val offset = Regex("\\[offset:([+-]?[0-9]+)]").find(text)?.groupValues?.get(1)?.toLongOrNull() ?: 0
         val stamp = Regex("\\[([0-9]+):([0-9]{2})(?:[.:]([0-9]{1,3}))?]")

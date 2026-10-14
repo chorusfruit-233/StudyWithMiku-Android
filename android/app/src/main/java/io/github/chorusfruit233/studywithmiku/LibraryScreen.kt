@@ -37,6 +37,8 @@ import kotlinx.coroutines.withContext
     online: OnlineMusic,message: (String) -> Unit,openPlayer: () -> Unit) {
     var filter by rememberSaveable { mutableStateOf("online") }
     val network by online.state.collectAsStateWithLifecycle()
+    val audioCache = (LocalContext.current.applicationContext as MikuApplication).audioCache
+    val cachedAudio by audioCache.state.collectAsStateWithLifecycle()
     LaunchedEffect(online) { online.ensureLoaded() }
     var query by rememberSaveable { mutableStateOf("") }
     var editor by remember { mutableStateOf(false) }
@@ -68,7 +70,8 @@ import kotlinx.coroutines.withContext
     val visible = currentList.filter { it.title.contains(query,true) || it.artist.contains(query,true) }
     LazyColumn(Modifier.fillMaxSize(),contentPadding = PaddingValues(start = 24.dp,end = 24.dp,bottom = 24.dp),verticalArrangement = Arrangement.spacedBy(12.dp)) {
         item { PageHeading("A SOUNDTRACK FOR YOUR DAY","把世界调成\n喜欢的音量。","在线歌单与本地音乐，随时陪你进入状态。") }
-        item { NetworkMusicPanel(network,online,onSelect = { filter = "online" },onMessage = message) }
+        item { NetworkMusicPanel(network,online,onSelect = { filter = "online" },onMessage = message,
+            audioCache = audioCache,onOfflinePlay = { music.play(it) }) }
         item {
             Surface(onClick = { music.play(library.songs.filter { it.builtin }); openPlayer() },
                 enabled = playback.connected && library.songs.any { it.builtin },
@@ -124,6 +127,16 @@ import kotlinx.coroutines.withContext
                     Column(Modifier.weight(1f),verticalArrangement = Arrangement.spacedBy(3.dp)) {
                         Text(song.title,style = MaterialTheme.typography.titleMedium,maxLines = 1,overflow = TextOverflow.Ellipsis)
                         Text(song.artist,style = MaterialTheme.typography.bodySmall,color = MaterialTheme.colorScheme.onSurfaceVariant,maxLines = 1,overflow = TextOverflow.Ellipsis)
+                        if (song.online) cachedAudio.songs[song.cacheKey]?.let { audio ->
+                            Text(when (audio.status) {
+                                AudioCacheStatus.COMPLETE -> "已缓存 · 可离线播放"
+                                AudioCacheStatus.DOWNLOADING -> "正在缓存${if (audio.percent >= 0) " · ${audio.percent.toInt()}%" else ""}"
+                                AudioCacheStatus.PAUSED -> "缓存已暂停"
+                                AudioCacheStatus.FAILED -> "缓存失败"
+                                AudioCacheStatus.REMOVING -> "正在清除缓存"
+                                AudioCacheStatus.QUEUED -> "等待缓存"
+                            },style = MaterialTheme.typography.labelSmall,color = MaterialTheme.colorScheme.primary)
+                        }
                     }
                     if (selected && playback.playing) Icon(Icons.Rounded.GraphicEq,null,Modifier.size(20.dp),tint = MaterialTheme.colorScheme.primary)
                     IconButton(onClick = { store.toggleFavorite(song.id) },modifier = Modifier.size(40.dp)) {
@@ -142,7 +155,7 @@ import kotlinx.coroutines.withContext
                 }
             }
         }
-        item { Text(if (filter == "online") "${network.config.name} · 在线歌曲需要网络；收藏和歌单保存在这台设备。" else "内置曲目和已导入音乐可离线播放；在线曲目需要网络。",style = MaterialTheme.typography.bodySmall,color = MaterialTheme.colorScheme.onSurfaceVariant,modifier = Modifier.padding(top = 8.dp)) }
+        item { Text(if (filter == "online") "${network.config.name} · 已缓存音频可离线播放；未缓存曲目仍需联网。" else "内置、导入和已缓存曲目可离线播放；未缓存的网络歌曲仍需联网。",style = MaterialTheme.typography.bodySmall,color = MaterialTheme.colorScheme.onSurfaceVariant,modifier = Modifier.padding(top = 8.dp)) }
     }
     if (editor) PlaylistEditor(library,editing,onSave = { name,ids -> store.savePlaylist(name,ids,editing?.id); editor = false },
         onDelete = editing?.let { { store.deletePlaylist(it.id); filter = "all"; editor = false } },onDismiss = { editor = false })

@@ -1,3 +1,4 @@
+@file:androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
 package io.github.chorusfruit233.studywithmiku
 
 import android.content.ComponentName
@@ -63,7 +64,8 @@ class MusicConnection(context: Context) {
         for (i in 0 until p.mediaItemCount) {
             val item = p.getMediaItemAt(i)
             val song = byId[item.mediaId] ?: continue
-            if (song.online && item.localConfiguration?.uri.toString() != song.uri) p.replaceMediaItem(i,song.mediaItem())
+            if (song.online && (item.localConfiguration?.uri.toString() != song.uri || item.localConfiguration?.customCacheKey != song.cacheKey))
+                p.replaceMediaItem(i,song.mediaItem())
         }
     } }
     fun shuffle() { controller?.let { it.shuffleModeEnabled = !it.shuffleModeEnabled } }

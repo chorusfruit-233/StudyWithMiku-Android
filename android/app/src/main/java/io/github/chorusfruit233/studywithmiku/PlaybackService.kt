@@ -1,11 +1,10 @@
+@file:androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
 package io.github.chorusfruit233.studywithmiku
 
 import android.content.Intent
 import android.net.Uri
 import androidx.media3.common.*
 import androidx.media3.exoplayer.ExoPlayer
-import androidx.media3.datasource.DefaultDataSource
-import androidx.media3.datasource.DefaultHttpDataSource
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.session.MediaSession
 import androidx.media3.session.MediaSessionService
@@ -33,9 +32,7 @@ class PlaybackService : MediaSessionService() {
     private var duckJob: Job? = null
     override fun onCreate() {
         super.onCreate()
-        val http = DefaultHttpDataSource.Factory().setUserAgent("StudyWithMiku-Android/1.2")
-            .setAllowCrossProtocolRedirects(true).setConnectTimeoutMs(15_000).setReadTimeoutMs(20_000)
-        fun create() = ExoPlayer.Builder(this).setMediaSourceFactory(DefaultMediaSourceFactory(DefaultDataSource.Factory(this,http))).build().apply {
+        fun create() = ExoPlayer.Builder(this).setMediaSourceFactory(DefaultMediaSourceFactory(app.audioCache.playbackFactory)).build().apply {
             setAudioAttributes(AudioAttributes.Builder().setContentType(C.AUDIO_CONTENT_TYPE_MUSIC).setUsage(C.USAGE_MEDIA).build(),false)
             setHandleAudioBecomingNoisy(true); setWakeMode(C.WAKE_MODE_NETWORK)
         }
@@ -145,5 +142,6 @@ class PlaybackService : MediaSessionService() {
     }
 }
 fun Song.mediaItem(): MediaItem = MediaItem.Builder().setMediaId(id).setUri(uri)
+    .setCustomCacheKey(if (online) cacheKey else null)
     .setMediaMetadata(MediaMetadata.Builder().setTitle(title).setArtist(artist)
         .setArtworkUri(cover.takeIf { it.isNotEmpty() }?.let(Uri::parse)).build()).build()
