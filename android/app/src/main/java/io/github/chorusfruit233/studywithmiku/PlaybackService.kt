@@ -45,9 +45,7 @@ class PlaybackService : MediaSessionService() {
             private val listeners = mutableMapOf<Player.Listener,Player.Listener>()
             override fun addListener(listener: Player.Listener) {
                 if (listener in listeners) return
-                val bridge = object : Player.Listener by listener {
-                    override fun onVolumeChanged(volume: Float) { listener.onVolumeChanged(userVolume) }
-                }
+                val bridge = UserVolumeListener(listener) { userVolume }
                 listeners[listener] = bridge; super.addListener(bridge)
             }
             override fun removeListener(listener: Player.Listener) { listeners.remove(listener)?.let { super.removeListener(it) } }
