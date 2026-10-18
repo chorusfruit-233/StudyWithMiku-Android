@@ -11,6 +11,8 @@ Study With Miku 的非官方原生 Android 移植，使用 Material 3 Expressive
 
 原作账号认证、学习资料与日历接口未变。逐项适配见 [UPSTREAM.md](https://github.com/chorusfruit-233/StudyWithMiku-Android/blob/main/android/UPSTREAM.md)，测试来源及范围见 [验证记录](https://github.com/chorusfruit-233/StudyWithMiku-Android/blob/main/android/VALIDATION.md)。
 
+Debug 与签名 Release 各 104 项单元测试通过，Android 35 的 39 项设备回归通过，两个构建的 Lint 均为 0 错误。已重新下载最终 APK，核对固定签名、包名、1.2.12／versionCode 15、关闭调试及 SHA-256。
+
 下载 `StudyWithMiku-Android-1.2.12-release.apk` 安装。固定签名及包名 `io.github.chorusfruit233.studywithmiku` 延续正式版，可覆盖升级已有正式版；`SHA256SUMS.txt` 提供校验值，`SIGNING-CERTIFICATE.txt` 为公开证书，检查报告随附。安装包保留全部内置音视频，尚未启用 R8 和资源裁剪。
 
 设备回归使用 Debug APK、合成音频和本地服务；真实账号、音乐供应商与签名包真机验收另行确认。
