@@ -51,6 +51,8 @@ class PlaybackService : MediaSessionService() {
                 if (!playWhenReady) crossfade.cancel(finishManual = true)
             }
             override fun seekTo(positionMs: Long) { crossfade.cancel(); super.seekTo(positionMs) }
+            override fun seekForward() { crossfade.cancel(); super.seekForward() }
+            override fun seekBack() { crossfade.cancel(); super.seekBack() }
             override fun seekTo(mediaItemIndex: Int,positionMs: Long) {
                 manualControl()
                 if (!crossfade.switchTo(mediaItemIndex,positionMs)) { crossfade.cancel(); super.seekTo(mediaItemIndex,positionMs) }

@@ -36,7 +36,8 @@ internal class PlaybackCrossfade(
             if (!playWhenReady && !changing) cancel(finishManual = true)
         }
         override fun onPositionDiscontinuity(oldPosition: Player.PositionInfo,newPosition: Player.PositionInfo,reason: Int) {
-            if (!changing && reason == Player.DISCONTINUITY_REASON_SEEK) cancel()
+            // ExoPlayer may deliver our handoff seek after the transition callback returns.
+            if (!changing && reason == Player.DISCONTINUITY_REASON_SEEK && stage != Stage.HANDOFF_WAIT && stage != Stage.HANDOFF) cancel()
         }
     }
     init { primary.addListener(listener) }

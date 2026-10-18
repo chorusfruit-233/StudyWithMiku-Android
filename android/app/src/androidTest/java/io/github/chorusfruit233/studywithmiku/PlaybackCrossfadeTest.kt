@@ -68,6 +68,7 @@ class PlaybackCrossfadeTest {
     @Test fun naturalAdvanceKeepsIncomingPositionAndFinishesSecondaryDecoder() = fixture { f,_ ->
         withContext(Dispatchers.Main) { f.main.seekTo(13_900) }
         until { f.preview.isPlaying && f.main.volume < .39f }
+        until { f.main.currentMediaItemIndex == 1 && f.preview.isPlaying && f.main.volume in 0.01f..0.39f }
         until { f.main.currentMediaItemIndex == 1 && f.main.isPlaying && !f.preview.isPlaying && f.main.volume >= .399f }
         withContext(Dispatchers.Main) { assertTrue(f.main.currentPosition >= 5500); assertEquals(.4f,f.main.volume,.001f) }
     }
