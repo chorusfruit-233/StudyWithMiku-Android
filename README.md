@@ -8,31 +8,12 @@
 
 基于 [shshouse/StudyWithMiku](https://github.com/shshouse/StudyWithMiku) 的非官方原生 Android 移植，使用 Kotlin、Jetpack Compose、Media3 和 Material 3 Expressive。保留原项目的网络播放器、推荐歌单、账号同步与聊天室，同时提供离线计时、内置音乐和本地计划。网络功能沿用原站服务。
 
-## 下载与安装
-
-**[下载最新正式版](https://github.com/chorusfruit-233/StudyWithMiku-Android/releases/latest)** · [全部已发布版本](https://github.com/chorusfruit-233/StudyWithMiku-Android/releases)
-
-当前正式版为 **1.2.9**，可直接下载 [StudyWithMiku-Android-1.2.9-release.apk](https://github.com/chorusfruit-233/StudyWithMiku-Android/releases/download/v1.2.9/StudyWithMiku-Android-1.2.9-release.apk)。仓库、源码及已发布的 Release 均公开，下载无需仓库权限。
-
-当前源码版本为 **1.2.11**，新增网络歌单音频缓存与离线播放，保留 1.2.10 的同步修复。新版已通过回归验证，并保存为固定签名 Release 草稿，公开下载入口以已发布版本为准。
-
-| 项目 | 信息 |
-| --- | --- |
-| 系统要求 | Android 8.0（API 26）及以上 |
-| 包名 | `io.github.chorusfruit233.studywithmiku` |
-| 正式签名 | 固定 StudyWithMiku 证书，关闭调试 |
-| 安装包大小 | 1.2.9 约 129 MB，包含全部离线音乐与场景视频 |
-
-Release 附带 `SHA256SUMS.txt`、`SIGNING-CERTIFICATE.txt` 和检查报告，可用于核对文件与签名。
-
-正式版升级需保持同包名、同签名及更高的 `versionCode`。此前的 Debug APK 使用临时签名，首次切换不能覆盖安装；先保存需要的资料，卸载会删除本机资料。旧包名应用可与当前应用共存，本机资料不会自动迁移。
-
 ## 功能
 
 | 页面 | 功能 |
 | --- | --- |
 | 专注 | 番茄钟、倒计时、正计时、短休息与长休息、三段 Miku 场景、静态模式、沉浸全屏和完成语音 |
-| 音乐 | 网易云／QQ 网络播放、原作 10 个推荐歌单、自定义歌单链接、封面与歌词、队列与循环、11 首内置音乐、本地导入与收藏；“我的网络歌单”、整张网络歌单缓存与离线播放 |
+| 音乐 | 网易云／QQ 网络播放、原作 10 个推荐歌单、自定义歌单链接、封面与歌词、队列与循环、手动／自动交叉淡入、11 首内置音乐、本地导入与收藏；“我的网络歌单”、整张网络歌单缓存与离线播放 |
 | 计划与记录 | 待办、日期计划、倒数日、每日专注统计和月度热力日历 |
 | 社区与账号 | MikuMod 官方网页登录、学习资料与日历云同步、在线人数、管理员状态、实时聊天与历史分页、头像、表情及歌曲／倒数日分享；1.2.8 新增引用回复 |
 | 外观与系统集成 | Material 3 Expressive、深浅主题、壁纸取色、自适应与单色主题图标、通知栏／锁屏媒体控制 |
@@ -67,7 +48,7 @@ Debug APK 输出到 `android/app/build/outputs/apk/debug/app-debug.apk`，构建
 
 正式发行见 [Release 构建与发布指南](android/RELEASING.md)。`Android app` 工作流负责 Debug 构建和 Android 模拟器回归；`Android signed release` 负责固定签名的 Release 构建。工作流先保存 Release 草稿，维护者点击 **Publish release** 后才向公众展示。历史 Debug 草稿仍仅供有仓库写入权限的维护者查看。
 
-1.2.11 已通过 99 项 Release 单元测试与 Release Lint；相同应用源码的 Debug 构建通过 99 项单元测试及 31 项 Android 35 回归，包括断网播放、缓存重建、断点续传及真实下载服务。设备测试使用合成音频和本地服务，不作为签名包真机或真实账号验收。具体范围见 [验证记录](android/VALIDATION.md)。
+1.2.12 对齐上游 2026-10-16 提交，覆盖切歌交接、聊天投递、设置默认值与过期请求保护。构建、设备回归和签名结果见 [验证记录](android/VALIDATION.md)，差异映射见 [上游适配记录](android/UPSTREAM.md)。设备测试使用合成音频和本地服务，真实账号与正式包真机验收另行确认。
 
 安装包体积主要来自 11 首音乐（约 65 MB）与 3 段视频（约 44 MB）。1.2.7 尚未启用 R8 代码裁剪及资源裁剪，音视频沿用原始编码。
 

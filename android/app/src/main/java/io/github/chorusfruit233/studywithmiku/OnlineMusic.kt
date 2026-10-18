@@ -54,12 +54,14 @@ class OnlineMusic(context: Context, private val store: MikuStore,private val pla
     private var attempted = _state.value.config
     private var attemptedSaveCustom = false
     private var initialized = false
+    private var generation = 0L
     private val specialOrder = JSONArray(context.assets.open("special-song-order.json").bufferedReader().use { it.readText() }).strings()
     fun ensureLoaded() { if (!initialized) { initialized = true; load(_state.value.config) } }
     fun retry() = load(attempted,saveCustom = attemptedSaveCustom,forceRefresh = true)
     fun currentPlaylist(): OfflinePlaylist = store.readNetworkSnapshot(_state.value.config)
         ?: OfflinePlaylist(_state.value.config,_state.value.ids.mapNotNull { id -> store.library.value.songs.find { it.id == id } })
     fun openOffline(playlist: OfflinePlaylist,readyOnly: Boolean = false,cache: AudioCacheState = AudioCacheState()) {
+        generation++
         job?.cancel()
         val songs = if (readyOnly) cache.readySongs(playlist) else playlist.songs
         store.cacheOnline(playlist.config,playlist.songs)
@@ -68,6 +70,7 @@ class OnlineMusic(context: Context, private val store: MikuStore,private val pla
     }
     fun deleteSavedPlaylist(item: SavedNetworkPlaylist) = store.deleteNetworkPlaylist(item.platform,item.id)
     fun load(config: MusicConfig = _state.value.config,saveCustom: Boolean = false,forceRefresh: Boolean = false, onLoaded: (List<Song>) -> Unit = {}) {
+        val serial = ++generation
         job?.cancel()
         if (!forceRefresh) store.readNetworkSnapshot(config)?.let { snapshot ->
             openOffline(snapshot)
@@ -82,6 +85,7 @@ class OnlineMusic(context: Context, private val store: MikuStore,private val pla
             try {
                 val (loadedConfig,songs) = withContext(Dispatchers.IO) {
                     val fetched = MusicProtocol.songs(MusicHttp.text(MusicProtocol.playlistUrl(config)),config,names)
+                    ensureActive()
                     check(fetched.isNotEmpty()) { "歌单为空或暂不可用，请检查歌单 ID、平台或稍后重试" }
                     val title = if (saveCustom) store.networkPlaylists.value.find { it.platform == config.platform && it.id == config.id }?.name
                         ?: playlistNames.fetch(config.platform,config.id).ifBlank { "ID:${config.id}" } else config.name
@@ -95,14 +99,15 @@ class OnlineMusic(context: Context, private val store: MikuStore,private val pla
                     namedConfig to list
                 }
                 ensureActive()
-                withContext(Dispatchers.IO) {
-                    store.cacheOnline(loadedConfig,songs)
-                    if (saveCustom) store.saveNetworkPlaylist(loadedConfig.platform,loadedConfig.id,loadedConfig.name)
-                }
+                if (serial != generation) return@launch
+                // Commit on the owning dispatcher so a superseded load cannot write after a newer selection.
+                store.cacheOnline(loadedConfig,songs)
+                if (saveCustom) store.saveNetworkPlaylist(loadedConfig.platform,loadedConfig.id,loadedConfig.name)
                 _state.value = OnlineMusicState(loadedConfig,songs.map { it.id })
                 onLoaded(songs)
             } catch (e: CancellationException) { throw e }
             catch (e: Exception) {
+                if (serial != generation) return@launch
                 _state.value = _state.value.copy(loading = false,error = "${config.name}加载失败：${e.message ?: "请检查网络连接"}")
             }
         }

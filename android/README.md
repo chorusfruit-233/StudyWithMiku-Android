@@ -1,6 +1,6 @@
 # Study With Miku · Android 工程说明
 
-非官方 Android 移植。原作：[shshouse/StudyWithMiku](https://github.com/shshouse/StudyWithMiku)，功能基线更新至提交 `a3c4e5e0d4be48b2e21662ac85ff6022f8aa926d`，覆盖原作 2026-10-09 更新记录及 10 月 10 日的歌单管理后续调整。原生 Kotlin、Compose、Media3；Material 3 Expressive 主题、动态形状按钮和花瓣计时进度。支持 Android 8.0（API 26）以上，target API 35。
+非官方 Android 移植。原作：[shshouse/StudyWithMiku](https://github.com/shshouse/StudyWithMiku)，功能基线更新至提交 `2a19db44ae7d06e5d8945086030ae78a1acce9ae`（2026-10-16），覆盖手动切歌重叠、聊天投递与消息合并、设置兼容及过期歌单请求保护。逐项映射见 [上游适配记录](UPSTREAM.md)。原生 Kotlin、Compose、Media3；Material 3 Expressive 主题、动态形状按钮和花瓣计时进度。支持 Android 8.0（API 26）以上，target API 35。
 
 仓库和已发布版本公开；安装请使用 [最新正式 Release](https://github.com/chorusfruit-233/StudyWithMiku-Android/releases/latest)。用户说明见 [根目录 README](../README.md)，更新记录见 [CHANGELOG.md](../CHANGELOG.md)。本页说明功能映射、接口与原生适配。
 
@@ -89,3 +89,7 @@ cd android
 “离线歌单”保留完整歌单及音质，播放按钮仅将已完整缓存或内置的歌曲加入队列。仅有部分字节、失败、空文件或丢失文件不标记离线可用；服务返回 JSON／HTML 类型的错误也不作为音频成功。歌曲行显示完成、下载百分比、等待、暂停或失败。封面和在线歌词未提供强制离线下载。
 
 “清除全部缓存”经确认后取消未完成下载并删除下载音频；保留歌单列表、网络歌单收藏、内置音乐及导入音乐。卸载或清除应用数据会删除离线音频。
+
+### 播放过渡
+
+开启交叉淡入后，上一首／下一首、列表选择及队列切换采用 1.5 秒重叠过渡；自然结束保留最多 6 秒的淡入淡出，并在主解码器就绪后以 400 毫秒交接。短音频正常切换。预加载与播放都共用离线缓存，后台不依赖页面动画时钟。用户音量与过渡、休息及提示音增益分别处理；暂停、拖动、失败和超时清理第二路声音，显式静音不被自动恢复。

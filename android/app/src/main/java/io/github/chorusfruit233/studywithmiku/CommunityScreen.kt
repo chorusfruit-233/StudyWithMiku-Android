@@ -128,14 +128,14 @@ fun MikuApplication.openLogin() = startActivity(Intent(this,LoginActivity::class
             ChatReplyPreview(messageById[id],messageById[id]?.userId?.let { profiles[it] },onCancel = { replyingToId = null })
         }
         Row(Modifier.fillMaxWidth().padding(horizontal = 10.dp,vertical = 6.dp),verticalAlignment = Alignment.CenterVertically,horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-            IconButton(onClick = { stickers = true },enabled = chat.authenticated) { Icon(Icons.Rounded.SentimentSatisfiedAlt,"表情包") }
+            IconButton(onClick = { stickers = true },enabled = account.loggedIn) { Icon(Icons.Rounded.SentimentSatisfiedAlt,"表情包") }
             val prefixLength = replyingToId?.let { "[reply:$it]".length } ?: 0
             val maxLength = (500-prefixLength).coerceAtLeast(0)
             OutlinedTextField(input,{ if (it.length <= maxLength || it.length < input.length) input = it },modifier = Modifier.weight(1f).focusRequester(focusRequester),shape = RoundedCornerShape(24.dp),
-                enabled = account.loggedIn && chat.connected && chat.authenticated,placeholder = { Text(if (account.loggedIn) "输入消息…" else "登录后可以发言",fontSize = 13.sp) },
+                enabled = account.loggedIn,placeholder = { Text(if (account.loggedIn) "输入消息…" else "登录后可以发言",fontSize = 13.sp) },
                 isError = input.length > maxLength,supportingText = if (input.length > maxLength) { { Text("回复最多可输入 $maxLength 个字符") } } else null,
                 maxLines = 3,keyboardOptions = KeyboardOptions(imeAction = ImeAction.Send),keyboardActions = KeyboardActions(onSend = { send() }))
-            IconButton(onClick = { if (!account.loggedIn) app.openLogin() else send() },enabled = !account.loggedIn || chat.authenticated && input.isNotBlank() && input.length <= maxLength) {
+            IconButton(onClick = { if (!account.loggedIn) app.openLogin() else send() },enabled = !account.loggedIn || input.isNotBlank() && input.length <= maxLength) {
                 Icon(if (!account.loggedIn) Icons.Rounded.Login else Icons.Rounded.Send,if (!account.loggedIn) "登录" else "发送")
             }
         }

@@ -22,9 +22,9 @@ class PlaybackService : MediaSessionService() {
     private val store get() = app.store
     private val scope = CoroutineScope(SupervisorJob()+Dispatchers.Main.immediate)
     private var userVolume = 1f
-    private var preparedNext = ""
-    private var fading = false
-    private var crossGain = 1f
+    private lateinit var crossfade: PlaybackCrossfade
+    private var mainGain = 1f
+    private var previewGain = 0f
     private var breakGain = 1f
     private var duckGain = 1f
     private var breakResume = false
@@ -38,16 +38,52 @@ class PlaybackService : MediaSessionService() {
         }
         player = create().apply { setAudioAttributes(audioAttributes,true) }
         preview = create().apply { volume = 0f }
+        crossfade = PlaybackCrossfade(player,preview,{ store.prefs.value.crossfade },{ breakGain >= 1f }) { main,second ->
+            mainGain = main; previewGain = second; gains()
+        }
         val publicPlayer = object : ForwardingPlayer(player) {
             override fun getVolume() = userVolume
-            override fun setVolume(volume: Float) { userVolume = volume.coerceIn(0f,1f); gains(); save(player) }
-            override fun pause() { manualControl(); preview.pause(); super.pause() }
+            override fun setVolume(volume: Float) { userVolume = if (volume.isFinite()) volume.coerceIn(0f,1f) else userVolume; gains(); save(player) }
+            override fun pause() { manualControl(); super.pause(); crossfade.cancel(finishManual = true) }
             override fun play() { manualControl(); super.play() }
-            override fun setPlayWhenReady(playWhenReady: Boolean) { manualControl(); if (!playWhenReady) preview.pause(); super.setPlayWhenReady(playWhenReady) }
+            override fun setPlayWhenReady(playWhenReady: Boolean) {
+                manualControl(); super.setPlayWhenReady(playWhenReady)
+                if (!playWhenReady) crossfade.cancel(finishManual = true)
+            }
+            override fun seekTo(positionMs: Long) { crossfade.cancel(); super.seekTo(positionMs) }
+            override fun seekTo(mediaItemIndex: Int,positionMs: Long) {
+                manualControl()
+                if (!crossfade.switchTo(mediaItemIndex,positionMs)) { crossfade.cancel(); super.seekTo(mediaItemIndex,positionMs) }
+            }
+            override fun seekToDefaultPosition() { crossfade.cancel(); super.seekToDefaultPosition() }
+            override fun seekToDefaultPosition(mediaItemIndex: Int) = seekTo(mediaItemIndex,0)
+            override fun seekToNextMediaItem() {
+                val index = crossfade.adjacent(true)
+                if (index != C.INDEX_UNSET) seekTo(index,0)
+            }
+            override fun seekToPreviousMediaItem() {
+                val index = crossfade.adjacent(false)
+                if (index != C.INDEX_UNSET) seekTo(index,0)
+            }
+            override fun seekToNext() = seekToNextMediaItem()
+            override fun seekToPrevious() {
+                if (player.currentPosition > player.maxSeekToPreviousPosition) seekTo(0) else seekToPreviousMediaItem()
+            }
+            override fun setMediaItems(mediaItems: List<MediaItem>,startIndex: Int,startPositionMs: Long) {
+                manualControl()
+                if (!crossfade.replace(mediaItems,startIndex,startPositionMs)) {
+                    crossfade.cancel(); super.setMediaItems(mediaItems,startIndex,startPositionMs)
+                }
+            }
+            override fun clearMediaItems() { crossfade.cancel(); super.clearMediaItems() }
+            override fun stop() { crossfade.cancel(); super.stop() }
+            override fun removeMediaItem(index: Int) { crossfade.cancel(); super.removeMediaItem(index) }
+            override fun removeMediaItems(fromIndex: Int,toIndex: Int) { crossfade.cancel(); super.removeMediaItems(fromIndex,toIndex) }
+            override fun replaceMediaItem(index: Int,mediaItem: MediaItem) { crossfade.cancel(); super.replaceMediaItem(index,mediaItem) }
         }
         session = MediaSession.Builder(this,publicPlayer).build()
         val saved = store.readQueue()
-        userVolume = saved.optDouble("volume",1.0).toFloat().coerceIn(0f,1f); gains()
+        userVolume = saved.finiteDouble("volume",1.0).toFloat().coerceIn(0f,1f); gains()
         val songs = store.library.value.songs.associateBy { it.id }
         val items = saved.optJSONArray("ids")?.strings()?.mapNotNull { songs[it]?.mediaItem() } ?: emptyList()
         if (items.isNotEmpty()) {
@@ -58,27 +94,18 @@ class PlaybackService : MediaSessionService() {
         player.addListener(object : Player.Listener {
             override fun onEvents(player: Player, events: Player.Events) {
                 if (events.size() == 1 && events.contains(Player.EVENT_VOLUME_CHANGED)) return
-                if (events.contains(Player.EVENT_SHUFFLE_MODE_ENABLED_CHANGED) || events.contains(Player.EVENT_REPEAT_MODE_CHANGED) || events.contains(Player.EVENT_TIMELINE_CHANGED)) clearPreview()
+                if (events.contains(Player.EVENT_SHUFFLE_MODE_ENABLED_CHANGED) || events.contains(Player.EVENT_REPEAT_MODE_CHANGED)) crossfade.cancel(finishManual = true)
                 save(player)
             }
-            override fun onMediaItemTransition(mediaItem: MediaItem?,reason: Int) {
-                if (reason == Player.MEDIA_ITEM_TRANSITION_REASON_AUTO && fading && mediaItem?.mediaId == preparedNext) {
-                    val position = preview.currentPosition
-                    clearPreview(); player.seekTo(position)
-                } else clearPreview()
-            }
-            override fun onPositionDiscontinuity(oldPosition: Player.PositionInfo,newPosition: Player.PositionInfo,reason: Int) {
-                if (reason == Player.DISCONTINUITY_REASON_SEEK) clearPreview()
-            }
-            override fun onIsPlayingChanged(isPlaying: Boolean) { if (!isPlaying) preview.pause() }
+
         })
-        scope.launch { while (isActive) { crossfadeTick(); delay(100) } }
+        scope.launch { while (isActive) { crossfade.tick(); delay(50) } }
         scope.launch {
             combine(app.timer.state,store.prefs) { clock,prefs -> (clock.mode == TimerMode.POMODORO && clock.phase != Phase.FOCUS) to prefs.pauseMusicDuringBreak }
                 .distinctUntilChanged().collect { (rest,enabled) ->
                     breakJob?.cancel()
                     if (rest && enabled && player.playWhenReady) {
-                        breakResume = true; clearPreview()
+                        breakResume = true; crossfade.cancel(finishManual = true)
                         breakJob = launch {
                             fadeBreak(0f)
                             if (breakResume) { player.pause(); breakGain = 1f; gains() }
@@ -105,29 +132,8 @@ class PlaybackService : MediaSessionService() {
         }
     }
     private fun gains() {
-        player.volume = userVolume*crossGain*breakGain*duckGain
-        preview.volume = userVolume*(if (fading) 1f-crossGain else 0f)*breakGain*duckGain
-    }
-    private fun clearPreview() {
-        preview.stop(); preview.clearMediaItems(); preparedNext = ""; fading = false; crossGain = 1f; gains()
-    }
-    private fun crossfadeTick() {
-        if (!store.prefs.value.crossfade || player.repeatMode == Player.REPEAT_MODE_ONE || player.duration <= 6000) {
-            if (preparedNext.isNotEmpty()) clearPreview(); return
-        }
-        if (!player.isPlaying || breakGain < 1f) return
-        val remaining = player.duration-player.currentPosition
-        val index = player.nextMediaItemIndex
-        if (index == C.INDEX_UNSET || index == player.currentMediaItemIndex) return
-        val next = player.getMediaItemAt(index)
-        if (remaining in 1..20_000 && preparedNext != next.mediaId) {
-            clearPreview(); preparedNext = next.mediaId; preview.setMediaItem(next); preview.prepare()
-        }
-        if (preparedNext == next.mediaId && remaining in 1..6000 && preview.playbackState == Player.STATE_READY) {
-            if (!fading) fading = true
-            if (!preview.playWhenReady) preview.play()
-            crossGain = (remaining/6000f).coerceIn(0f,1f); gains()
-        } else if (remaining > 20_000 && preparedNext.isNotBlank()) clearPreview()
+        player.volume = userVolume*mainGain*breakGain*duckGain
+        preview.volume = userVolume*previewGain*breakGain*duckGain
     }
     private fun save(player: Player) {
         store.saveQueue((0 until player.mediaItemCount).map { player.getMediaItemAt(it).mediaId },
@@ -137,7 +143,7 @@ class PlaybackService : MediaSessionService() {
     override fun onTaskRemoved(rootIntent: Intent?) { session?.player?.let { save(it); if (!it.playWhenReady) stopSelf() } }
     override fun onDestroy() {
         scope.cancel()
-        session?.let { save(it.player); preview.release(); player.release(); it.release() }; session = null
+        session?.let { save(it.player); crossfade.close(); preview.release(); player.release(); it.release() }; session = null
         super.onDestroy()
     }
 }

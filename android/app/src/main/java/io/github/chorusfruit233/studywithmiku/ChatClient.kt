@@ -10,7 +10,8 @@ data class ChatState(val connected: Boolean = false,val authenticated: Boolean =
     val adminOnline: Boolean = false,val messages: List<ChatMessage> = emptyList(),val hasMore: Boolean = false,
     val loadingHistory: Boolean = false,val error: String? = null)
 data class UserProfile(val username: String = "",val avatar: String = "")
-class ChatClient(private val auth: StudyAuth,private val api: StudyApi) {
+class ChatClient(private val auth: StudySyncAccount,private val api: StudyApi,
+    private val client: WebSocket.Factory = StudyNetwork.client,private val wsUrl: String = STUDY_WS) {
     private val scope = CoroutineScope(SupervisorJob()+Dispatchers.Main.immediate)
     private val _state = MutableStateFlow(ChatState())
     val state = _state.asStateFlow()
@@ -33,6 +34,7 @@ class ChatClient(private val auth: StudyAuth,private val api: StudyApi) {
     }
     fun start() { if (!active) { active = true; connect() } }
     fun stop() { active = false; disconnect() }
+    internal fun close() { stop(); scope.cancel() }
     private fun disconnect() {
         generation++; retry?.cancel(); heartbeat?.cancel(); historyTimeout?.cancel()
         socket?.close(1000,"screen inactive"); socket = null
@@ -41,8 +43,8 @@ class ChatClient(private val auth: StudyAuth,private val api: StudyApi) {
     private fun connect() {
         if (!active || socket != null) return
         val serial = ++generation
-        val request = Request.Builder().url(STUDY_WS).header("Origin",STUDY_SITE).build()
-        socket = StudyNetwork.client.newWebSocket(request,object: WebSocketListener() {
+        val request = Request.Builder().url(wsUrl).header("Origin",STUDY_SITE).build()
+        socket = client.newWebSocket(request,object: WebSocketListener() {
             override fun onOpen(webSocket: WebSocket,response: Response) { scope.launch {
                 if (serial != generation || !active) { webSocket.close(1000,"inactive"); return@launch }
                 backoff = 3000L
@@ -75,11 +77,15 @@ class ChatClient(private val auth: StudyAuth,private val api: StudyApi) {
     fun sendChat(content: String,location: String = ""): Boolean {
         val text = content.trim()
         if (text.isEmpty() || text.length > 500) { _state.value = _state.value.copy(error = "消息需为 1–500 个字符"); return false }
-        if (!_state.value.connected || !_state.value.authenticated || auth.token().isBlank()) {
+        if (auth.token().isBlank()) {
             _state.value = _state.value.copy(error = "登录并连接聊天室后才能发送"); return false
         }
+        if (!_state.value.connected) { _state.value = _state.value.copy(error = "发送失败：连接已断开，请稍后重试"); return false }
+        if (!_state.value.authenticated) { _state.value = _state.value.copy(error = "正在验证聊天身份，请稍后重试"); return false }
         _state.value = _state.value.copy(error = null)
-        return send(JSONObject().put("type","chat").put("content",text).put("location",location))
+        val sent = send(JSONObject().put("type","chat").put("content",text).put("location",location))
+        if (!sent) _state.value = _state.value.copy(error = "发送失败：连接已断开，请稍后重试")
+        return sent
     }
     fun history() {
         val s = _state.value
@@ -97,7 +103,7 @@ class ChatClient(private val auth: StudyAuth,private val api: StudyApi) {
             "auth" -> _state.value = s.copy(authenticated = o.optBoolean("ok"),error = if (o.optBoolean("ok")) null else "聊天身份验证失败，请重新登录")
             "history","history_chunk" -> {
                 val incoming = o.optJSONArray("messages")?.objects()?.mapNotNull(StudyProtocol::chat) ?: emptyList()
-                val messages = if (o.optString("type") == "history") StudyProtocol.mergeMessages(incoming) else StudyProtocol.mergeMessages(incoming,s.messages)
+                val messages = StudyProtocol.mergeMessages(incoming,s.messages)
                 historyTimeout?.cancel()
                 _state.value = s.copy(messages = messages,hasMore = o.optBoolean("hasMore"),loadingHistory = false)
                 ensureProfiles(messages.map { it.userId })
