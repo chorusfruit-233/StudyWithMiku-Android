@@ -4,6 +4,7 @@ package io.github.chorusfruit233.studywithmiku
 import android.content.Intent
 import android.net.Uri
 import androidx.media3.common.*
+import androidx.media3.common.util.FlagSet
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.session.MediaSession
@@ -42,8 +43,26 @@ class PlaybackService : MediaSessionService() {
             mainGain = main; previewGain = second; gains()
         }
         val publicPlayer = object : ForwardingPlayer(player) {
+            private val listeners = mutableMapOf<Player.Listener,Player.Listener>()
+            override fun addListener(listener: Player.Listener) {
+                if (listener in listeners) return
+                val bridge = object : Player.Listener by listener {
+                    override fun onVolumeChanged(volume: Float) { listener.onVolumeChanged(userVolume) }
+                }
+                listeners[listener] = bridge; super.addListener(bridge)
+            }
+            override fun removeListener(listener: Player.Listener) { listeners.remove(listener)?.let { super.removeListener(it) } }
             override fun getVolume() = userVolume
-            override fun setVolume(volume: Float) { userVolume = if (volume.isFinite()) volume.coerceIn(0f,1f) else userVolume; gains(); save(player) }
+            override fun setVolume(volume: Float) {
+                val previous = userVolume
+                userVolume = if (volume.isFinite()) volume.coerceIn(0f,1f) else userVolume
+                gains(); save(player)
+                // The physical main gain may already be zero during handoff. Still publish an explicit user mute.
+                if (previous != userVolume) {
+                    val events = Player.Events(FlagSet.Builder().add(Player.EVENT_VOLUME_CHANGED).build())
+                    listeners.keys.toList().forEach { it.onVolumeChanged(userVolume); it.onEvents(this,events) }
+                }
+            }
             override fun pause() { manualControl(); super.pause(); crossfade.cancel(finishManual = true) }
             override fun play() { manualControl(); super.play() }
             override fun setPlayWhenReady(playWhenReady: Boolean) {
