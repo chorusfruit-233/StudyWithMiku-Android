@@ -20,6 +20,7 @@ internal class PlaybackCrossfade(
     private var replacement: List<MediaItem>? = null
     private var started = 0L
     private var handoffDeadline = 0L
+    private var handoffAligned = false
     private var autoRetryAt = 0L
     private var changing = false
     private var primaryGain = 1f
@@ -94,6 +95,7 @@ internal class PlaybackCrossfade(
         try { primary.seekTo(secondary.currentPosition) } finally { changing = false }
         replacement = null; stage = Stage.HANDOFF_WAIT; started = SystemClock.elapsedRealtime()
         handoffDeadline = started+7000
+        handoffAligned = false
     }
     fun tick() {
         val now = SystemClock.elapsedRealtime()
@@ -130,8 +132,11 @@ internal class PlaybackCrossfade(
                 if (!secondary.playWhenReady) secondary.play()
                 mix(0f,1f)
                 if (primary.isPlaying) {
-                    changing = true
-                    try { primary.seekTo(secondary.currentPosition) } finally { changing = false }
+                    if (!handoffAligned) {
+                        handoffAligned = true
+                        changing = true
+                        try { primary.seekTo(secondary.currentPosition) } finally { changing = false }
+                    }
                     stage = Stage.HANDOFF; started = now
                 }
             }
