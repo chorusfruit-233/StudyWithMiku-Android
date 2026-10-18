@@ -1,8 +1,8 @@
 # 更新记录
 
-当前公开正式版：[v1.2.11](https://github.com/chorusfruit-233/StudyWithMiku-Android/releases/tag/v1.2.11)。此前版本的构建记录见 [验证文档](android/VALIDATION.md)，历史 Debug 草稿未公开发布。
+当前公开正式版：[v1.2.12](https://github.com/chorusfruit-233/StudyWithMiku-Android/releases/tag/v1.2.12)。此前版本的构建记录见 [验证文档](android/VALIDATION.md)，历史 Debug 草稿未公开发布。
 
-## 1.2.12（构建验证中）
+## 1.2.12
 
 - 对齐原作 `2a19db4`（2026-10-16），审阅自上一基线新增的 9 个提交。
 - 手动上一首／下一首、选择曲目和队列切换新增 1.5 秒重叠；自动淡入淡出沿用 6 秒，主解码器就绪后平滑交接。
@@ -11,6 +11,7 @@
 - 过期歌单响应不再提交资料或触发播放回调；切回缓存歌单后，旧请求成功及失败均不覆盖选择。
 - 增加旧设置默认值补全和音乐索引／音量独立保存回归；保留网络歌单缓存与后台计时。
 - README 整段删除“下载与安装”。
+- Debug 与签名 Release 各 104 项单元测试、Android 35 的 39 项设备回归通过；已沿用固定证书公开发布正式 APK。
 
 ## 1.2.11
 

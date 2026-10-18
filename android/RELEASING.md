@@ -1,6 +1,6 @@
 # Release 构建、签名与公开发布
 
-仓库及已发布的 Release 均公开。当前正式版为 [v1.2.9](https://github.com/chorusfruit-233/StudyWithMiku-Android/releases/tag/v1.2.9)，可直接下载 `StudyWithMiku-Android-1.2.9-release.apk`。未发布的草稿仅对有仓库写入权限的维护者可见。
+仓库及已发布的 Release 均公开。当前正式版为 [v1.2.12](https://github.com/chorusfruit-233/StudyWithMiku-Android/releases/tag/v1.2.12)，可直接下载 `StudyWithMiku-Android-1.2.12-release.apk`。未发布的草稿仅对有仓库写入权限的维护者可见。
 
 ## 正式签名
 
@@ -35,10 +35,12 @@ python -c 'import base64,pathlib; pathlib.Path("StudyWithMiku-secret.b64").write
 
 发布新版本时：
 
-1. 更新 `android/app/build.gradle.kts` 中的 `versionName` 与 `versionCode`，更新 [CHANGELOG.md](../CHANGELOG.md) 和 [.github/release-notes.md](../.github/release-notes.md)。当前 `v1.2.9` 已发布，新版本必须提高版本号。
-2. 提交并推送源码。在 **Actions → Android signed release → Run workflow** 选择 `main` 运行；也可推送与 `versionName` 一致的 `v<versionName>` 标签触发构建。标签版本必须与 APK 版本一致。
-3. 检查构建、Release 单元测试、Lint 和 APK 签名验证结果。进入工作流生成的 Release 草稿，确认版本、说明及附件。
-4. 点击 **Publish release**。发布后，Release 页面和 APK 附件可公开访问，适合作为用户下载入口。
+1. 更新 `android/app/build.gradle.kts` 中的 `versionName` 与 `versionCode`，更新 [CHANGELOG.md](../CHANGELOG.md) 和 [.github/release-notes.md](../.github/release-notes.md)。当前 `v1.2.12` 已发布，新版本必须提高版本号。
+2. 提交并推送源码。在 **Actions → Android signed release → Run workflow** 选择 `main` 运行；`Android app` 同时验证该提交的 Debug 构建和设备回归。
+3. 等待同一源码提交的两项工作流成功。核对 Release 草稿中的说明与附件，重新下载 APK 验证签名、版本与校验值。
+4. 在 **Actions → Publish verified release → Run workflow** 填写版本标签、完整 40 位应用源码提交，以及成功的 Debug 与签名 Release 运行 ID。工作流验证版本、构建来源和附件后，直接公开发布正式版并设为 Latest。
+
+发布工作流使用仓库自带的 `GITHUB_TOKEN` 创建标签，避免标签再次触发签名构建。文档可在构建后补充，但 `android/app` 与 Gradle 构建输入必须保持一致；应用有任何改动都需重新通过两项检查。也可在 Release 页面手动点击 **Publish release**。
 
 工作流先把 JKS 恢复到 runner 临时目录，通过环境变量提供密码，执行 `assembleRelease testReleaseUnitTest lintRelease`。随后核对 APK 签名、固定证书、包名、版本和 `debuggable=false`，生成：
 
@@ -47,7 +49,7 @@ python -c 'import base64,pathlib; pathlib.Path("StudyWithMiku-secret.b64").write
 - `SIGNING-CERTIFICATE.txt`（公开证书资料）
 - `Android-release-check-reports.zip`
 
-草稿确认后再公开发布；工作流不会覆盖已发布的版本，任务结束后删除临时 JKS。公开仓库不改变签名 Secrets 的保管方式。
+签名构建先保存草稿，核对后通过上述发布步骤公开；构建工作流不会覆盖已发布的版本，任务结束后删除临时 JKS。公开仓库不改变签名 Secrets 的保管方式。
 
 普通 **Android app** 工作流构建 Debug APK，并保留为 Debug 草稿；面向用户的正式包请选择 **Android signed release** 产物。草稿不会出现在公众的下载列表中。
 
@@ -84,4 +86,4 @@ Release 附件中的 `SHA256SUMS.txt` 是 APK 文件校验值，`SIGNING-CERTIFI
 
 维护者需保留 JKS、别名和密码的备份；GitHub Secrets 不提供读取原值的入口。独立 Fork 若采用自己的发行密钥，还需调整发布校验脚本中的预期证书指纹，其签名无法覆盖本项目正式版。
 
-1.2.7 的签名构建在本地完成，Actions 负责上传与复核。实际验证范围及构建来源见 [VALIDATION.md](VALIDATION.md)。该版本尚未启用 R8 代码裁剪和资源裁剪，音视频保留原始编码。
+当前正式版在 Actions 中签名构建，实际验证范围及历史构建来源见 [VALIDATION.md](VALIDATION.md)。当前尚未启用 R8 代码裁剪和资源裁剪，音视频保留原始编码。

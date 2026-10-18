@@ -1,0 +1,47 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<testsuite name="io.github.chorusfruit233.studywithmiku.AudioCacheTest" tests="39" failures="0" errors="0" skipped="0" time="58.671" timestamp="2026-10-18T07:14:28" hostname="localhost">
+  <properties>
+    <property name="device" value="emulator-5554 - 15" />
+    <property name="flavor" value="" />
+    <property name="project" value=":app" />
+  </properties>
+  <testcase name="productionDownloadServiceAndMediaControllerPlayOffline" classname="io.github.chorusfruit233.studywithmiku.AudioCacheTest" time="1.914" />
+  <testcase name="errorResponseCannotBecomeAnOfflineSong" classname="io.github.chorusfruit233.studywithmiku.AudioCacheTest" time="0.959" />
+  <testcase name="interruptedDownloadIsNotOfflineReadyAndResumesFromPersistedBytes" classname="io.github.chorusfruit233.studywithmiku.AudioCacheTest" time="5.133" />
+  <testcase name="completeAudioSurvivesRecreationAndPlaysWithServerGoneAndRenewedUrl" classname="io.github.chorusfruit233.studywithmiku.AudioCacheTest" time="1.096" />
+  <testcase name="alreadyExemptInstallShowsGuidanceOnceAndCanRequestAfterExemptionIsRevoked" classname="io.github.chorusfruit233.studywithmiku.BackgroundAccessTest" time="0.003" />
+  <testcase name="unsupportedVendorScreensFallBackAndNeverRepeatedlyInterruptTimer" classname="io.github.chorusfruit233.studywithmiku.BackgroundAccessTest" time="0.033" />
+  <testcase name="declinedRequestSurvivesRecreationAndManualRetryRemainsAvailable" classname="io.github.chorusfruit233.studywithmiku.BackgroundAccessTest" time="0.004" />
+  <testcase name="unrestrictedGuidanceCanBeDeferredWithoutOpeningSettings" classname="io.github.chorusfruit233.studywithmiku.BackgroundSettingsUiTest" time="1.908" />
+  <testcase name="manualPermissionAndSystemSettingsAreSeparateActionsAndStatusRefreshes" classname="io.github.chorusfruit233.studywithmiku.BackgroundSettingsUiTest" time="1.952" />
+  <testcase name="repeatedUpwardSwipesAtLastMessageKeepSheetStillAndHistoryScrollable" classname="io.github.chorusfruit233.studywithmiku.ChatSheetGestureTest" time="3.927" />
+  <testcase name="downwardSwipeAtFirstMessageStillDismissesSheet" classname="io.github.chorusfruit233.studywithmiku.ChatSheetGestureTest" time="1.587" />
+  <testcase name="useCloudButtonImportsLatestDataAndRecreatedSessionDoesNotPrompt" classname="io.github.chorusfruit233.studywithmiku.CloudChoiceUiTest" time="1.861" />
+  <testcase name="timerWithoutMusicAutomaticallyAcquiresAndReleasesWakeLock" classname="io.github.chorusfruit233.studywithmiku.FocusWakeLockTest" time="1.21" />
+  <testcase name="successfulLoadSavesRemoteNameButFailureKeepsPreviousPlaylist" classname="io.github.chorusfruit233.studywithmiku.NetworkPlaylistPersistenceTest" time="0.282" />
+  <testcase name="savedBookmarksSurviveRecreationAndRemainSeparateFromNativePlaylists" classname="io.github.chorusfruit233.studywithmiku.NetworkPlaylistPersistenceTest" time="0.003" />
+  <testcase name="nameLookupFailureStillSavesPlayablePlaylistWithIdFallback" classname="io.github.chorusfruit233.studywithmiku.NetworkPlaylistPersistenceTest" time="0.019" />
+  <testcase name="switchingCachedPlaylistsOfflinePreservesSharedMembershipAndAudioQuality" classname="io.github.chorusfruit233.studywithmiku.NetworkPlaylistPersistenceTest" time="0.022" />
+  <testcase name="partialPlaylistPlaysOnlyCompleteSongsAndClearRequiresConfirmation" classname="io.github.chorusfruit233.studywithmiku.OfflineCacheUiTest" time="2.366" />
+  <testcase name="malformedRootPreferencesFallBackToCompleteDefaults" classname="io.github.chorusfruit233.studywithmiku.PartialPreferencesTest" time="0.034" />
+  <testcase name="partialSavedPreferencesFillDefaultsAndKeepMusicQueueIndependent" classname="io.github.chorusfruit233.studywithmiku.PartialPreferencesTest" time="0.008" />
+  <testcase name="naturalAdvanceKeepsIncomingPositionAndFinishesSecondaryDecoder" classname="io.github.chorusfruit233.studywithmiku.PlaybackCrossfadeTest" time="7.985" />
+  <testcase name="productionMediaControllerKeepsUserVolumeAndMuteAcrossQueueSwitches" classname="io.github.chorusfruit233.studywithmiku.PlaybackCrossfadeTest" time="4.507" />
+  <testcase name="rapidNextThenPauseCommitsLatestChoiceAndStopsBothVoices" classname="io.github.chorusfruit233.studywithmiku.PlaybackCrossfadeTest" time="1.271" />
+  <testcase name="manualSwitchOverlapsDecodersAndHandsOffWithoutResettingIncomingPosition" classname="io.github.chorusfruit233.studywithmiku.PlaybackCrossfadeTest" time="3.13" />
+  <testcase name="lateFailureCannotReplaceOfflineSelectionOrItsSavedConfig" classname="io.github.chorusfruit233.studywithmiku.PlaylistRaceTest" time="0.435" />
+  <testcase name="lateSuccessCannotReplaceNewRemoteSelectionOrRunOldPlaybackCallback" classname="io.github.chorusfruit233.studywithmiku.PlaylistRaceTest" time="0.353" />
+  <testcase name="mergeOfOneSidedDatesUploadsOriginalWireFormatAndSurvivesRecreation" classname="io.github.chorusfruit233.studywithmiku.SparseSyncUiTest" time="1.78" />
+  <testcase name="failedCalendarUploadNamesTheStepPreservesLocalDataAndAllowsRetry" classname="io.github.chorusfruit233.studywithmiku.SparseSyncUiTest" time="1.859" />
+  <testcase name="decimalCreditAndUnknownItemFieldsSurviveNativeRoundTrip" classname="io.github.chorusfruit233.studywithmiku.StudyPersistenceTest" time="0.004" />
+  <testcase name="acceptedSnapshotIsBackedUpAndRestoredForEachAccount" classname="io.github.chorusfruit233.studywithmiku.StudyPersistenceTest" time="0.056" />
+  <testcase name="cloudStatsTasksCalendarAndSettingsSurviveStoreRecreation" classname="io.github.chorusfruit233.studywithmiku.StudyPersistenceTest" time="0.0" />
+  <testcase name="nonFiniteLegacySettingsCannotPoisonNativePreferenceStorage" classname="io.github.chorusfruit233.studywithmiku.StudyPersistenceTest" time="0.001" />
+  <testcase name="deletingTaskRequiresConfirmationAndKeepsStudyCredit" classname="io.github.chorusfruit233.studywithmiku.TaskActionsUiTest" time="1.595" />
+  <testcase name="deletingCountdownRequiresConfirmationAndKeepsOtherTasks" classname="io.github.chorusfruit233.studywithmiku.TaskActionsUiTest" time="1.952" />
+  <testcase name="editingGlobalTaskUpdatesSameUndatedTaskWithoutAddingAnother" classname="io.github.chorusfruit233.studywithmiku.TaskActionsUiTest" time="2.871" />
+  <testcase name="fullDateRejectsNewPlanWithoutChangingExistingPlans" classname="io.github.chorusfruit233.studywithmiku.TaskPersistenceTest" time="0.071" />
+  <testcase name="deletingSavedNetworkPlaylistRequiresConfirmationWithoutLoadingIt" classname="io.github.chorusfruit233.studywithmiku.UpstreamOctoberUiTest" time="2.012" />
+  <testcase name="quotedReplyDisplaysReferenceAndBodyAndAllowsCancelingAnotherReply" classname="io.github.chorusfruit233.studywithmiku.UpstreamOctoberUiTest" time="1.596" />
+  <testcase name="unloadedReferenceDoesNotHideReplyBodyOrSticker" classname="io.github.chorusfruit233.studywithmiku.UpstreamOctoberUiTest" time="1.597" />
+</testsuite>

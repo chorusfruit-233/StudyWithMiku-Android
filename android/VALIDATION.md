@@ -1,12 +1,20 @@
 # 验证记录
 
-## 公开发布状态（2026-10-14 核对）
+## 公开发布状态（2026-10-18 核对）
 
-仓库已公开，当前正式版为 [v1.2.9](https://github.com/chorusfruit-233/StudyWithMiku-Android/releases/tag/v1.2.9)。GitHub 元数据确认 `draft=false`，发布时间为 `2026-10-12T14:10:49Z`。此前 [v1.2.7](https://github.com/chorusfruit-233/StudyWithMiku-Android/releases/tag/v1.2.7) 也已正式发布。Release 提供 APK、文件校验值、公开证书资料和 Release 检查报告。
+仓库已公开，当前正式版为 [v1.2.12](https://github.com/chorusfruit-233/StudyWithMiku-Android/releases/tag/v1.2.12)。GitHub 元数据确认 `draft=false`、`prerelease=false`，发布时间为 `2026-10-18T07:17:30Z`，Latest 指向此版本。Release 提供固定签名 APK、文件校验值、公开证书资料和 Release 检查报告。
 
 下文保留各版本真实构建、测试结果与验收范围。仓库公开不会自动发布历史 Debug 草稿；因此以草稿标识保留旧产物来源，不将其作为公众下载入口。本目录的回归报告与截图可随源码公开查看。
 
-公开发行的签名正式包为 1.2.9；下方分别记录后续 1.2.11 缓存、1.2.10 同步修复和各版本的验证结果。
+## 1.2.12 上游 2026-10-16 更新适配
+
+- 原作基线更新至 `2a19db44ae7d06e5d8945086030ae78a1acce9ae`，审阅新增 9 个提交；逐项对应见 [UPSTREAM.md](UPSTREAM.md)。涵盖切歌过渡与音量清理、聊天发送失败与历史合并、设置默认值和过期歌单请求保护。README 已删除整个“下载与安装”章节。
+- 构建源码为 `9f24ad6db34e839519fc4acca2327303e45b88cc`，版本 1.2.12／versionCode=15。[Debug Actions 39106638965](https://github.com/chorusfruit-233/StudyWithMiku-Android/actions/runs/39106638965) 成功，下载报告确认 104 项 JVM 和 39 项 Android 35 测试通过，0 失败／错误／跳过，Debug Lint 0 错误。
+- 新增设备回归使用真实双 ExoPlayer 验证手动重叠、自动交接时保留下一首播放位置、快速切歌后暂停，以及生产 MediaController 的音量和静音。另覆盖旧设置默认项与音乐队列独立保存、旧歌单请求成功或失败后不覆盖新选择／触发旧回调。既有离线缓存、后台权限、学习资料同步、聊天和计划回归仍通过。
+- 回归曾发现监听器通过 Kotlin 委托时未转发 Java 默认回调，导致两个生产 MediaController 状态测试超时；修正为显式转发全部监听器回调，并增加 JVM 覆盖完整性的检查，最终 39 项设备测试全部通过。[原始设备报告、定位证据与验证范围](validation/upstream-1.2.12/README.txt) 随源码保留。
+- [签名 Release Actions 39106638524](https://github.com/chorusfruit-233/StudyWithMiku-Android/actions/runs/39106638524) 成功，104 项 Release 单元测试通过，Release Lint 0 错误。重新下载最终 APK 后核对包名、版本、`debuggable=false`、SHA-256 和固定证书。APK 为 129,401,296 字节，SHA-256 为 `ace2323659fb8c9d8a60b234a199082ae19ae27cb607351b7a17df1435be95ca`，证书 SHA-256 为 `e07a05095f2b19e1b7b37d48e67016da4b5cf78386a03020410a3a134e1f12ad`。
+- [发布 Actions 39107099783](https://github.com/chorusfruit-233/StudyWithMiku-Android/actions/runs/39107099783) 核对两项成功构建及源码后，将已验证产物公开为 [v1.2.12 正式版](https://github.com/chorusfruit-233/StudyWithMiku-Android/releases/tag/v1.2.12)，标签指向上述构建提交。后续文档提交不改变已验证的应用代码与 APK。
+- 设备测试使用 Debug APK、生成的 PCM WAV、本地 MockWebServer、模拟套接字和合成账号资料；不代表签名 Release 真机、真实账号或生产音乐供应商的端到端验收。
 
 ## 1.2.11 网络歌单音频缓存
 
@@ -16,7 +24,7 @@
 - 构建源码为 `6d3eeacbc67b463f8a3d6509c68df20d4f24e983`。[Debug Actions 38653426858](https://github.com/chorusfruit-233/StudyWithMiku-Android/actions/runs/38653426858) 成功，下载报告确认 99 项 JVM 和 31 项 Android 35 测试通过，0 失败／错误／跳过，Debug Lint 0 错误。此前同步、聊天、任务与 WakeLock 回归仍通过。
 - 新增设备测试关闭本地音频服务后，通过 ExoPlayer 实际播放与跳转；缓存重建仍可用，临时 URL 更新仍读本地音频。另通过真实 MusicDownloadService 与 MediaController 验证后台下载链路和离线播放，覆盖按音质持久化切换、离线队列过滤、重复操作入口和清除确认。[原始设备报告与组件截图](validation/music-cache-1.2.11/README.txt) 使用合成 PCM WAV、本地 MockWebServer 和测试窗口，不使用真实账号或生产歌曲下载。
 - [签名 Release Actions 38653430117](https://github.com/chorusfruit-233/StudyWithMiku-Android/actions/runs/38653430117) 成功，99 项 Release 单元测试通过，Release Lint 0 错误。重新下载 APK 后核对固定证书、包名、版本、`debuggable=false` 和 SHA-256；证书为 `e07a05095f2b19e1b7b37d48e67016da4b5cf78386a03020410a3a134e1f12ad`，APK SHA-256 为 `4a6978f33cc8656921d4c1e05190680eb8af85080a04ef85485c9825f1239278`。
-- [1.2.11 Release 草稿](https://github.com/chorusfruit-233/StudyWithMiku-Android/releases/tag/untagged-358e5ae0016650ee3c35) 提供固定签名 APK、SHA256SUMS、公开证书和 Release 报告。尚未公开发布；Debug 设备测试不作为签名 Release 真机、实际音乐供应商或真实账号端到端验收。
+- [v1.2.11](https://github.com/chorusfruit-233/StudyWithMiku-Android/releases/tag/v1.2.11) 已于 `2026-10-15T01:09:12Z` 公开发布，提供固定签名 APK、SHA256SUMS、公开证书和 Release 报告。原始验证 JSON 保留当时的草稿地址；Debug 设备测试不作为签名 Release 真机、实际音乐供应商或真实账号端到端验收。
 
 ## 1.2.10 学习资料合并与上传
 

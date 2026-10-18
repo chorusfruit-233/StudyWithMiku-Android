@@ -1,0 +1,17 @@
+{
+  "sourceCommit": "66987799ba7420f989bd2ba392f0b5ca3ab9af7f",
+  "debugRun": 39105980348,
+  "signedReleaseRun": 39105980403,
+  "apkSha256": "d0bf00fa33ddcbb8bf22665aee6b0a328c25b132ccfcd2255f6759d27939fc98",
+  "bridgeDeclaredMethods": [
+    "<init>",
+    "onVolumeChanged"
+  ],
+  "androidTests": 39,
+  "failures": 2,
+  "failedCases": [
+    "AudioCacheTest.productionDownloadServiceAndMediaControllerPlayOffline",
+    "PlaybackCrossfadeTest.productionMediaControllerKeepsUserVolumeAndMuteAcrossQueueSwitches"
+  ],
+  "cause": "Kotlin delegation to Player.Listener inherited Java default no-op callbacks instead of forwarding state callbacks."
+}
