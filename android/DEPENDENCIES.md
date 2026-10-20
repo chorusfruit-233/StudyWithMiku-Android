@@ -19,6 +19,7 @@
 | Coil | 2.7.0 | 3.6.3 |
 | kotlinx.coroutines | 测试 1.8.1／运行时传递依赖 | 运行时与测试 1.11.0 |
 | AndroidX Test Runner | 1.6.2 | 1.7.0 |
+| AndroidX Espresso／JUnit 扩展 | Compose 传递依赖 | 3.7.0／1.3.0 |
 | JVM 测试 org.json | 20240303 | 20260814 |
 
 JDK 与字节码目标继续使用 17，minSdk 继续为 26。JUnit 4.13.2 已是该测试框架的稳定版；Material Icons Extended 已停止更新，显式保留其最后版本 1.7.8，避免依赖新版 BOM 提供版本。
@@ -44,3 +45,5 @@ Material 3 是本次运行时依赖中的预发布例外：1.4.0 稳定版将 Ma
 Android 17 的局域网访问需要单独的运行时权限。在“添加网络歌单 → 音乐源设置”中提供“允许局域网访问”，仅在用户点击时请求，返回设置页后重新读取授权状态。此入口供自建 LAN 音乐源使用，原站公共服务使用原有网络流程。
 
 `Android app` 工作流在 API 35 与 API 37 分别执行生产播放器、缓存、计时、聊天、同步与界面回归，并按 API 独立归档报告。新增图片测试通过生产 SingletonImageLoader 请求本地测试服务上的 PNG，并实际解码内置 GIF，检查动画能力。实际运行结果以 [VALIDATION.md](VALIDATION.md) 与对应 Actions 报告为准。
+
+测试依赖显式升级至 Espresso 3.7.0 与 JUnit 扩展 1.3.0，避免 Compose 传递的旧版 Espresso 反射调用 Android 17 已移除的 InputManager 接口。模拟器采用官方支持的 `-gpu software` 渲染模式，替换已弃用的 `swiftshader_indirect`；后者在本次 API 37 镜像中触发 SurfaceFlinger 断言崩溃。设备脚本检查真实 API、独立 XML 结果和完整测试数量，安装失败或未执行测试会阻止发布。
