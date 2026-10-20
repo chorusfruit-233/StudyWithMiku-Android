@@ -28,7 +28,15 @@ jobs:
           log-accepted-android-sdk-licenses: false
       - uses: gradle/actions/setup-gradle@v6
       - name: Install Android SDK 37
-        run: sdkmanager "platforms;android-37.0" "build-tools;37.0.0"
+        run: |
+          # emulator-runner prepends cmdline-tools/latest, overriding setup-android's PATH.
+          # The runner's preinstalled 12.0 cannot represent decimal API levels correctly.
+          tools="$ANDROID_HOME/cmdline-tools"
+          test -x "$tools/16111833/bin/avdmanager"
+          rm -rf "$tools/latest"
+          ln -s "$tools/16111833" "$tools/latest"
+          cat "$tools/latest/source.properties"
+          sdkmanager "platforms;android-37.0" "build-tools;37.0.0"
       - name: Build, test and lint
         working-directory: android
         run: ./gradlew --no-daemon -Pkotlin.compiler.execution.strategy=in-process assembleDebug testDebugUnitTest lintDebug assembleDebugAndroidTest
@@ -59,6 +67,7 @@ jobs:
           heap-size: 512M
           disable-animations: true
           emulator-options: -no-window -no-snapshot -gpu software -noaudio -no-boot-anim -camera-back none
+          pre-emulator-launch-script: grep -Fx 'target=android-37.0' "$ANDROID_AVD_HOME/miku-api-37.ini"
           script: MIKU_DEVICE_API=37 bash .github/scripts/check-device-tests.sh
       - name: Save verification reports even when device tests fail
         if: always()

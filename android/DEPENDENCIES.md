@@ -46,4 +46,6 @@ Android 17 的局域网访问需要单独的运行时权限。在“添加网络
 
 `Android app` 工作流在 API 35 与 API 37 分别执行生产播放器、缓存、计时、聊天、同步与界面回归，并按 API 独立归档报告。新增图片测试通过生产 SingletonImageLoader 请求本地测试服务上的 PNG，并实际解码内置 GIF，检查动画能力。实际运行结果以 [VALIDATION.md](VALIDATION.md) 与对应 Actions 报告为准。
 
-测试依赖显式升级至 Espresso 3.7.0 与 JUnit 扩展 1.3.0，避免 Compose 传递的旧版 Espresso 反射调用 Android 17 已移除的 InputManager 接口。模拟器采用官方支持的 `-gpu software` 渲染模式，替换已弃用的 `swiftshader_indirect`；后者在本次 API 37 镜像中触发 SurfaceFlinger 断言崩溃。设备脚本检查真实 API、独立 XML 结果和完整测试数量，安装失败或未执行测试会阻止发布。
+测试依赖显式升级至 Espresso 3.7.0 与 JUnit 扩展 1.3.0，避免 Compose 传递的旧版 Espresso 反射调用 Android 17 已移除的 InputManager 接口，也符合官方 [MessageQueue 兼容指南](https://developer.android.com/about/versions/17/changes/messagequeue) 的测试库要求。
+
+模拟器采用官方支持的 `-gpu software` 模式，并将 `cmdline-tools/latest` 明确指向已安装的 23.0 工具。emulator-runner 会把此路径置于 PATH 开头，之前重新调用了 runner 预装的 12.0，无法正确识别 `37.0` 镜像元数据，并出现 SurfaceFlinger 断言崩溃；仅更新 setup-android 的版本或 GPU 模式不足以修正实际调用路径。启动前检查 AVD 的 `target=android-37.0`，设备脚本再检查真实 API、独立 XML 结果和完整测试数量，配置错误、安装失败或未执行测试会阻止发布。
