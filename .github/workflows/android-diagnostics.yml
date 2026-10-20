@@ -1,0 +1,36 @@
+name: Export Android diagnostics
+on:
+  workflow_dispatch:
+    inputs:
+      run_id:
+        description: Failed Android app workflow run to inspect
+        required: true
+        type: string
+permissions:
+  actions: read
+  contents: write
+jobs:
+  export:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Export saved reports and logs to an unpublished draft
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RUN_ID: ${{ inputs.run_id }}
+        run: |
+          [[ "$RUN_ID" =~ ^[0-9]+$ ]]
+          test "$(gh run view "$RUN_ID" --json workflowName --jq '.workflowName')" = 'Android app'
+          mkdir reports
+          gh run download "$RUN_ID" --name Android-verification-reports --dir reports
+          gh run view "$RUN_ID" --log > reports/workflow.log
+          zip -qr Android-diagnostics.zip reports
+          tag="ci-diagnostics-$RUN_ID"
+          if gh release view "$tag" >/dev/null 2>&1; then
+            test "$(gh release view "$tag" --json isDraft --jq '.isDraft')" = true
+            gh release upload "$tag" Android-diagnostics.zip --clobber
+          else
+            gh release create "$tag" Android-diagnostics.zip --draft --prerelease \
+              --title "Android diagnostics $RUN_ID" --notes "Saved device reports and workflow logs."
+          fi
