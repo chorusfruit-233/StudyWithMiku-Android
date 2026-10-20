@@ -54,6 +54,7 @@ jobs:
           arch: x86_64
           profile: pixel_2
           avd-name: miku-api-37
+          disk-size: 4G
           disable-animations: true
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
           script: MIKU_DEVICE_API=37 bash .github/scripts/check-device-tests.sh
