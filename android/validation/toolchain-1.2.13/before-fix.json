@@ -1,0 +1,28 @@
+[
+  {
+    "sourceCommit": "e20ff75a3bfd79af53a5a69424edf23fccd60661",
+    "debugRun": 39414014656,
+    "androidApi": 37,
+    "results": {
+      "tests": 4,
+      "failures": 4,
+      "errors": 0,
+      "skipped": 0
+    },
+    "reason": "Old transitive Espresso calls removed InputManager.getInstance; the framework also repeatedly crashes in surfaceflinger/mapper.ranchu.",
+    "status": "historical failure, not final validation"
+  },
+  {
+    "sourceCommit": "57277accb160d4d5cb963943a65340033879cb76",
+    "debugRun": 39451481826,
+    "androidApi": 37,
+    "results": {
+      "tests": 1,
+      "failures": 1,
+      "errors": 0,
+      "skipped": 0
+    },
+    "reason": "Espresso updated; the framework still aborts in surfaceflinger/mapper.ranchu. Emulator action prepends preinstalled Command-line Tools 12.0 despite setup-android installing 23.0.",
+    "status": "historical failure, not final validation"
+  }
+]

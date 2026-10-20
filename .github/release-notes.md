@@ -11,6 +11,8 @@ Study With Miku 的非官方原生 Android 移植，保留 Material 3 Expressive
 
 依赖版本及迁移说明见 [DEPENDENCIES.md](https://github.com/chorusfruit-233/StudyWithMiku-Android/blob/main/android/DEPENDENCIES.md)，测试来源与结果见 [验证记录](https://github.com/chorusfruit-233/StudyWithMiku-Android/blob/main/android/VALIDATION.md)。
 
+Debug 与签名 Release 各 104 项单元测试、Android 15／17 各 41 项设备测试全部通过，0 失败／错误／跳过，Debug 与 Release Lint 均为 0 错误。原始设备报告和模拟器环境记录已归档。
+
 下载 `StudyWithMiku-Android-1.2.13-release.apk`。包名 `io.github.chorusfruit233.studywithmiku` 与固定正式证书沿用，可覆盖升级已有正式版。附带 SHA256SUMS、公开证书和检查报告。网络歌单缓存、离线播放、切歌过渡、学习资料同步和后台计时继续保留。
 
 设备回归使用 Debug APK、合成资料及本地服务；详细验收范围见验证记录。安装包保留全部内置音视频，尚未启用 R8 和资源裁剪。

@@ -1,10 +1,21 @@
 # 验证记录
 
-## 公开发布状态（2026-10-18 核对）
+## 公开发布状态（2026-10-20 核对）
 
-仓库已公开，当前正式版为 [v1.2.12](https://github.com/chorusfruit-233/StudyWithMiku-Android/releases/tag/v1.2.12)。GitHub 元数据确认 `draft=false`、`prerelease=false`，发布时间为 `2026-10-18T07:17:30Z`，Latest 指向此版本。Release 提供固定签名 APK、文件校验值、公开证书资料和 Release 检查报告。
+仓库已公开，当前正式版为 [v1.2.13](https://github.com/chorusfruit-233/StudyWithMiku-Android/releases/tag/v1.2.13)。GitHub 元数据确认 `draft=false`、`prerelease=false`，发布时间为 `2026-10-20T16:10:14Z`，Latest 指向此版本。Release 提供固定签名 APK、文件校验值、公开证书资料和 Release 检查报告。
 
 下文保留各版本真实构建、测试结果与验收范围。仓库公开不会自动发布历史 Debug 草稿；因此以草稿标识保留旧产物来源，不将其作为公众下载入口。本目录的回归报告与截图可随源码公开查看。
+
+## 1.2.13 工具链、依赖与 Android 17
+
+- AGP 9.4.1、Gradle 9.6.0、Kotlin／Compose Compiler 2.4.21、Build Tools 37.0.0；迁移 AGP 内置 Kotlin，compileSdk／targetSdk 为 37，minSdk 为 26。更新 Compose、AndroidX、Media3、OkHttp、协程和测试库，图片加载迁移至 Coil 3。Material 3 使用 1.5.0-beta01 保留现有 Expressive 接口；版本与兼容依据见 [DEPENDENCIES.md](DEPENDENCIES.md)。
+- 构建源码为 `7a16176872c00d547c51d81a2806d2761886c6f5`，版本 1.2.13／versionCode=16。[Debug Actions 39453175512](https://github.com/chorusfruit-233/StudyWithMiku-Android/actions/runs/39453175512) 成功，下载原始报告确认 104 项 JVM、Android 15／API 35 的 41 项和 Android 17／API 37 的 41 项设备测试全部通过，0 失败／错误／跳过，Debug Lint 0 错误。
+- 新增两项设备用例实际调用生产 SingletonImageLoader，从本地 HTTP 服务获取／解码 PNG，并解码内置 GIF、断言仍有动画能力。既有生产播放器、MediaController、DownloadService、离线缓存、计时、权限状态、同步、聊天与界面回归在两个 API 上均通过。
+- 设备验证曾发现旧传递 Espresso 调用 Android 17 已移除的 InputManager 接口，以及 emulator-runner 优先调用预装 12.0 工具、覆盖已安装 23.0 的路径。现显式升级测试库、固定实际工具路径，并在启动前验证 `target=android-37.0`；每套设备独立检查 API、XML 和完整用例数，拒绝安装失败或 0 项执行的假成功。[原始报告、历史失败与环境证据](validation/toolchain-1.2.13/README.txt) 随源码保留。
+- [签名 Release Actions 39453175128](https://github.com/chorusfruit-233/StudyWithMiku-Android/actions/runs/39453175128) 成功，104 项 Release 单元测试通过，Release Lint 0 错误。证书报告解析兼容 Build Tools 37 的格式，8 项校验脚本测试通过，继续拒绝错误／混合／缺失证书及多签名者。
+- 重新下载最终 APK，核对包名、版本、minSdk=26、targetSdk=37、`debuggable=false`、文件 SHA-256、固定证书与 ZIP 对齐。APK 为 131,011,175 字节，SHA-256 为 `f941a3917c5d91ffa2f95d83675223197c42c52c24d51b8775bd997fc8b9463e`，证书 SHA-256 为 `e07a05095f2b19e1b7b37d48e67016da4b5cf78386a03020410a3a134e1f12ad`。
+- [发布 Actions 39455009645](https://github.com/chorusfruit-233/StudyWithMiku-Android/actions/runs/39455009645) 核对同一提交的两项成功构建后，公开发布 [v1.2.13 正式版](https://github.com/chorusfruit-233/StudyWithMiku-Android/releases/tag/v1.2.13) 并设为 Latest，标签指向上述构建提交。后续文档提交不改变已验证的应用代码与 APK。
+- 设备测试使用 Debug APK、x86_64 模拟器、生成的音频、本地服务、模拟套接字与合成账号资料；两张 API 37 截图为浅色主题的生产组件测试窗口。不代表签名 Release 真机、实际音乐供应商、真实账号端到端或所有主题／字体大小的完整验收。
 
 ## 1.2.12 上游 2026-10-16 更新适配
 

@@ -1,0 +1,9 @@
+Source: 7a16176872c00d547c51d81a2806d2761886c6f5
+Debug run: 39453175512
+
+Pkg.Revision=23.0
+INFO         | Android emulator version 37.2.12.0 (build_id 16428233) (CL:N/A)
+API 35: verified device test results: {'tests': 41, 'failures': 0, 'errors': 0, 'skipped': 0}
+target=android-37.0
+INFO         | Android emulator version 37.2.12.0 (build_id 16428233) (CL:N/A)
+API 37: verified device test results: {'tests': 41, 'failures': 0, 'errors': 0, 'skipped': 0}

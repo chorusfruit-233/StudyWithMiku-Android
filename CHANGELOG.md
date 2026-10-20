@@ -1,8 +1,8 @@
 # 更新记录
 
-当前公开正式版：[v1.2.12](https://github.com/chorusfruit-233/StudyWithMiku-Android/releases/tag/v1.2.12)。此前版本的构建记录见 [验证文档](android/VALIDATION.md)，历史 Debug 草稿未公开发布。
+当前公开正式版：[v1.2.13](https://github.com/chorusfruit-233/StudyWithMiku-Android/releases/tag/v1.2.13)。此前版本的构建记录见 [验证文档](android/VALIDATION.md)，历史 Debug 草稿未公开发布。
 
-## 1.2.13（构建验证中）
+## 1.2.13
 
 - AGP 升级至 9.4.1，Gradle Wrapper 升级至 9.6.0 并固定 SHA-256；迁移 AGP 内置 Kotlin，Kotlin／Compose Compiler 升级至 2.4.21。
 - compileSdk／targetSdk 升至 Android 17（API 37），Build Tools 升至 37.0.0，最低版本继续为 API 26。
@@ -10,6 +10,8 @@
 - 图片库迁移至 Coil 3，配置网络模块、应用级加载器与 GIF 解码器。
 - Android 17 在音乐源高级设置中提供局域网访问授权入口，供自建局域网接口使用。
 - 更新构建工作流，在 API 35 与 API 37 分别运行设备回归并独立保存原始报告；增加生产图片加载器的网络封面和动态表情回归。
+- 显式更新 Espresso 与 JUnit 扩展，固定模拟器实际使用的命令行工具及 AVD 版本检查，避免旧工具与新版系统镜像不兼容。
+- Debug 与签名 Release 各 104 项单元测试、Android 15 与 17 各 41 项设备回归通过，Lint 0 错误；沿用固定证书公开发布正式 APK。
 
 ## 1.2.12
 
