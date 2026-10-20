@@ -17,6 +17,17 @@ def command(*args):
     return subprocess.check_output(args, text=True, stderr=subprocess.STDOUT)
 
 
+def require_fixed_certificate(report):
+    # Build Tools 35 uses "Signer #1"; 37 uses scheme labels such as "V2 Signer".
+    # Check every certificate digest and keep the single-signer upgrade contract.
+    digests = re.findall(r"^.*?\bcertificate SHA-256 digest:\s*([^\r\n]+)", report, re.M)
+    signers = re.search(r"^Number of signers:\s*(\d+)\s*$", report, re.M)
+    if not signers or signers.group(1) != "1" or not digests or any(
+        digest.strip().lower() != CERT_SHA256 for digest in digests
+    ):
+        raise SystemExit("Release APK must use the single StudyWithMiku certificate; refusing to publish.")
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("apk", type=Path)
@@ -25,9 +36,7 @@ def main():
     sdk = Path(os.environ["ANDROID_HOME"])
     binaries = sdk / "build-tools" / "37.0.0"
     signed = command(str(binaries / "apksigner"), "verify", "--verbose", "--print-certs", str(args.apk))
-    fingerprint = re.search(r"Signer #1 certificate SHA-256 digest: ([a-fA-F0-9]+)", signed)
-    if not fingerprint or fingerprint.group(1).lower() != CERT_SHA256:
-        raise SystemExit("Release APK must use the StudyWithMiku certificate; refusing to publish.")
+    require_fixed_certificate(signed)
     badging = command(str(binaries / "aapt"), "dump", "badging", str(args.apk))
     package = re.search(r"^package: name='([^']+)' versionCode='(\d+)' versionName='([^']+)'", badging, re.M)
     if not package or package.group(1) != PACKAGE:
