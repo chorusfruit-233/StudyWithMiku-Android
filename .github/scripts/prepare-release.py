@@ -10,6 +10,8 @@ import subprocess
 
 PACKAGE = "io.github.chorusfruit233.studywithmiku"
 CERT_SHA256 = "e07a05095f2b19e1b7b37d48e67016da4b5cf78386a03020410a3a134e1f12ad"
+MIN_SDK = "26"
+TARGET_SDK = "37"
 
 def command(*args):
     return subprocess.check_output(args, text=True, stderr=subprocess.STDOUT)
@@ -21,7 +23,7 @@ def main():
     parser.add_argument("output", type=Path)
     args = parser.parse_args()
     sdk = Path(os.environ["ANDROID_HOME"])
-    binaries = sdk / "build-tools" / "35.0.0"
+    binaries = sdk / "build-tools" / "37.0.0"
     signed = command(str(binaries / "apksigner"), "verify", "--verbose", "--print-certs", str(args.apk))
     fingerprint = re.search(r"Signer #1 certificate SHA-256 digest: ([a-fA-F0-9]+)", signed)
     if not fingerprint or fingerprint.group(1).lower() != CERT_SHA256:
@@ -32,6 +34,8 @@ def main():
         raise SystemExit("Unexpected release package; refusing to publish.")
     if re.search(r"^application-debuggable\b", badging, re.M):
         raise SystemExit("Debuggable APK cannot be published as a Release APK.")
+    if not re.search(rf"^sdkVersion:'{MIN_SDK}'$", badging, re.M) or not re.search(rf"^targetSdkVersion:'{TARGET_SDK}'$", badging, re.M):
+        raise SystemExit("Unexpected minimum or target SDK; refusing to publish.")
     version = package.group(3)
     if not re.fullmatch(r"\d+\.\d+\.\d+", version):
         raise SystemExit("Expected a three-part numeric release version.")
@@ -46,6 +50,7 @@ def main():
     (args.output / "SHA256SUMS.txt").write_text(f"{sha256}  {filename}\n")
     (args.output / "SIGNING-CERTIFICATE.txt").write_text(
         f"Package: {PACKAGE}\nVersion: {version}\nVersion code: {package.group(2)}\n"
+        f"Minimum SDK: {MIN_SDK}\nTarget SDK: {TARGET_SDK}\n"
         f"Certificate SHA-256: {CERT_SHA256}\nDebuggable: false\n"
     )
     if os.environ.get("GITHUB_OUTPUT"):

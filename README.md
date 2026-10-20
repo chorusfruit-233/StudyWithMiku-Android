@@ -36,7 +36,7 @@
 
 ## 开发与构建
 
-使用 Android Studio 打开 [android](android/) 目录，准备 JDK 17、Android SDK 35 和 Build Tools 35.0.0：
+使用 Android Studio 打开 [android](android/) 目录，准备 JDK 17、Android SDK 37.0 和 Build Tools 37.0.0：
 
 ```bash
 git clone https://github.com/chorusfruit-233/StudyWithMiku-Android.git
@@ -45,6 +45,8 @@ cd StudyWithMiku-Android/android
 ```
 
 Debug APK 输出到 `android/app/build/outputs/apk/debug/app-debug.apk`，构建 Debug 无需正式签名密钥。
+
+当前使用 AGP 9.4.1、Gradle 9.6.0 与 Kotlin／Compose Compiler 2.4.21，compileSdk 和 targetSdk 均为 37，最低支持 API 26。依赖版本及 Android 17 适配说明见 [构建依赖](android/DEPENDENCIES.md)。
 
 正式发行见 [Release 构建与发布指南](android/RELEASING.md)。`Android app` 工作流负责 Debug 构建和 Android 模拟器回归；`Android signed release` 负责固定签名的 Release 构建。两项检查通过后，`Publish verified release` 可将已验证的产物公开发布。历史 Debug 草稿仍仅供有仓库写入权限的维护者查看。
 

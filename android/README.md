@@ -1,6 +1,6 @@
 # Study With Miku · Android 工程说明
 
-非官方 Android 移植。原作：[shshouse/StudyWithMiku](https://github.com/shshouse/StudyWithMiku)，功能基线更新至提交 `2a19db44ae7d06e5d8945086030ae78a1acce9ae`（2026-10-16），覆盖手动切歌重叠、聊天投递与消息合并、设置兼容及过期歌单请求保护。逐项映射见 [上游适配记录](UPSTREAM.md)。原生 Kotlin、Compose、Media3；Material 3 Expressive 主题、动态形状按钮和花瓣计时进度。支持 Android 8.0（API 26）以上，target API 35。
+非官方 Android 移植。原作：[shshouse/StudyWithMiku](https://github.com/shshouse/StudyWithMiku)，功能基线更新至提交 `2a19db44ae7d06e5d8945086030ae78a1acce9ae`（2026-10-16），覆盖手动切歌重叠、聊天投递与消息合并、设置兼容及过期歌单请求保护。逐项映射见 [上游适配记录](UPSTREAM.md)。原生 Kotlin、Compose、Media3；Material 3 Expressive 主题、动态形状按钮和花瓣计时进度。支持 Android 8.0（API 26）以上，target API 37。
 
 仓库和已发布版本公开；安装请使用 [最新正式 Release](https://github.com/chorusfruit-233/StudyWithMiku-Android/releases/latest)。用户说明见 [根目录 README](../README.md)，更新记录见 [CHANGELOG.md](../CHANGELOG.md)。本页说明功能映射、接口与原生适配。
 
@@ -62,13 +62,13 @@ cd android
 ./gradlew assembleDebug testDebugUnitTest lintDebug
 ```
 
-从仓库根目录执行以上命令，需要 JDK 17、Android SDK 35 和 Build Tools 35.0.0；首次构建下载依赖。输出 `android/app/build/outputs/apk/debug/app-debug.apk`。Debug 构建无需正式密钥，临时签名由构建环境生成。正式 Release 包使用固定 StudyWithMiku 证书；环境变量提供签名参数，公开源码不包含签名私钥或密码，缺少参数时 Release 打包明确失败。详见 [RELEASING.md](RELEASING.md)。Expressive API 使用明确固定的 `material3:1.4.0-alpha18`。
+从仓库根目录执行以上命令，需要 JDK 17、Android SDK 37.0 和 Build Tools 37.0.0；首次构建下载依赖。输出 `android/app/build/outputs/apk/debug/app-debug.apk`。Debug 构建无需正式密钥，临时签名由构建环境生成。正式 Release 包使用固定 StudyWithMiku 证书；环境变量提供签名参数，公开源码不包含签名私钥或密码，缺少参数时 Release 打包明确失败。详见 [RELEASING.md](RELEASING.md)。Expressive API 使用明确固定的 `material3:1.4.0` 稳定版；工具链及依赖版本见 [DEPENDENCIES.md](DEPENDENCIES.md)。
 
-`Android app` 工作流在源码变更时构建 Debug，并执行单元测试、Lint 与 Android 35 设备回归；Debug 附件保留在未公开草稿中。`Android signed release` 工作流通过版本标签或手动运行构建正式包，先生成草稿，维护者确认后公开发布。已发布版本不会被工作流覆盖。
+`Android app` 工作流在源码变更时构建 Debug，并执行单元测试、Lint 与 API 35 与 API 37 设备回归；Debug 附件保留在未公开草稿中。`Android signed release` 工作流通过版本标签或手动运行构建正式包，先生成草稿，维护者确认后公开发布。已发布版本不会被工作流覆盖。
 
 协议、HTTP 错误、账号凭据校验、云合并、分享和计时单元测试使用本地测试服务器。真实账号登录、发言、云端写入与跨设备同步须在用户手机上验收；当前无测试账号。详细边界见 [VALIDATION.md](VALIDATION.md)。
 
-有设备或模拟器时，可运行 `./gradlew connectedDebugAndroidTest` 执行离线聊天手势回归测试；CI 会在 Android 35 模拟器运行聊天手势、同步选择、任务操作与持久化回归，执行结果记录在验证文档中。
+有设备或模拟器时，可运行 `./gradlew connectedDebugAndroidTest` 执行离线聊天手势回归测试；CI 会在 API 35 与 API 37 模拟器运行聊天手势、同步选择、任务操作与持久化回归，执行结果记录在验证文档中。
 
 ## 安装包组成
 

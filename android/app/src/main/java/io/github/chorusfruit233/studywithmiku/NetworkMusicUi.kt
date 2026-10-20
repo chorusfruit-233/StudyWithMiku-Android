@@ -198,6 +198,7 @@ object RemoteCovers {
             if (advanced) {
                 OutlinedTextField(api,{ api = it; error = null },label = { Text("Meting 接口地址") },singleLine = true)
                 TextButton(onClick = { api = DEFAULT_MUSIC_API }) { Text("恢复原站音乐源") }
+                LocalNetworkAccessSetting()
             }
             error?.let { Text(it,color = MaterialTheme.colorScheme.error) }
         }

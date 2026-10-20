@@ -16,18 +16,19 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 40
     steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-java@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-java@v6
         with:
           distribution: temurin
           java-version: "17"
-      - uses: android-actions/setup-android@v3
+      - uses: android-actions/setup-android@v4
         with:
+          cmdline-tools-version: "16111833"
           packages: platform-tools
           log-accepted-android-sdk-licenses: false
-      - uses: gradle/actions/setup-gradle@v4
-      - name: Install Android SDK 35
-        run: sdkmanager "platforms;android-35" "build-tools;35.0.0"
+      - uses: gradle/actions/setup-gradle@v6
+      - name: Install Android SDK 37
+        run: sdkmanager "platforms;android-37.0" "build-tools;37.0.0"
       - name: Build, test and lint
         working-directory: android
         run: ./gradlew assembleDebug testDebugUnitTest lintDebug assembleDebugAndroidTest
@@ -36,7 +37,7 @@ jobs:
           echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm.rules
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
-      - name: Run Android interaction and persistence tests
+      - name: Run Android 15 interaction and persistence tests
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 35
@@ -44,10 +45,21 @@ jobs:
           profile: pixel_2
           disable-animations: true
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
-          script: bash .github/scripts/check-device-tests.sh
+          script: MIKU_DEVICE_API=35 bash .github/scripts/check-device-tests.sh
+      - name: Run Android 17 interaction and persistence tests
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: "37.0"
+          target: google_apis
+          arch: x86_64
+          profile: pixel_2
+          avd-name: miku-api-37
+          disable-animations: true
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          script: MIKU_DEVICE_API=37 bash .github/scripts/check-device-tests.sh
       - name: Save verification reports even when device tests fail
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: Android-verification-reports
           path: |
@@ -59,9 +71,9 @@ jobs:
         id: debug_apk
         working-directory: android
         run: |
-          "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify app/build/outputs/apk/debug/app-debug.apk
+          "$ANDROID_HOME/build-tools/37.0.0/apksigner" verify app/build/outputs/apk/debug/app-debug.apk
           mkdir -p ../artifacts
-          debug_version=$("$ANDROID_HOME/build-tools/35.0.0/aapt" dump badging app/build/outputs/apk/debug/app-debug.apk | python -c 'import re,sys; print(re.search(r"versionName=\x27([^\x27]+)\x27",sys.stdin.read()).group(1))')
+          debug_version=$("$ANDROID_HOME/build-tools/37.0.0/aapt" dump badging app/build/outputs/apk/debug/app-debug.apk | python -c 'import re,sys; print(re.search(r"versionName=\x27([^\x27]+)\x27",sys.stdin.read()).group(1))')
           echo "version=$debug_version" >> "$GITHUB_OUTPUT"
           cp app/build/outputs/apk/debug/app-debug.apk "../artifacts/StudyWithMiku-Android-$debug_version-debug-${GITHUB_SHA:0:7}.apk"
           cd ../artifacts

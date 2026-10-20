@@ -55,7 +55,7 @@ python -c 'import base64,pathlib; pathlib.Path("StudyWithMiku-secret.b64").write
 
 ## 本机构建
 
-安装 JDK 17、Android SDK 35 与 Build Tools 35.0.0 后，在仓库根目录使用 Bash 输入密码：
+安装 JDK 17、Android SDK 37.0 与 Build Tools 37.0.0 后，在仓库根目录使用 Bash 输入密码：
 
 ```bash
 export MIKU_KEYSTORE_PATH="/absolute/path/StudyWithMiku.jks"
@@ -78,7 +78,7 @@ unset MIKU_STORE_PASSWORD MIKU_KEY_PASSWORD
 python .github/scripts/prepare-release.py android/app/build/outputs/apk/release/app-release.apk artifacts/release
 ```
 
-脚本使用 `ANDROID_HOME` 下的 Build Tools 35.0.0，核对上述证书、包名、版本与关闭调试标志，输出规范命名的 APK、校验值与公开证书资料。本地上传时可在对应 Release 页面添加附件，完成说明和检查报告后发布。
+脚本使用 `ANDROID_HOME` 下的 Build Tools 37.0.0，核对上述证书、包名、版本与关闭调试标志，输出规范命名的 APK、校验值与公开证书资料。本地上传时可在对应 Release 页面添加附件，完成说明和检查报告后发布。
 
 ## 下载核验与版本维护
 

@@ -1,13 +1,14 @@
 package io.github.chorusfruit233.studywithmiku
 
 import android.app.Application
+import android.content.Context
 import android.os.Build
-import coil.ImageLoader
-import coil.ImageLoaderFactory
-import coil.decode.GifDecoder
-import coil.decode.ImageDecoderDecoder
+import coil3.ImageLoader
+import coil3.SingletonImageLoader
+import coil3.gif.GifDecoder
+import coil3.gif.AnimatedImageDecoder
 
-class MikuApplication : Application(), ImageLoaderFactory {
+class MikuApplication : Application(), SingletonImageLoader.Factory {
     val audioCache by lazy { AudioCache(this,store) }
     lateinit var store: MikuStore
         private set
@@ -35,7 +36,7 @@ class MikuApplication : Application(), ImageLoaderFactory {
         extras = OnlineExtras(this)
         sync.start()
     }
-    override fun newImageLoader() = ImageLoader.Builder(this).components {
-        if (Build.VERSION.SDK_INT >= 28) add(ImageDecoderDecoder.Factory()) else add(GifDecoder.Factory())
+    override fun newImageLoader(context: Context) = ImageLoader.Builder(context).components {
+        if (Build.VERSION.SDK_INT >= 28) add(AnimatedImageDecoder.Factory()) else add(GifDecoder.Factory())
     }.build()
 }
