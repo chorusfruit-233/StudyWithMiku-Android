@@ -31,7 +31,7 @@ jobs:
         run: sdkmanager "platforms;android-37.0" "build-tools;37.0.0"
       - name: Build, test and lint
         working-directory: android
-        run: ./gradlew assembleDebug testDebugUnitTest lintDebug assembleDebugAndroidTest
+        run: ./gradlew --no-daemon -Pkotlin.compiler.execution.strategy=in-process assembleDebug testDebugUnitTest lintDebug assembleDebugAndroidTest
       - name: Enable emulator acceleration
         run: |
           echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm.rules
@@ -44,7 +44,7 @@ jobs:
           arch: x86_64
           profile: pixel_2
           disable-animations: true
-          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          emulator-options: -no-window -no-snapshot -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
           script: MIKU_DEVICE_API=35 bash .github/scripts/check-device-tests.sh
       - name: Run Android 17 interaction and persistence tests
         uses: reactivecircus/android-emulator-runner@v2
@@ -55,8 +55,10 @@ jobs:
           profile: pixel_2
           avd-name: miku-api-37
           disk-size: 4G
+          ram-size: 3072M
+          heap-size: 512M
           disable-animations: true
-          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          emulator-options: -no-window -no-snapshot -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
           script: MIKU_DEVICE_API=37 bash .github/scripts/check-device-tests.sh
       - name: Save verification reports even when device tests fail
         if: always()

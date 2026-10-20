@@ -6,9 +6,32 @@ device_api=${MIKU_DEVICE_API:-$actual_api}
 test "$device_api" = "$actual_api"
 device_report="app/build/reports/device-tests/api-$device_api"
 mkdir -p "$device_report"
+device_diagnostics() {
+  local result=$?
+  if [[ "$result" -ne 0 ]]; then
+    adb logcat -d -b crash > "$device_report/framework-crash.txt" 2>&1 || true
+    tail -100 "$device_report/framework-crash.txt" || true
+    adb shell df -h /data || true
+    df -h . || true
+  fi
+  exit "$result"
+}
+trap device_diagnostics EXIT
+# Boot completion can precede a stable package service on a cold API 37 image.
+stable=0
+for ((attempt=0;attempt<30;attempt++)); do
+  if [[ $(adb shell cmd package path android 2>/dev/null) == package:* ]]; then
+    stable=$((stable + 1))
+  else
+    stable=0
+  fi
+  if [[ "$stable" -ge 3 ]]; then break; fi
+  sleep 2
+done
+test "$stable" -ge 3
 # Each emulator must produce its own result; AGP 9 can return success after an install error.
 rm -rf app/build/outputs/androidTest-results
-if ! ./gradlew connectedDebugAndroidTest; then
+if ! ./gradlew --no-daemon -Pkotlin.compiler.execution.strategy=in-process connectedDebugAndroidTest; then
   if [[ -d app/build/outputs/androidTest-results ]]; then
     cp -R app/build/outputs/androidTest-results/. "$device_report/"
   fi
