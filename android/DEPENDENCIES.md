@@ -10,7 +10,7 @@
 | compileSdk／targetSdk | 35 | 37 |
 | SDK Build Tools | 35.0.0 | 37.0.0 |
 | Compose BOM | 2025.06.01 | 2026.09.00 |
-| Material 3 | 1.4.0-alpha18 | 1.4.0 |
+| Material 3 Expressive | 1.4.0-alpha18 | 1.5.0-beta01 |
 | Core KTX | 1.16.0 | 1.19.1 |
 | Activity Compose | 1.10.1 | 1.13.0 |
 | Lifecycle Compose | 2.9.1 | 2.11.0 |
@@ -29,7 +29,9 @@ JDK 与字节码目标继续使用 17，minSdk 继续为 26。JUnit 4.13.2 已�
 
 按 [AGP 内置 Kotlin 迁移说明](https://developer.android.com/build/migrate-to-built-in-kotlin) 移除 `org.jetbrains.kotlin.android` 和旧 `android.kotlinOptions`。在根构建脚本将 Kotlin Gradle 实现与 Compose Compiler 固定为 2.4.21，避免 AGP 的默认 Kotlin 与 Compose 插件不一致；JVM 目标从 Java compileOptions 的 17 派生。
 
-Material 3 使用 1.4.0 稳定版，该版本仍提供当前应用使用的 MaterialExpressiveTheme、MotionScheme 和动态按钮 API；不再依赖此前的 alpha18。
+AGP 9 默认只为受测构建类型生成单元测试组件。项目显式设置 `android.onlyEnableUnitTestForTheTestedBuildType=false`，继续为 Debug 和 Release 分别执行完整单元测试，沿用既有签名构建检查。
+
+Material 3 是本次运行时依赖中的预发布例外：1.4.0 稳定版将 MaterialExpressiveTheme、MotionScheme 等现有 Expressive 接口设为内部，并不公开动态按钮 shapes 接口。使用 1.5.0-beta01 保留原有 MD3E 主题、动效与形状按钮；其余更新选择已发布的稳定版本。
 
 ## 图片与网络
 

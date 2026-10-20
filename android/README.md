@@ -62,7 +62,7 @@ cd android
 ./gradlew assembleDebug testDebugUnitTest lintDebug
 ```
 
-从仓库根目录执行以上命令，需要 JDK 17、Android SDK 37.0 和 Build Tools 37.0.0；首次构建下载依赖。输出 `android/app/build/outputs/apk/debug/app-debug.apk`。Debug 构建无需正式密钥，临时签名由构建环境生成。正式 Release 包使用固定 StudyWithMiku 证书；环境变量提供签名参数，公开源码不包含签名私钥或密码，缺少参数时 Release 打包明确失败。详见 [RELEASING.md](RELEASING.md)。Expressive API 使用明确固定的 `material3:1.4.0` 稳定版；工具链及依赖版本见 [DEPENDENCIES.md](DEPENDENCIES.md)。
+从仓库根目录执行以上命令，需要 JDK 17、Android SDK 37.0 和 Build Tools 37.0.0；首次构建下载依赖。输出 `android/app/build/outputs/apk/debug/app-debug.apk`。Debug 构建无需正式密钥，临时签名由构建环境生成。正式 Release 包使用固定 StudyWithMiku 证书；环境变量提供签名参数，公开源码不包含签名私钥或密码，缺少参数时 Release 打包明确失败。详见 [RELEASING.md](RELEASING.md)。Expressive API 使用明确固定的 `material3:1.5.0-beta01`；工具链及依赖版本见 [DEPENDENCIES.md](DEPENDENCIES.md)。
 
 `Android app` 工作流在源码变更时构建 Debug，并执行单元测试、Lint 与 API 35 与 API 37 设备回归；Debug 附件保留在未公开草稿中。`Android signed release` 工作流通过版本标签或手动运行构建正式包，先生成草稿，维护者确认后公开发布。已发布版本不会被工作流覆盖。
 

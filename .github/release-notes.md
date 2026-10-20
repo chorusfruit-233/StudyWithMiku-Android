@@ -4,7 +4,7 @@ Study With Miku 的非官方原生 Android 移植，保留 Material 3 Expressive
 
 - AGP 9.4.1、Gradle 9.6.0、Kotlin／Compose Compiler 2.4.21，迁移 AGP 内置 Kotlin。
 - compileSdk／targetSdk 升至 Android 17（API 37），最低版本仍为 API 26，Build Tools 为 37.0.0。
-- 更新 Compose BOM、Material 3 稳定版、Core、Activity、Lifecycle、Media3、OkHttp、协程及测试依赖。
+- 更新 Compose BOM、Material 3 Expressive、Core、Activity、Lifecycle、Media3、OkHttp、协程及测试依赖。
 - 迁移 Coil 3.6.3，保留网络头像／封面、更新配图与动态 GIF 表情。
 - 自建局域网音乐源可在“添加网络歌单 → 音乐源设置”中申请 Android 17 的局域网访问权限。
 - 构建工作流增加 API 37 设备回归，并保留 API 35 回归与各自原始报告。

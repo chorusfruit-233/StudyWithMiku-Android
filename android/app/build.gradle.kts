@@ -66,7 +66,7 @@ dependencies {
     implementation("androidx.compose.foundation:foundation")
     // Material Icons is no longer updated or included in the Compose BOM.
     implementation("androidx.compose.material:material-icons-extended:1.7.8")
-    implementation("androidx.compose.material3:material3:1.4.0")
+    implementation("androidx.compose.material3:material3:1.5.0-beta01")
     implementation("androidx.media3:media3-exoplayer:1.11.1")
     implementation("androidx.media3:media3-datasource:1.11.1")
     implementation("androidx.media3:media3-database:1.11.1")

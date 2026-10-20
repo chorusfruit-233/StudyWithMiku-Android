@@ -6,7 +6,7 @@
 
 - AGP 升级至 9.4.1，Gradle Wrapper 升级至 9.6.0 并固定 SHA-256；迁移 AGP 内置 Kotlin，Kotlin／Compose Compiler 升级至 2.4.21。
 - compileSdk／targetSdk 升至 Android 17（API 37），Build Tools 升至 37.0.0，最低版本继续为 API 26。
-- 更新 Compose BOM、Material 3 稳定版、Core、Activity、Lifecycle、Media3、OkHttp、协程和测试依赖；保留 Material 3 Expressive 主题与动态按钮。
+- 更新 Compose BOM、Material 3 Expressive、Core、Activity、Lifecycle、Media3、OkHttp、协程和测试依赖；保留 Material 3 Expressive 主题与动态按钮。
 - 图片库迁移至 Coil 3，配置网络模块、应用级加载器与 GIF 解码器。
 - Android 17 在音乐源高级设置中提供局域网访问授权入口，供自建局域网接口使用。
 - 更新构建工作流，在 API 35 与 API 37 分别运行设备回归并独立保存原始报告；增加生产图片加载器的网络封面和动态表情回归。
