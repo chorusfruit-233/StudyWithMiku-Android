@@ -1,6 +1,6 @@
 # Study With Miku · Android 工程说明
 
-非官方 Android 移植。原作：[shshouse/StudyWithMiku](https://github.com/shshouse/StudyWithMiku)，功能基线更新至提交 `2a19db44ae7d06e5d8945086030ae78a1acce9ae`（2026-10-16），覆盖手动切歌重叠、聊天投递与消息合并、设置兼容及过期歌单请求保护。逐项映射见 [上游适配记录](UPSTREAM.md)。原生 Kotlin、Compose、Media3；Material 3 Expressive 主题、动态形状按钮和花瓣计时进度。支持 Android 8.0（API 26）以上，target API 37。
+非官方 Android 移植。原作：[shshouse/StudyWithMiku](https://github.com/shshouse/StudyWithMiku)，功能与资料基线更新至提交 `2bb2379cfa0b04d413f1406ecf5f70aa494dddad`（2026-10-27），同步 48 条内置一言，包含手动切歌重叠、聊天投递与消息合并、设置兼容及过期歌单请求保护。逐项映射见 [上游适配记录](UPSTREAM.md)。原生 Kotlin、Compose、Media3；Material 3 Expressive 主题、动态形状按钮和花瓣计时进度。支持 Android 8.0（API 26）以上，target API 37。
 
 仓库和已发布版本公开；安装请使用 [最新正式 Release](https://github.com/chorusfruit-233/StudyWithMiku-Android/releases/latest)。用户说明见 [根目录 README](../README.md)，更新记录见 [CHANGELOG.md](../CHANGELOG.md)。本页说明功能映射、接口与原生适配。
 

@@ -2,6 +2,12 @@
 
 当前公开正式版：[v1.2.13](https://github.com/chorusfruit-233/StudyWithMiku-Android/releases/tag/v1.2.13)。此前版本的构建记录见 [验证文档](android/VALIDATION.md)，历史 Debug 草稿未公开发布。
 
+## 1.2.14（构建验证中）
+
+- 对齐原作 `2bb2379`（2026-10-27），审阅上一基线之后的 11 个提交与 3 个变更文件。
+- 同步一言“水洼间轻盈跃动,有如水黾般自如”及出处《夜の踊り子》，内置语录由 47 条增至 48 条。
+- 更新上游适配记录，标明网页 npm 依赖升级在原生 Android 工程中的适用范围。
+
 ## 1.2.13
 
 - AGP 升级至 9.4.1，Gradle Wrapper 升级至 9.6.0 并固定 SHA-256；迁移 AGP 内置 Kotlin，Kotlin／Compose Compiler 升级至 2.4.21。

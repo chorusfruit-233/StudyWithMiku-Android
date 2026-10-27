@@ -1,6 +1,6 @@
 # 构建依赖与 Android 17 适配
 
-2026-10-20 核对 Google Maven、Maven Central、Gradle 发布元数据和官方兼容说明。以下为应用 1.2.13 的固定版本，未使用动态版本或 SNAPSHOT。
+2026-10-20 核对 Google Maven、Maven Central、Gradle 发布元数据和官方兼容说明。以下固定版本自应用 1.2.13 起使用，1.2.14 沿用，未使用动态版本或 SNAPSHOT。
 
 | 项目 | 原版本 | 当前版本 |
 | --- | --- | --- |

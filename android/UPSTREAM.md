@@ -1,8 +1,25 @@
 # 上游适配记录
 
-本次基线：[2a19db44ae7d06e5d8945086030ae78a1acce9ae](https://github.com/shshouse/StudyWithMiku/commit/2a19db44ae7d06e5d8945086030ae78a1acce9ae)，原作提交日期为 2026-10-16；于 2026-10-18 核对 `origin/main`。
+本次基线：[2bb2379cfa0b04d413f1406ecf5f70aa494dddad](https://github.com/shshouse/StudyWithMiku/commit/2bb2379cfa0b04d413f1406ecf5f70aa494dddad)，原作提交日期为 2026-10-27；于同日核对 `origin/main`。
 
-本次审阅从 `a3c4e5e0d4be48b2e21662ac85ff6022f8aa926d` 起新增的 9 个提交，包括合并提交。网络接口、账号认证和消息格式没有变更。
+## 1.2.14：2026-10-27 上游同步
+
+相对上一基线 `2a19db44ae7d06e5d8945086030ae78a1acce9ae`，GitHub Compare 确认新增 11 个提交（含合并提交），最终差异仅涉及 `src/data/quotes.js`、`package.json`、`package-lock.json`。按最终文件差异核对运行时行为，另逐项审阅依赖锁定版本。
+
+| 上游变化 | Android 对应实现 |
+| --- | --- |
+| `2bb2379`：新增一言投稿 | `assets/quotes.json` 增加“水洼间轻盈跃动,有如水黾般自如”，保留原文和出处《夜の踊り子》。内置语录由 47 条增至 48 条，完整列表与该提交的 `quotesList` 逐项核对。 |
+| `42b5372`、`8b1230d`：music-metadata 11.12.1 → 11.16.0 | 网页工程的音乐元数据工具依赖。Android 使用 Media3 读取与播放媒体，适配记录保留此变更的范围。 |
+| `ad0c27c`、`ee9cb87`：source-map-js 1.2.1 → 1.2.2 | 网页源码映射依赖，由网页锁文件管理。Android 构建工具与依赖见 [DEPENDENCIES.md](DEPENDENCIES.md)。 |
+| `f7a8b8e`、`92c408b`：PostCSS 8.5.6 → 8.5.26 | 网页 CSS 工具依赖，原生界面使用 Compose 与 Material 3 Expressive。 |
+| `69c6b6e`、`fbb7ee6`：Browserslist 与浏览器数据更新 | 最终锁文件使用 Browserslist 4.28.9，并更新相关浏览器数据包；Android 的 SDK 范围由 Gradle 配置。 |
+| `c9cc66a`、`06d655a`：nanoid 3.3.11 → 3.3.18 | 网页标识符库锁定版本更新；Android 使用原生标识符生成与既有云端数据格式。 |
+
+原作网络播放器、推荐歌单、账号认证、云同步协议、聊天室、计时与更新日志没有文件变更。应用沿用已有实现；此版的用户可见增量为新增一言。上游锁文件中的传递依赖变化一并记录在本次验证资料中。
+
+## 1.2.12：2026-10-16 上游同步
+
+历史基线：[2a19db44ae7d06e5d8945086030ae78a1acce9ae](https://github.com/shshouse/StudyWithMiku/commit/2a19db44ae7d06e5d8945086030ae78a1acce9ae)，于 2026-10-18 核对。该次审阅从 `a3c4e5e0d4be48b2e21662ac85ff6022f8aa926d` 起新增的 9 个提交，包括合并提交。网络接口、账号认证和消息格式没有变更。
 
 | 上游变化 | Android 对应实现 |
 | --- | --- |
