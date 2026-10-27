@@ -1,10 +1,19 @@
 # 验证记录
 
-## 公开发布状态（2026-10-20 核对）
+## 公开发布状态（2026-10-27 核对）
 
-仓库已公开，当前正式版为 [v1.2.13](https://github.com/chorusfruit-233/StudyWithMiku-Android/releases/tag/v1.2.13)。GitHub 元数据确认 `draft=false`、`prerelease=false`，发布时间为 `2026-10-20T16:10:14Z`，Latest 指向此版本。Release 提供固定签名 APK、文件校验值、公开证书资料和 Release 检查报告。
+仓库已公开，当前正式版为 [v1.2.14](https://github.com/chorusfruit-233/StudyWithMiku-Android/releases/tag/v1.2.14)。GitHub 元数据确认 `draft=false`、`prerelease=false`，发布时间为 `2026-10-27T10:17:30Z`，Latest 指向此版本。Release 提供固定签名 APK、文件校验值、公开证书资料和 Release 检查报告。
 
 下文保留各版本真实构建、测试结果与验收范围。仓库公开不会自动发布历史 Debug 草稿；因此以草稿标识保留旧产物来源，不将其作为公众下载入口。本目录的回归报告与截图可随源码公开查看。
+
+## 1.2.14 上游 2026-10-27 内容同步
+
+- 原作基线更新至 `2bb2379cfa0b04d413f1406ecf5f70aa494dddad`。GitHub Compare 确认相对上一基线新增 11 个提交，最终差异为一言、package.json 与锁文件，共 3 个文件；另审阅 15 项锁定 npm 依赖版本变化。原生映射及适用范围见 [UPSTREAM.md](UPSTREAM.md)。
+- 新增“水洼间轻盈跃动,有如水黾般自如”，出处《夜の踊り子》。原有 47 条与旧基线一致，更新后的全部 48 条与新基线 `quotesList` 的文本、出处和顺序逐项一致。重新下载签名 APK 后，确认打包的 `assets/quotes.json` 与已核对的源码逐字节一致。
+- 构建源码为 `88459b5baa037d5e3a6ca88746009476003b43a9`，版本 1.2.14／versionCode=17。[Debug Actions 40486132522](https://github.com/chorusfruit-233/StudyWithMiku-Android/actions/runs/40486132522) 成功；下载报告确认 104 项 JVM、Android 15／API 35 的 41 项、Android 17／API 37 的 41 项设备测试全部通过，0 失败／错误／跳过，Debug Lint 0 错误。
+- [签名 Release Actions 40486132753](https://github.com/chorusfruit-233/StudyWithMiku-Android/actions/runs/40486132753) 成功；104 项 Release 单元测试、8 项签名校验脚本测试通过，Release Lint 0 错误。APK 包名、版本、minSdk=26、targetSdk=37、`debuggable=false`、固定证书及 ZIP 对齐核对通过。APK 为 131,011,223 字节，SHA-256 为 `f1c8a01fbf490f7273008de367bdad32c9450608f201e5a19ee93983f37639ec`；固定证书沿用 `e07a05095f2b19e1b7b37d48e67016da4b5cf78386a03020410a3a134e1f12ad`。
+- [发布 Actions 40487287182](https://github.com/chorusfruit-233/StudyWithMiku-Android/actions/runs/40487287182) 核对同一源码的两项成功构建后公开发布 [v1.2.14 正式版](https://github.com/chorusfruit-233/StudyWithMiku-Android/releases/tag/v1.2.14)，标签指向上述构建提交；公开的四项附件摘要与下载文件全部一致，Latest 指向此版本。后续文档提交不改变应用编译输入与 APK。
+- [原始设备报告、上游审阅及语录核验资料](validation/upstream-1.2.14/README.txt) 随源码保留。此版为内容更新，复用已有播放器、缓存、计时、同步、聊天与界面回归。设备测试使用 Debug APK、本地服务、生成音频、合成账号和模拟套接字，不代表签名正式包真机、实际音乐供应商或真实账号端到端验收。
 
 ## 1.2.13 工具链、依赖与 Android 17
 

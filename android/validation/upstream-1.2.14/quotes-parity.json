@@ -1,0 +1,13 @@
+{
+  "upstreamCommit": "2bb2379cfa0b04d413f1406ecf5f70aa494dddad",
+  "quoteCount": 48,
+  "quotesMatchUpstreamTextSourceAndOrder": true,
+  "apkQuoteBytesMatchSource": true,
+  "quotesSha256": "d1bc00856372a3be6c52a70bcf0eb6588d1feca77bb9a045d0f08c7392ac9ea2",
+  "addedQuote": {
+    "text": "水洼间轻盈跃动,有如水黾般自如",
+    "source": "《夜の踊り子》"
+  },
+  "releaseApkBytes": 131011223,
+  "releaseApkSha256": "f1c8a01fbf490f7273008de367bdad32c9450608f201e5a19ee93983f37639ec"
+}

@@ -1,12 +1,13 @@
 # 更新记录
 
-当前公开正式版：[v1.2.13](https://github.com/chorusfruit-233/StudyWithMiku-Android/releases/tag/v1.2.13)。此前版本的构建记录见 [验证文档](android/VALIDATION.md)，历史 Debug 草稿未公开发布。
+当前公开正式版：[v1.2.14](https://github.com/chorusfruit-233/StudyWithMiku-Android/releases/tag/v1.2.14)。此前版本的构建记录见 [验证文档](android/VALIDATION.md)，历史 Debug 草稿未公开发布。
 
-## 1.2.14（构建验证中）
+## 1.2.14
 
 - 对齐原作 `2bb2379`（2026-10-27），审阅上一基线之后的 11 个提交与 3 个变更文件。
 - 同步一言“水洼间轻盈跃动,有如水黾般自如”及出处《夜の踊り子》，内置语录由 47 条增至 48 条。
 - 更新上游适配记录，标明网页 npm 依赖升级在原生 Android 工程中的适用范围。
+- Debug 与签名 Release 各 104 项单元测试、Android 15 与 17 各 41 项设备回归通过，Lint 0 错误；已核对正式 APK 内的全部 48 条一言，沿用固定证书公开发布。
 
 ## 1.2.13
 

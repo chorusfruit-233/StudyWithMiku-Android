@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: Release tag (for example v1.2.13)
+        description: Release tag (for example v1.2.14)
         required: true
       source_commit:
         description: Exact application build commit
