@@ -1,6 +1,19 @@
 # 上游适配记录
 
-本次基线：[2bb2379cfa0b04d413f1406ecf5f70aa494dddad](https://github.com/shshouse/StudyWithMiku/commit/2bb2379cfa0b04d413f1406ecf5f70aa494dddad)，原作提交日期为 2026-10-27；于同日核对 `origin/main`。
+本次基线：[bcc6627b80e47515c26c7677823bf68227cd90ef](https://github.com/shshouse/StudyWithMiku/commit/bcc6627b80e47515c26c7677823bf68227cd90ef)，于 2026-10-31 核对。
+
+## 1.2.15：接口地址与工作流整理
+
+相对 `2bb2379`，新增 9 个提交，最终差异涉及两个账号 composable 和两份 npm 配置文件。
+
+| 上游变化 | Android 对应实现 |
+| --- | --- |
+| `2e3331d`：同步和用户资料统一使用 VITE_MIKUMOD_API_URL | 对照原站公开前端包 `index-39c55916.js`，确认资料接口使用 `https://mikumods.com`。新增独立 ACCOUNT_API_SITE，学习资料、日历、用户资料及登录后的令牌验证统一通过 StudyApi 使用此地址。登录、账号设置继续使用 `https://mikumod.com`。 |
+| Vite 8.3.5、plugin-vue 6.0.10，及 brace-expansion、fast-uri、serialize-javascript、workbox-build 等锁文件更新 | 属于网页构建与依赖管理；原生工程继续使用 Gradle、Compose 和 Media3。 |
+
+新增默认路由测试，通过拦截真实构造的五次 HTTP 请求验证读取、上传和用户资料均使用 API 域名，登录网址仍使用账号网站，并保留各自的凭据规则。未向生产账号写入资料。
+
+删除升级期间临时使用的 `android-diagnostics.yml` 导出流程；保留日常验证、签名构建和核验发布三个工作流，失败时仍自动归档测试报告和设备诊断。
 
 ## 1.2.14：2026-10-27 上游同步
 

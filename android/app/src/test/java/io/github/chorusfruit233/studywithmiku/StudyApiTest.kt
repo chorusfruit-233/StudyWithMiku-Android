@@ -5,10 +5,28 @@ import org.junit.Test
 import org.json.JSONObject
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
+import okhttp3.ResponseBody.Companion.toResponseBody
 import java.io.IOException
 import java.util.concurrent.TimeUnit
 
 class StudyApiTest {
+    @Test fun defaultStudyRequestsUseApiOriginWhileLoginUsesAccountWebsite() {
+        val requests = mutableListOf<okhttp3.Request>()
+        val client = okhttp3.OkHttpClient.Builder().addInterceptor { chain ->
+            requests += chain.request()
+            okhttp3.Response.Builder().request(chain.request()).protocol(okhttp3.Protocol.HTTP_1_1)
+                .code(200).message("OK").body("{\"data\":{}}".toResponseBody()).build()
+        }.build()
+        val api = StudyApi(client = client)
+        api.fetch("test-token")
+        api.push("test-token",CloudStudy(JSONObject(),JSONObject()))
+        api.request("/api/study/profiles?ids=example")
+        assertEquals(listOf("/api/study/data","/api/study/calendar","/api/study/data","/api/study/calendar","/api/study/profiles"),requests.map { it.url.encodedPath })
+        assertTrue(requests.all { it.url.scheme == "https" && it.url.host == "mikumods.com" })
+        assertEquals("mikumod.com",java.net.URI(LOGIN_URL).host)
+        assertTrue(requests.take(4).all { it.header("Authorization") == "Bearer test-token" })
+        assertNull(requests.last().header("Authorization"))
+    }
     private fun mock(test: (MockWebServer,StudyApi)->Unit) {
         MockWebServer().use { server -> server.start(); test(server,StudyApi(server.url("/").toString().trimEnd('/'))) }
     }

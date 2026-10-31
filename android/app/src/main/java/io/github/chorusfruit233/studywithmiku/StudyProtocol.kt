@@ -15,6 +15,8 @@ import kotlin.math.roundToLong
 
 const val STUDY_SITE = "https://study.mikumod.com"
 const val ACCOUNT_SITE = "https://mikumod.com"
+// Public web deployment uses a separate origin for study data and user profiles.
+const val ACCOUNT_API_SITE = "https://mikumods.com"
 const val STUDY_WS = "wss://online.study.mikugame.cc/ws"
 val LOGIN_URL = "$ACCOUNT_SITE/login?redirect=study&callback=${URLEncoder.encode(STUDY_SITE,"UTF-8")}"
 data class TokenClaims(val userId: String, val username: String, val expiresAt: Long)

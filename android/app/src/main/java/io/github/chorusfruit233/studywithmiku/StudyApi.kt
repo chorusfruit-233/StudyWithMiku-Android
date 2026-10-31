@@ -16,7 +16,7 @@ object StudyNetwork {
     val client = OkHttpClient.Builder().connectTimeout(10,TimeUnit.SECONDS).readTimeout(20,TimeUnit.SECONDS)
         .writeTimeout(20,TimeUnit.SECONDS).callTimeout(30,TimeUnit.SECONDS).build()
 }
-class StudyApi(private val baseUrl: String = ACCOUNT_SITE,client: OkHttpClient = StudyNetwork.client) : StudySyncApi {
+class StudyApi(private val baseUrl: String = ACCOUNT_API_SITE,client: OkHttpClient = StudyNetwork.client) : StudySyncApi {
     private val client = client.newBuilder().cookieJar(CookieJar.NO_COOKIES).followRedirects(false).followSslRedirects(false).build()
     fun request(path: String,token: String = "",body: JSONObject? = null): JSONObject {
         return execute(path,token,body?.let(::encodeDocument))

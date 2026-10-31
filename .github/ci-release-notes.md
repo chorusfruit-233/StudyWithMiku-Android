@@ -1,6 +1,6 @@
-原生 Android 1.2.14 调试构建，支持 Android 8.0 及以上，targetSdk 37。
+原生 Android 1.2.15 调试构建，支持 Android 8.0 及以上，targetSdk 37。
 
-同步上游 2026-10-27 的一言投稿，内置语录增至 48 条；更新适配基线与说明。变更范围见[上游适配记录](https://github.com/chorusfruit-233/StudyWithMiku-Android/blob/main/android/UPSTREAM.md)。
+同步上游的账号 API 地址配置，清理临时诊断工作流。变更范围见[上游适配记录](https://github.com/chorusfruit-233/StudyWithMiku-Android/blob/main/android/UPSTREAM.md)。
 
 本条目为验证用 Debug 草稿。APK 使用调试签名，无法覆盖固定签名正式版。面向用户的正式包见 [公开 Release](https://github.com/chorusfruit-233/StudyWithMiku-Android/releases/latest)。
 

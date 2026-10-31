@@ -87,3 +87,7 @@ Release 附件中的 `SHA256SUMS.txt` 是 APK 文件校验值，`SIGNING-CERTIFI
 维护者需保留 JKS、别名和密码的备份；GitHub Secrets 不提供读取原值的入口。独立 Fork 若采用自己的发行密钥，还需调整发布校验脚本中的预期证书指纹，其签名无法覆盖本项目正式版。
 
 当前正式版在 Actions 中签名构建，实际验证范围及历史构建来源见 [VALIDATION.md](VALIDATION.md)。当前尚未启用 R8 代码裁剪和资源裁剪，音视频保留原始编码。
+
+## 工作流职责
+
+仓库保留三个核心工作流：`Android app` 执行构建、单元测试、Lint 与双 API 设备回归；`Android signed release` 使用加密 Secrets 生成并核验正式包；`Publish verified release` 在同一源码的两项检查通过后公开发布。升级期间的临时诊断导出工作流已移除，日常验证在失败时仍自动上传报告和设备诊断。

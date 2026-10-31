@@ -1,6 +1,6 @@
 # Study With Miku · Android 工程说明
 
-非官方 Android 移植。原作：[shshouse/StudyWithMiku](https://github.com/shshouse/StudyWithMiku)，功能与资料基线更新至提交 `2bb2379cfa0b04d413f1406ecf5f70aa494dddad`（2026-10-27），同步 48 条内置一言，包含手动切歌重叠、聊天投递与消息合并、设置兼容及过期歌单请求保护。逐项映射见 [上游适配记录](UPSTREAM.md)。原生 Kotlin、Compose、Media3；Material 3 Expressive 主题、动态形状按钮和花瓣计时进度。支持 Android 8.0（API 26）以上，target API 37。
+非官方 Android 移植。原作：[shshouse/StudyWithMiku](https://github.com/shshouse/StudyWithMiku)，功能与资料基线更新至提交 `bcc6627b80e47515c26c7677823bf68227cd90ef`（2026-10-31），同步 48 条内置一言，包含手动切歌重叠、聊天投递与消息合并、设置兼容及过期歌单请求保护。逐项映射见 [上游适配记录](UPSTREAM.md)。原生 Kotlin、Compose、Media3；Material 3 Expressive 主题、动态形状按钮和花瓣计时进度。支持 Android 8.0（API 26）以上，target API 37。
 
 仓库和已发布版本公开；安装请使用 [最新正式 Release](https://github.com/chorusfruit-233/StudyWithMiku-Android/releases/latest)。用户说明见 [根目录 README](../README.md)，更新记录见 [CHANGELOG.md](../CHANGELOG.md)。本页说明功能映射、接口与原生适配。
 
@@ -41,7 +41,7 @@
 
 在“社区 → 账号”打开官方登录页。登录地址沿用 `https://mikumod.com/login?redirect=study&callback=https%3A%2F%2Fstudy.mikumod.com`，内置 WebView 捕获原站根路径的 `#study_token` 回调。仅在 HTTPS 官方回调与服务端认证均通过后保存凭据。无 JavaScript 桥接，无后端修改，无密码读取；登录页禁止截图并正常校验 TLS。若身份提供方限制内置 WebView，此流程会受其限制；外部浏览器不会自动把原站 HTTPS 回调交回此应用，当前没有未经后端支持的替代 OAuth 回调。
 
-账号 API 为 `https://mikumod.com/api/study/data`、`/calendar` 与 `/profiles`。云端学习时长使用秒，本机使用毫秒，设置时长使用分钟。保留未知云端字段，日历按日期拆分，合并采用每日最大值而非相加。云端读取失败或数据格式异常会阻止上传。首次合并前提供使用云端／上传本地／合并选择；切换账号和退出登录分别恢复账号／访客档案。启用自动同步后，静止时延迟两秒同步，计时中每分钟同步。云同步只涵盖原作支持的资料；音乐导入、收藏、播放队列、主题等原生扩展保存在本机。
+账号 API 为 `https://mikumods.com/api/study/data`、`/calendar` 与 `/profiles`。云端学习时长使用秒，本机使用毫秒，设置时长使用分钟。保留未知云端字段，日历按日期拆分，合并采用每日最大值而非相加。云端读取失败或数据格式异常会阻止上传。首次合并前提供使用云端／上传本地／合并选择；切换账号和退出登录分别恢复账号／访客档案。启用自动同步后，静止时延迟两秒同步，计时中每分钟同步。云同步只涵盖原作支持的资料；音乐导入、收藏、播放队列、主题等原生扩展保存在本机。
 
 1.2.10 合并时，缺失或非有限的数值字段采用有限默认值，单端日期保留已有学习值；相同记录 ID 保留本机编辑及双方附加字段。上传仅发送原作支持的顶层字段：学习资料 `stats/todos/settings`，日历 `dailyLog/plans`；顶层档案附加信息继续在本机保存，记录内部字段保留。两份文档在首个写入前都完成结构、数值和 JSON 编码检查。账号 API 使用 Bearer、原作 `application/json` 与 UTF-8，不附带登录 WebView Cookie 或共享 CookieJar；错误信息区分读取／上传及学习资料／日历。
 
