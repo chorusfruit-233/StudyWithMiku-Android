@@ -4,6 +4,8 @@ Study With Miku 非官方原生 Android 移植，支持 Android 8.0 及以上，
 - 登录及账号设置继续使用 `https://mikumod.com`，接口调用保留原有 Bearer 与 Cookie 隔离规则。
 - 删除工具链升级时临时添加的诊断导出工作流，保留验证、签名构建和核验发布。
 
+Debug／Release 各 105 项单元测试、Android 15／17 各 41 项设备测试通过，Lint 0 错误。另停用历史 1.2.7／1.2.9 一次性上传工作流，当前仅启用三个核心流程。
+
 下载 `StudyWithMiku-Android-1.2.15-release.apk`，沿用原包名与固定证书，可覆盖升级已有正式版。附带 SHA256SUMS、公开证书及检查报告。
 
 [上游适配说明](https://github.com/chorusfruit-233/StudyWithMiku-Android/blob/main/android/UPSTREAM.md) · [验证记录](https://github.com/chorusfruit-233/StudyWithMiku-Android/blob/main/android/VALIDATION.md)

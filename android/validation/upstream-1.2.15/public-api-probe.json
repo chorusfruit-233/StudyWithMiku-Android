@@ -1,0 +1,12 @@
+[
+  {
+    "path": "/api/study/data",
+    "status": 403,
+    "contentType": "application/json; charset=utf-8"
+  },
+  {
+    "path": "/api/study/profiles?ids=",
+    "status": 403,
+    "contentType": "application/json; charset=utf-8"
+  }
+]

@@ -1,13 +1,14 @@
 # 更新记录
 
-当前公开正式版：[v1.2.14](https://github.com/chorusfruit-233/StudyWithMiku-Android/releases/tag/v1.2.14)。此前版本的构建记录见 [验证文档](android/VALIDATION.md)，历史 Debug 草稿未公开发布。
+当前公开正式版：[v1.2.15](https://github.com/chorusfruit-233/StudyWithMiku-Android/releases/tag/v1.2.15)。此前版本的构建记录见 [验证文档](android/VALIDATION.md)，历史 Debug 草稿未公开发布。
 
-## 1.2.15（构建验证中）
+## 1.2.15
 
 - 对齐上游 `bcc6627`，审阅新增的 9 个提交。
 - 同步、日历和用户资料接口改用原站公开部署的 `https://mikumods.com`，登录及账号设置沿用原站网站地址。
 - 增加默认 API 请求路由与凭据隔离回归。
-- 删除临时诊断导出 workflow，保留验证、签名和发布三个核心流程。
+- 删除临时诊断导出 workflow，停用历史 1.2.7／1.2.9 一次性上传流程，保留验证、签名和发布三个核心流程。
+- Debug／Release 各 105 项单元测试、Android 15／17 各 41 项设备回归通过，沿用固定证书公开发布。
 
 ## 1.2.14
 

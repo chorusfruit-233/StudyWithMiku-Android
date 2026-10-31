@@ -1,0 +1,129 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<testsuites tests="41" failures="0" errors="0" skipped="0" time="0.000" timestamp="2026-10-31T17:08:14" hostname="localhost">
+  <testsuite name="io.github.chorusfruit233.studywithmiku.AudioCacheTest" tests="4" failures="0" errors="0" skipped="0" time="10.642" timestamp="2026-10-31T17:08:14" hostname="localhost">
+    <properties>
+      <property name="device" value="emulator-5554" />
+    </properties>
+    <testcase name="productionDownloadServiceAndMediaControllerPlayOffline" classname="io.github.chorusfruit233.studywithmiku.AudioCacheTest" time="2.395" />
+    <testcase name="errorResponseCannotBecomeAnOfflineSong" classname="io.github.chorusfruit233.studywithmiku.AudioCacheTest" time="1.153" />
+    <testcase name="interruptedDownloadIsNotOfflineReadyAndResumesFromPersistedBytes" classname="io.github.chorusfruit233.studywithmiku.AudioCacheTest" time="5.332" />
+    <testcase name="completeAudioSurvivesRecreationAndPlaysWithServerGoneAndRenewedUrl" classname="io.github.chorusfruit233.studywithmiku.AudioCacheTest" time="1.762" />
+  </testsuite>
+  <testsuite name="io.github.chorusfruit233.studywithmiku.BackgroundAccessTest" tests="3" failures="0" errors="0" skipped="0" time="0.023" timestamp="2026-10-31T17:08:14" hostname="localhost">
+    <properties>
+      <property name="device" value="emulator-5554" />
+    </properties>
+    <testcase name="alreadyExemptInstallShowsGuidanceOnceAndCanRequestAfterExemptionIsRevoked" classname="io.github.chorusfruit233.studywithmiku.BackgroundAccessTest" time="0.012" />
+    <testcase name="unsupportedVendorScreensFallBackAndNeverRepeatedlyInterruptTimer" classname="io.github.chorusfruit233.studywithmiku.BackgroundAccessTest" time="0.011" />
+    <testcase name="declinedRequestSurvivesRecreationAndManualRetryRemainsAvailable" classname="io.github.chorusfruit233.studywithmiku.BackgroundAccessTest" time="0.000" />
+  </testsuite>
+  <testsuite name="io.github.chorusfruit233.studywithmiku.BackgroundSettingsUiTest" tests="2" failures="0" errors="0" skipped="0" time="4.567" timestamp="2026-10-31T17:08:14" hostname="localhost">
+    <properties>
+      <property name="device" value="emulator-5554" />
+    </properties>
+    <testcase name="unrestrictedGuidanceCanBeDeferredWithoutOpeningSettings" classname="io.github.chorusfruit233.studywithmiku.BackgroundSettingsUiTest" time="2.603" />
+    <testcase name="manualPermissionAndSystemSettingsAreSeparateActionsAndStatusRefreshes" classname="io.github.chorusfruit233.studywithmiku.BackgroundSettingsUiTest" time="1.964" />
+  </testsuite>
+  <testsuite name="io.github.chorusfruit233.studywithmiku.ChatSheetGestureTest" tests="2" failures="0" errors="0" skipped="0" time="6.988" timestamp="2026-10-31T17:08:14" hostname="localhost">
+    <properties>
+      <property name="device" value="emulator-5554" />
+    </properties>
+    <testcase name="repeatedUpwardSwipesAtLastMessageKeepSheetStillAndHistoryScrollable" classname="io.github.chorusfruit233.studywithmiku.ChatSheetGestureTest" time="5.092" />
+    <testcase name="downwardSwipeAtFirstMessageStillDismissesSheet" classname="io.github.chorusfruit233.studywithmiku.ChatSheetGestureTest" time="1.896" />
+  </testsuite>
+  <testsuite name="io.github.chorusfruit233.studywithmiku.CloudChoiceUiTest" tests="1" failures="0" errors="0" skipped="0" time="2.676" timestamp="2026-10-31T17:08:14" hostname="localhost">
+    <properties>
+      <property name="device" value="emulator-5554" />
+    </properties>
+    <testcase name="useCloudButtonImportsLatestDataAndRecreatedSessionDoesNotPrompt" classname="io.github.chorusfruit233.studywithmiku.CloudChoiceUiTest" time="2.676" />
+  </testsuite>
+  <testsuite name="io.github.chorusfruit233.studywithmiku.FocusWakeLockTest" tests="1" failures="0" errors="0" skipped="0" time="1.519" timestamp="2026-10-31T17:08:14" hostname="localhost">
+    <properties>
+      <property name="device" value="emulator-5554" />
+    </properties>
+    <testcase name="timerWithoutMusicAutomaticallyAcquiresAndReleasesWakeLock" classname="io.github.chorusfruit233.studywithmiku.FocusWakeLockTest" time="1.519" />
+  </testsuite>
+  <testsuite name="io.github.chorusfruit233.studywithmiku.ImageLoadingTest" tests="2" failures="0" errors="0" skipped="0" time="0.498" timestamp="2026-10-31T17:08:14" hostname="localhost">
+    <properties>
+      <property name="device" value="emulator-5554" />
+    </properties>
+    <testcase name="productionImageLoaderFetchesAndDecodesNetworkCover" classname="io.github.chorusfruit233.studywithmiku.ImageLoadingTest" time="0.425" />
+    <testcase name="productionImageLoaderKeepsBundledStickersAnimated" classname="io.github.chorusfruit233.studywithmiku.ImageLoadingTest" time="0.073" />
+  </testsuite>
+  <testsuite name="io.github.chorusfruit233.studywithmiku.NetworkPlaylistPersistenceTest" tests="4" failures="0" errors="0" skipped="0" time="0.154" timestamp="2026-10-31T17:08:14" hostname="localhost">
+    <properties>
+      <property name="device" value="emulator-5554" />
+    </properties>
+    <testcase name="successfulLoadSavesRemoteNameButFailureKeepsPreviousPlaylist" classname="io.github.chorusfruit233.studywithmiku.NetworkPlaylistPersistenceTest" time="0.091" />
+    <testcase name="savedBookmarksSurviveRecreationAndRemainSeparateFromNativePlaylists" classname="io.github.chorusfruit233.studywithmiku.NetworkPlaylistPersistenceTest" time="0.035" />
+    <testcase name="nameLookupFailureStillSavesPlayablePlaylistWithIdFallback" classname="io.github.chorusfruit233.studywithmiku.NetworkPlaylistPersistenceTest" time="0.018" />
+    <testcase name="switchingCachedPlaylistsOfflinePreservesSharedMembershipAndAudioQuality" classname="io.github.chorusfruit233.studywithmiku.NetworkPlaylistPersistenceTest" time="0.010" />
+  </testsuite>
+  <testsuite name="io.github.chorusfruit233.studywithmiku.OfflineCacheUiTest" tests="1" failures="0" errors="0" skipped="0" time="2.923" timestamp="2026-10-31T17:08:14" hostname="localhost">
+    <properties>
+      <property name="device" value="emulator-5554" />
+    </properties>
+    <testcase name="partialPlaylistPlaysOnlyCompleteSongsAndClearRequiresConfirmation" classname="io.github.chorusfruit233.studywithmiku.OfflineCacheUiTest" time="2.923" />
+  </testsuite>
+  <testsuite name="io.github.chorusfruit233.studywithmiku.PartialPreferencesTest" tests="2" failures="0" errors="0" skipped="0" time="0.302" timestamp="2026-10-31T17:08:14" hostname="localhost">
+    <properties>
+      <property name="device" value="emulator-5554" />
+    </properties>
+    <testcase name="malformedRootPreferencesFallBackToCompleteDefaults" classname="io.github.chorusfruit233.studywithmiku.PartialPreferencesTest" time="0.200" />
+    <testcase name="partialSavedPreferencesFillDefaultsAndKeepMusicQueueIndependent" classname="io.github.chorusfruit233.studywithmiku.PartialPreferencesTest" time="0.102" />
+  </testsuite>
+  <testsuite name="io.github.chorusfruit233.studywithmiku.PlaybackCrossfadeTest" tests="4" failures="0" errors="0" skipped="0" time="18.342" timestamp="2026-10-31T17:08:14" hostname="localhost">
+    <properties>
+      <property name="device" value="emulator-5554" />
+    </properties>
+    <testcase name="naturalAdvanceKeepsIncomingPositionAndFinishesSecondaryDecoder" classname="io.github.chorusfruit233.studywithmiku.PlaybackCrossfadeTest" time="8.144" />
+    <testcase name="productionMediaControllerKeepsUserVolumeAndMuteAcrossQueueSwitches" classname="io.github.chorusfruit233.studywithmiku.PlaybackCrossfadeTest" time="4.750" />
+    <testcase name="rapidNextThenPauseCommitsLatestChoiceAndStopsBothVoices" classname="io.github.chorusfruit233.studywithmiku.PlaybackCrossfadeTest" time="1.759" />
+    <testcase name="manualSwitchOverlapsDecodersAndHandsOffWithoutResettingIncomingPosition" classname="io.github.chorusfruit233.studywithmiku.PlaybackCrossfadeTest" time="3.689" />
+  </testsuite>
+  <testsuite name="io.github.chorusfruit233.studywithmiku.PlaylistRaceTest" tests="2" failures="0" errors="0" skipped="0" time="0.716" timestamp="2026-10-31T17:08:14" hostname="localhost">
+    <properties>
+      <property name="device" value="emulator-5554" />
+    </properties>
+    <testcase name="lateFailureCannotReplaceOfflineSelectionOrItsSavedConfig" classname="io.github.chorusfruit233.studywithmiku.PlaylistRaceTest" time="0.388" />
+    <testcase name="lateSuccessCannotReplaceNewRemoteSelectionOrRunOldPlaybackCallback" classname="io.github.chorusfruit233.studywithmiku.PlaylistRaceTest" time="0.328" />
+  </testsuite>
+  <testsuite name="io.github.chorusfruit233.studywithmiku.SparseSyncUiTest" tests="2" failures="0" errors="0" skipped="0" time="4.220" timestamp="2026-10-31T17:08:14" hostname="localhost">
+    <properties>
+      <property name="device" value="emulator-5554" />
+    </properties>
+    <testcase name="mergeOfOneSidedDatesUploadsOriginalWireFormatAndSurvivesRecreation" classname="io.github.chorusfruit233.studywithmiku.SparseSyncUiTest" time="1.863" />
+    <testcase name="failedCalendarUploadNamesTheStepPreservesLocalDataAndAllowsRetry" classname="io.github.chorusfruit233.studywithmiku.SparseSyncUiTest" time="2.357" />
+  </testsuite>
+  <testsuite name="io.github.chorusfruit233.studywithmiku.StudyPersistenceTest" tests="4" failures="0" errors="0" skipped="0" time="0.463" timestamp="2026-10-31T17:08:14" hostname="localhost">
+    <properties>
+      <property name="device" value="emulator-5554" />
+    </properties>
+    <testcase name="decimalCreditAndUnknownItemFieldsSurviveNativeRoundTrip" classname="io.github.chorusfruit233.studywithmiku.StudyPersistenceTest" time="0.022" />
+    <testcase name="acceptedSnapshotIsBackedUpAndRestoredForEachAccount" classname="io.github.chorusfruit233.studywithmiku.StudyPersistenceTest" time="0.340" />
+    <testcase name="cloudStatsTasksCalendarAndSettingsSurviveStoreRecreation" classname="io.github.chorusfruit233.studywithmiku.StudyPersistenceTest" time="0.033" />
+    <testcase name="nonFiniteLegacySettingsCannotPoisonNativePreferenceStorage" classname="io.github.chorusfruit233.studywithmiku.StudyPersistenceTest" time="0.068" />
+  </testsuite>
+  <testsuite name="io.github.chorusfruit233.studywithmiku.TaskActionsUiTest" tests="3" failures="0" errors="0" skipped="0" time="8.361" timestamp="2026-10-31T17:08:14" hostname="localhost">
+    <properties>
+      <property name="device" value="emulator-5554" />
+    </properties>
+    <testcase name="deletingTaskRequiresConfirmationAndKeepsStudyCredit" classname="io.github.chorusfruit233.studywithmiku.TaskActionsUiTest" time="2.305" />
+    <testcase name="deletingCountdownRequiresConfirmationAndKeepsOtherTasks" classname="io.github.chorusfruit233.studywithmiku.TaskActionsUiTest" time="2.275" />
+    <testcase name="editingGlobalTaskUpdatesSameUndatedTaskWithoutAddingAnother" classname="io.github.chorusfruit233.studywithmiku.TaskActionsUiTest" time="3.781" />
+  </testsuite>
+  <testsuite name="io.github.chorusfruit233.studywithmiku.TaskPersistenceTest" tests="1" failures="0" errors="0" skipped="0" time="0.285" timestamp="2026-10-31T17:08:14" hostname="localhost">
+    <properties>
+      <property name="device" value="emulator-5554" />
+    </properties>
+    <testcase name="fullDateRejectsNewPlanWithoutChangingExistingPlans" classname="io.github.chorusfruit233.studywithmiku.TaskPersistenceTest" time="0.285" />
+  </testsuite>
+  <testsuite name="io.github.chorusfruit233.studywithmiku.UpstreamOctoberUiTest" tests="3" failures="0" errors="0" skipped="0" time="5.484" timestamp="2026-10-31T17:08:14" hostname="localhost">
+    <properties>
+      <property name="device" value="emulator-5554" />
+    </properties>
+    <testcase name="deletingSavedNetworkPlaylistRequiresConfirmationWithoutLoadingIt" classname="io.github.chorusfruit233.studywithmiku.UpstreamOctoberUiTest" time="2.321" />
+    <testcase name="quotedReplyDisplaysReferenceAndBodyAndAllowsCancelingAnotherReply" classname="io.github.chorusfruit233.studywithmiku.UpstreamOctoberUiTest" time="1.738" />
+    <testcase name="unloadedReferenceDoesNotHideReplyBodyOrSticker" classname="io.github.chorusfruit233.studywithmiku.UpstreamOctoberUiTest" time="1.425" />
+  </testsuite>
+</testsuites>

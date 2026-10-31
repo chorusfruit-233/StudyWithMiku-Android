@@ -1,10 +1,20 @@
 # 验证记录
 
-## 公开发布状态（2026-10-27 核对）
+## 公开发布状态（2026-10-31 核对）
 
-仓库已公开，当前正式版为 [v1.2.14](https://github.com/chorusfruit-233/StudyWithMiku-Android/releases/tag/v1.2.14)。GitHub 元数据确认 `draft=false`、`prerelease=false`，发布时间为 `2026-10-27T10:17:30Z`，Latest 指向此版本。Release 提供固定签名 APK、文件校验值、公开证书资料和 Release 检查报告。
+仓库已公开，当前正式版为 [v1.2.15](https://github.com/chorusfruit-233/StudyWithMiku-Android/releases/tag/v1.2.15)。GitHub 元数据确认 `draft=false`、`prerelease=false`，发布时间为 `2026-10-31T17:14:06Z`，Latest 指向此版本。Release 提供固定签名 APK、文件校验值、公开证书资料和 Release 检查报告。
 
 下文保留各版本真实构建、测试结果与验收范围。仓库公开不会自动发布历史 Debug 草稿；因此以草稿标识保留旧产物来源，不将其作为公众下载入口。本目录的回归报告与截图可随源码公开查看。
+
+## 1.2.15 接口地址与工作流清理
+
+- 对齐上游 `bcc6627b80e47515c26c7677823bf68227cd90ef`，审阅新增 9 个提交及 4 个变更文件。对照原站公开前端包，确认学习资料、日历和用户资料使用 `https://mikumods.com`；登录和账号设置保留 `https://mikumod.com`。前端包 URL、摘要与路由证据见[归档](validation/upstream-1.2.15/README.txt)。
+- 新增默认客户端请求测试，拦截实际构造的两份资料 GET／PUT 与用户资料 GET，验证目标域名、登录域名和凭据规则；请求没有发往真实账号。源码为 `8196ad21f5e85a682b35fb611f4ce0193606a04a`，版本 1.2.15／versionCode=18。
+- [Debug Actions 41222479706](https://github.com/chorusfruit-233/StudyWithMiku-Android/actions/runs/41222479706) 与[签名 Release Actions 41222479966](https://github.com/chorusfruit-233/StudyWithMiku-Android/actions/runs/41222479966) 成功。下载报告确认 Debug／Release 各 105 项 JVM、Android 15／17 各 41 项设备测试通过，0 失败／错误／跳过，Lint 0 错误。两套设备原始 XML 按字节保存在归档中。
+- 已删除临时诊断导出 workflow，并在 GitHub 停用历史 1.2.7 和 1.2.9 的一次性上传流程。清理后的 workflow 状态已归档，仅三个核心工作流处于启用状态，失败报告仍由日常 CI 自动归档。
+- APK 为 131,011,223 字节，SHA-256 `4737b9d5f476c4c97de957cb03d776cc9267d486e2d09f346f04a82ed4258928`。重新下载后核对固定证书、包名、版本、minSdk=26、targetSdk=37 和关闭调试标志；公开四项附件摘要与本地文件一致。
+- [发布 Actions 41223505915](https://github.com/chorusfruit-233/StudyWithMiku-Android/actions/runs/41223505915) 已公开发布 [v1.2.15](https://github.com/chorusfruit-233/StudyWithMiku-Android/releases/tag/v1.2.15)，标签指向上述构建源码，Latest 指向本版。后续文档提交不改变编译输入。
+- 公开 API 的无凭据探测返回 HTTP 403，未进行真实账号验收；客户端路由由本地拦截测试验证。设备测试使用 Debug APK、生成音频、本地服务及合成资料，不代表签名正式包真机或真实账号端到端同步验收。
 
 ## 1.2.14 上游 2026-10-27 内容同步
 
