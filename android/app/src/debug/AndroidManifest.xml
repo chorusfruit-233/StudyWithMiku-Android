@@ -1,0 +1,7 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <application>
+        <!-- Offline UI fixture with the same resize handling as MainActivity; absent from Release. -->
+        <activity android:name=".LayoutTestActivity" android:exported="false"
+            android:configChanges="keyboardHidden|orientation|screenSize" />
+    </application>
+</manifest>

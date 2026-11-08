@@ -114,47 +114,33 @@ class MainActivity : ComponentActivity() {
             permission.launch(Manifest.permission.POST_NOTIFICATIONS)
         } else app.timer.toggle()
     }
-    val icons = listOf(Icons.Rounded.Timer,Icons.Rounded.Headphones,Icons.Rounded.Checklist,Icons.Rounded.BarChart,Icons.Rounded.Forum)
-    val labels = listOf("专注","音乐","计划","记录","社区")
-    Scaffold(containerColor = MaterialTheme.colorScheme.background,
-        topBar = {
-            Row(Modifier.fillMaxWidth().statusBarsPadding().padding(horizontal = 24.dp,vertical = 8.dp),
-                verticalAlignment = Alignment.CenterVertically) {
-                Row(Modifier.weight(1f),verticalAlignment = Alignment.CenterVertically,horizontalArrangement = Arrangement.spacedBy(9.dp)) {
-                    Surface(shape = RoundedCornerShape(12.dp),color = MaterialTheme.colorScheme.primaryContainer) {
-                        Icon(Icons.Rounded.GraphicEq,null,Modifier.padding(9.dp).size(21.dp),tint = MaterialTheme.colorScheme.primary)
-                    }
-                    Column {
-                        Text("STUDY WITH MIKU",fontSize = 12.sp,fontWeight = FontWeight.ExtraBold,letterSpacing = 1.4.sp)
-                        Text(if (chat.connected) "${chat.online} 人正在一起学习${if (chat.adminOnline) " · 管理员在线" else ""}" else "和 Miku 一起，慢慢变好",fontSize = 10.sp,color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    }
+    AdaptiveAppScaffold(tab,{ tab = it },snackbar,
+        title = {
+            Row(Modifier.weight(1f),verticalAlignment = Alignment.CenterVertically,horizontalArrangement = Arrangement.spacedBy(9.dp)) {
+                Surface(shape = RoundedCornerShape(12.dp),color = MaterialTheme.colorScheme.primaryContainer) {
+                    Icon(Icons.Rounded.GraphicEq,null,Modifier.padding(9.dp).size(21.dp),tint = MaterialTheme.colorScheme.primary)
                 }
-                if (tab != 4) IconButton(onClick = { chatSheet = true }) { Icon(Icons.Rounded.ChatBubbleOutline,"打开聊天室") }
-                IconButton(onClick = { settings = true }) { Icon(Icons.Rounded.Tune,"设置") }
+                Column {
+                    Text("STUDY WITH MIKU",fontSize = 12.sp,fontWeight = FontWeight.ExtraBold,letterSpacing = 1.4.sp,maxLines = 1)
+                    Text(if (chat.connected) "${chat.online} 人正在一起学习${if (chat.adminOnline) " · 管理员在线" else ""}" else "和 Miku 一起，慢慢变好",fontSize = 10.sp,color = MaterialTheme.colorScheme.onSurfaceVariant,maxLines = 1)
+                }
             }
         },
-        snackbarHost = { SnackbarHost(snackbar) },
-        bottomBar = {
-            Column {
-                if (playback.songId != null) MiniPlayer(library.songs.find { it.id == playback.songId },playback,music) { player = true }
-                NavigationBar(containerColor = MaterialTheme.colorScheme.surfaceContainerLow,tonalElevation = 0.dp) {
-                    labels.forEachIndexed { i,label ->
-                        NavigationBarItem(selected = tab == i,onClick = { tab = i },icon = { Icon(icons[i],label) },
-                            label = { Text(label,fontWeight = if (tab == i) FontWeight.Bold else FontWeight.Medium) },
-                            colors = NavigationBarItemDefaults.colors(indicatorColor = MaterialTheme.colorScheme.primaryContainer))
-                    }
-                }
-            }
-        }) { insets ->
-        Box(Modifier.fillMaxSize().padding(insets)) {
-            AnimatedContent(targetState = tab,transitionSpec = { fadeIn() togetherWith fadeOut() },label = "页面切换") { selected ->
-                when (selected) {
-                    0 -> FocusScreen(prefs,timer,logs,todos,app.store,app.timer,app.extras,::toggleTimer)
-                    1 -> LibraryScreen(library,playback,app.store,music,app.onlineMusic,::message) { player = true }
-                    2 -> TasksScreen(todos,app.store) { content -> if (!app.auth.state.value.loggedIn) app.openLogin() else if (app.chat.sendChat(content,app.extras.messageLocation())) { communityPage = 0; tab = 4; message("已分享到聊天室") } else message("连接成功后再分享") }
-                    3 -> RecordsScreen(logs,todos)
-                    else -> CommunityScreen(app,music,::message,communityPage,{ communityPage = it }) { player = true }
-                }
+        actions = {
+            if (tab != 4) IconButton(onClick = { chatSheet = true }) { Icon(Icons.Rounded.ChatBubbleOutline,"打开聊天室") }
+            IconButton(onClick = { settings = true }) { Icon(Icons.Rounded.Tune,"设置") }
+        },
+        miniPlayer = if (playback.songId == null) null else { compact ->
+            MiniPlayer(library.songs.find { it.id == playback.songId },playback,music,compact = compact) { player = true }
+        },
+    ) {
+        AnimatedContent(targetState = tab,transitionSpec = { fadeIn() togetherWith fadeOut() },label = "页面切换") { selected ->
+            when (selected) {
+                0 -> FocusScreen(prefs,timer,logs,todos,app.store,app.timer,app.extras,::toggleTimer)
+                1 -> LibraryScreen(library,playback,app.store,music,app.onlineMusic,::message) { player = true }
+                2 -> TasksScreen(todos,app.store) { content -> if (!app.auth.state.value.loggedIn) app.openLogin() else if (app.chat.sendChat(content,app.extras.messageLocation())) { communityPage = 0; tab = 4; message("已分享到聊天室") } else message("连接成功后再分享") }
+                3 -> RecordsScreen(logs,todos)
+                else -> CommunityScreen(app,music,::message,communityPage,{ communityPage = it }) { player = true }
             }
         }
     }
@@ -177,9 +163,10 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable fun PageHeading(eyebrow: String, title: String, subtitle: String? = null) {
-    Column(Modifier.padding(top = 12.dp,bottom = 10.dp),verticalArrangement = Arrangement.spacedBy(8.dp)) {
+    val compact = LocalCompactHeight.current
+    Column(Modifier.padding(top = 12.dp,bottom = 10.dp),verticalArrangement = Arrangement.spacedBy(if (compact) 4.dp else 8.dp)) {
         Text(eyebrow,color = MaterialTheme.colorScheme.primary,style = MaterialTheme.typography.labelMedium,letterSpacing = 2.sp)
-        Text(title,style = MaterialTheme.typography.headlineLarge)
+        Text(if (compact) title.replace("\n","") else title,style = if (compact) MaterialTheme.typography.headlineSmall else MaterialTheme.typography.headlineLarge)
         subtitle?.let { Text(it,style = MaterialTheme.typography.bodyMedium,color = MaterialTheme.colorScheme.onSurfaceVariant) }
     }
 }

@@ -23,8 +23,9 @@ internal object ChatSheetScrollBoundary : NestedScrollConnection {
 }
 
 @Composable fun FocusChatSheet(onDismiss: () -> Unit,content: @Composable () -> Unit) {
-    ModalBottomSheet(onDismissRequest = onDismiss,sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)) {
-        Box(Modifier.fillMaxWidth().heightIn(min = 300.dp,max = 620.dp)
-            .nestedScroll(ChatSheetScrollBoundary).padding(16.dp)) { content() }
+    ModalBottomSheet(onDismissRequest = onDismiss,sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),sheetMaxWidth = adaptiveSheetMaxWidth()) {
+        Box(Modifier.fillMaxWidth().heightIn(max = 620.dp).fillMaxHeight()
+            .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal))
+            .nestedScroll(ChatSheetScrollBoundary).padding(horizontal = 16.dp,vertical = 8.dp)) { content() }
     }
 }

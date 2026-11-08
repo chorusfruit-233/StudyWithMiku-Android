@@ -63,8 +63,8 @@ private val sceneResources = listOf(R.drawable.scene_1,R.drawable.scene_2,R.draw
     val today = LocalDate.now()
     val daily = logs[today.toString()] ?: DayLog()
     val todayTodos = todos.filter { it.date == today.toString() || (it.date.isEmpty() && it.pinned) }.sortedBy { it.done }
-    Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 24.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)) {
+    val compact = LocalCompactHeight.current
+    AdaptivePaneLayout(primary = {
         PageHeading("MAKE ROOM FOR YOURSELF","专注当下，\n未来慢慢发光。")
         Box(Modifier.fillMaxWidth().aspectRatio(1.82f).clipShape(28.dp)) {
             MikuScene(prefs.scene,prefs.animateScene,Modifier.fillMaxSize())
@@ -80,8 +80,9 @@ private val sceneResources = listOf(R.drawable.scene_1,R.drawable.scene_2,R.draw
                 IconButton(onClick = { fullScene = true }) { Icon(Icons.Rounded.Fullscreen,"沉浸场景",tint = Color.White) }
             }
         }
+    },secondary = {
         Surface(shape = RoundedCornerShape(36.dp),color = MaterialTheme.colorScheme.surfaceContainerLow) {
-            Column(Modifier.fillMaxWidth().padding(16.dp),horizontalAlignment = Alignment.CenterHorizontally) {
+            Column(Modifier.fillMaxWidth().padding(if (compact) 12.dp else 16.dp),horizontalAlignment = Alignment.CenterHorizontally) {
                 Row(Modifier.fillMaxWidth(),horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                     TimerMode.entries.forEach { mode ->
                         val selected = clock.mode == mode
@@ -98,24 +99,24 @@ private val sceneResources = listOf(R.drawable.scene_1,R.drawable.scene_2,R.draw
                         }
                     }
                 }
-                Spacer(Modifier.height(14.dp))
-                Box(Modifier.fillMaxWidth().heightIn(min = 174.dp),contentAlignment = Alignment.Center) {
-                    FlowerProgress(clock,prefs,Modifier.size(174.dp))
+                Spacer(Modifier.height(if (compact) 4.dp else 14.dp))
+                Box(Modifier.fillMaxWidth().heightIn(min = if (compact) 112.dp else 174.dp),contentAlignment = Alignment.Center) {
+                    FlowerProgress(clock,prefs,Modifier.size(if (compact) 112.dp else 174.dp))
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(focusStatusLabel(clock),
                             style = MaterialTheme.typography.labelLarge,color = MaterialTheme.colorScheme.primary)
                         Text(timeLabel(if (clock.mode == TimerMode.STOPWATCH) clock.elapsedMs else clock.remainingMs),
-                            style = MaterialTheme.typography.displayLarge.copy(fontSize = if ((if (clock.mode == TimerMode.STOPWATCH) clock.elapsedMs else clock.remainingMs) >= 3_600_000L) 54.sp else 68.sp),
+                            style = MaterialTheme.typography.displayLarge.copy(fontSize = if (compact) 48.sp else if ((if (clock.mode == TimerMode.STOPWATCH) clock.elapsedMs else clock.remainingMs) >= 3_600_000L) 54.sp else 68.sp),
                             maxLines = 1)
                         Text(focusDetailLabel(clock,prefs),
                             style = MaterialTheme.typography.bodySmall,color = MaterialTheme.colorScheme.onSurfaceVariant,textAlign = TextAlign.Center)
                     }
                 }
-                Spacer(Modifier.height(12.dp))
+                Spacer(Modifier.height(if (compact) 4.dp else 12.dp))
                 Row(Modifier.fillMaxWidth(),horizontalArrangement = Arrangement.spacedBy(10.dp),verticalAlignment = Alignment.CenterVertically) {
-                    FilledTonalIconButton(onClick = { confirmReset = true },modifier = Modifier.size(60.dp)) { Icon(Icons.Rounded.RestartAlt,"重置计时") }
+                    FilledTonalIconButton(onClick = { confirmReset = true },modifier = Modifier.size(if (compact) 48.dp else 60.dp)) { Icon(Icons.Rounded.RestartAlt,"重置计时") }
                     Button(onClick = toggle,shapes = ButtonDefaults.shapes(shape = CircleShape,pressedShape = RoundedCornerShape(20.dp)),
-                        modifier = Modifier.weight(1f).heightIn(min = 60.dp),enabled = true) {
+                        modifier = Modifier.weight(1f).heightIn(min = if (compact) 48.dp else 60.dp),enabled = true) {
                         Icon(if (clock.running) Icons.Rounded.Pause else Icons.Rounded.PlayArrow,null,Modifier.size(26.dp))
                         Spacer(Modifier.width(8.dp))
                         Text(focusActionLabel(clock),fontSize = 17.sp)
@@ -162,7 +163,7 @@ private val sceneResources = listOf(R.drawable.scene_1,R.drawable.scene_2,R.draw
             }
         }
         Spacer(Modifier.height(12.dp))
-    }
+    })
     if (confirmReset || pendingMode != null) AlertDialog(onDismissRequest = { confirmReset = false; pendingMode = null },
         icon = { Icon(Icons.Rounded.RestartAlt,null) },title = { Text(if (pendingMode != null) "切换计时方式？" else "重新开始这一轮？") },
         text = { Text("已专注的时间会保留在学习记录中，本轮计时将重新开始。") },
@@ -172,8 +173,8 @@ private val sceneResources = listOf(R.drawable.scene_1,R.drawable.scene_2,R.draw
         Box(Modifier.fillMaxSize().background(Color.Black).pointerInput(Unit) { detectTapGestures { sceneControls = !sceneControls } }) {
             MikuScene(prefs.scene,prefs.animateScene,Modifier.fillMaxSize())
             Box(Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(Color.Black.copy(alpha = prefs.overlayOpacity),Color.Transparent,Color.Black.copy(alpha = (prefs.overlayOpacity+.25f).coerceAtMost(1f))))))
-            if (sceneControls) IconButton(onClick = { fullScene = false },modifier = Modifier.align(Alignment.TopEnd).statusBarsPadding().padding(16.dp)) { Icon(Icons.Rounded.Close,"退出沉浸",tint = Color.White) }
-            if (!prefs.hidePomodoroOnIdle || clock.running || sceneControls) Column(Modifier.align(Alignment.BottomCenter).navigationBarsPadding().padding(32.dp),horizontalAlignment = Alignment.CenterHorizontally) {
+            if (sceneControls) IconButton(onClick = { fullScene = false },modifier = Modifier.align(Alignment.TopEnd).safeDrawingPadding().padding(16.dp)) { Icon(Icons.Rounded.Close,"退出沉浸",tint = Color.White) }
+            if (!prefs.hidePomodoroOnIdle || clock.running || sceneControls) Column(Modifier.align(Alignment.BottomCenter).safeDrawingPadding().padding(if (compact) 16.dp else 32.dp),horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(focusStatusLabel(clock),color = Color.White)
                 Text(timeLabel(if (clock.mode == TimerMode.STOPWATCH) clock.elapsedMs else clock.remainingMs),style = MaterialTheme.typography.displayLarge,color = Color.White)
                 Text(focusDetailLabel(clock,prefs),style = MaterialTheme.typography.bodySmall,color = Color.White,textAlign = TextAlign.Center)

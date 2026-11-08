@@ -33,7 +33,7 @@ import java.time.YearMonth
         monthKey = target.toString()
         dayKey = target.atDay(selected.dayOfMonth.coerceAtMost(target.lengthOfMonth())).toString()
     }
-    Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 24.dp),verticalArrangement = Arrangement.spacedBy(16.dp)) {
+    AdaptivePaneLayout(primary = {
         PageHeading("YOUR EFFORT COUNTS","努力过的日子，\n都有迹可循。","每一分钟，都是朝未来走的一小步。")
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             StatCard("${month.monthValue} 月专注","${totalMs / 60_000}","分钟",Icons.Rounded.AutoAwesome,Modifier.weight(1f))
@@ -91,7 +91,8 @@ import java.time.YearMonth
                 }
             }
         }
-        Text("${selected.year} 年 ${selected.monthValue} 月 ${selected.dayOfMonth} 日",style = MaterialTheme.typography.titleLarge)
+    },secondary = {
+        Text("${selected.year} 年 ${selected.monthValue} 月 ${selected.dayOfMonth} 日",Modifier.padding(top = 12.dp),style = MaterialTheme.typography.titleLarge)
         Surface(shape = RoundedCornerShape(24.dp),color = MaterialTheme.colorScheme.surfaceContainerLow) {
             BoxWithConstraints(Modifier.fillMaxWidth().padding(20.dp)) {
                 val metrics = listOf("专注时间" to "${dayLog.millis/60_000} 分钟","完成番茄" to "${dayLog.sessions} 个",
@@ -117,7 +118,7 @@ import java.time.YearMonth
         }
         if (totalMs == 0L) Text("${month.year} 年 ${month.monthValue} 月还没有专注记录。",style = MaterialTheme.typography.bodyMedium,color = MaterialTheme.colorScheme.onSurfaceVariant)
         Spacer(Modifier.height(24.dp))
-    }
+    })
 }
 
 @Composable private fun RecordMetric(label: String,value: String,modifier: Modifier = Modifier) {

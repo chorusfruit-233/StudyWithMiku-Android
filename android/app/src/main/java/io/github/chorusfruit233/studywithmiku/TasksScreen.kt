@@ -105,7 +105,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
         val picker = rememberDatePickerState(initialSelectedDateMillis = selected.atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli())
         DatePickerDialog(onDismissRequest = { calendar = false },confirmButton = {
             TextButton(onClick = { picker.selectedDateMillis?.let { selectedKey = Instant.ofEpochMilli(it).atZone(ZoneOffset.UTC).toLocalDate().toString() }; calendar = false }) { Text("确定") }
-        },dismissButton = { TextButton(onClick = { calendar = false }) { Text("取消") } }) { DatePicker(picker) }
+        },dismissButton = { TextButton(onClick = { calendar = false }) { Text("取消") } }) { DatePicker(picker,Modifier.verticalScroll(rememberScrollState())) }
     }
     if (add) AlertDialog(onDismissRequest = { add = false },icon = { Icon(Icons.Rounded.EditNote,null) },title = { Text(if (editing == null) "添加小目标" else "编辑小目标") },
         text = { Column(Modifier.verticalScroll(rememberScrollState()),verticalArrangement = Arrangement.spacedBy(12.dp)) { OutlinedTextField(value = text,onValueChange = { if (it.length <= 200) text = it },label = { Text(if (global) "想完成什么？" else "想在这一天完成什么？") },
@@ -165,7 +165,7 @@ fun listItemShape(index: Int,size: Int) = RoundedCornerShape(
     var title by remember { mutableStateOf("") }; var date by remember { mutableStateOf(LocalDate.now().toString()) }
     var pickerOpen by remember { mutableStateOf(false) }
     AlertDialog(onDismissRequest = onDismiss,title = { Text("添加倒数日") },text = {
-        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Column(Modifier.verticalScroll(rememberScrollState()),verticalArrangement = Arrangement.spacedBy(12.dp)) {
             OutlinedTextField(title,{ title = it.take(40) },label = { Text("标题") },singleLine = true)
             OutlinedButton(onClick = { pickerOpen = true }) { Icon(Icons.Rounded.CalendarMonth,null); Text(date) }
         }
@@ -174,6 +174,6 @@ fun listItemShape(index: Int,size: Int) = RoundedCornerShape(
         val picker = rememberDatePickerState(initialSelectedDateMillis = LocalDate.parse(date).atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli())
         DatePickerDialog(onDismissRequest = { pickerOpen = false },confirmButton = { TextButton(onClick = {
             picker.selectedDateMillis?.let { date = Instant.ofEpochMilli(it).atZone(ZoneOffset.UTC).toLocalDate().toString() }; pickerOpen = false
-        }) { Text("确定") } },dismissButton = { TextButton(onClick = { pickerOpen = false }) { Text("取消") } }) { DatePicker(picker) }
+        }) { Text("确定") } },dismissButton = { TextButton(onClick = { pickerOpen = false }) { Text("取消") } }) { DatePicker(picker,Modifier.verticalScroll(rememberScrollState())) }
     }
 }

@@ -210,12 +210,12 @@ import kotlinx.coroutines.withContext
     }
 }
 
-@Composable fun MiniPlayer(song: Song?,state: PlaybackState,music: MusicConnection,open: () -> Unit) {
+@Composable fun MiniPlayer(song: Song?,state: PlaybackState,music: MusicConnection,compact: Boolean = false,open: () -> Unit) {
     Surface(onClick = open,shape = RoundedCornerShape(24.dp),color = MaterialTheme.colorScheme.secondaryContainer,
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp,vertical = 8.dp)) {
+        modifier = Modifier.fillMaxWidth().padding(horizontal = if (compact) 0.dp else 12.dp,vertical = if (compact) 0.dp else 8.dp)) {
         Column {
-            Row(Modifier.padding(start = 10.dp,end = 6.dp,top = 9.dp,bottom = 9.dp),verticalAlignment = Alignment.CenterVertically,horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                Cover(song,Modifier.size(44.dp).clip(RoundedCornerShape(13.dp)))
+            Row(Modifier.padding(start = 10.dp,end = 6.dp,top = if (compact) 0.dp else 9.dp,bottom = if (compact) 0.dp else 9.dp),verticalAlignment = Alignment.CenterVertically,horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                Cover(song,Modifier.size(if (compact) 32.dp else 44.dp).clip(RoundedCornerShape(13.dp)))
                 Column(Modifier.weight(1f)) {
                     Text(song?.title ?: "本地音乐",style = MaterialTheme.typography.labelLarge,maxLines = 1,overflow = TextOverflow.Ellipsis)
                     Text(if (state.error != null) "播放失败 · 点此查看" else if (state.loading) "正在准备音乐…" else song?.artist ?: "",style = MaterialTheme.typography.bodySmall,maxLines = 1,overflow = TextOverflow.Ellipsis)
@@ -234,13 +234,20 @@ import kotlinx.coroutines.withContext
 @Composable fun PlayerSheet(library: Library,state: PlaybackState,store: MikuStore,music: MusicConnection,onShare: (Song) -> Unit,onDismiss: () -> Unit) {
     val song = library.songs.find { it.id == state.songId }
     var drag by remember(state.songId) { mutableStateOf<Float?>(null) }
-    var queue by remember { mutableStateOf(false) }
+    var queue by rememberSaveable { mutableStateOf(false) }
     val sheet = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     ModalBottomSheet(onDismissRequest = onDismiss,sheetState = sheet,containerColor = MaterialTheme.colorScheme.surface,
-        dragHandle = { BottomSheetDefaults.DragHandle() }) {
-        Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(horizontal = 28.dp).padding(bottom = 32.dp),horizontalAlignment = Alignment.CenterHorizontally,verticalArrangement = Arrangement.spacedBy(18.dp)) {
-            Text("NOW PLAYING · ${if (song?.online == true) platformName(song.platform) else "本地播放"}",style = MaterialTheme.typography.labelMedium,letterSpacing = 2.sp,color = MaterialTheme.colorScheme.primary)
-            Cover(song,Modifier.fillMaxWidth(0.85f).aspectRatio(1f).clip(RoundedCornerShape(48.dp)))
+        sheetMaxWidth = adaptiveSheetMaxWidth()) {
+        Column(Modifier.fillMaxWidth().fillMaxHeight().windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal))) {
+            Row(Modifier.fillMaxWidth().padding(horizontal = 24.dp),verticalAlignment = Alignment.CenterVertically) {
+                Text("NOW PLAYING · ${if (song?.online == true) platformName(song.platform) else "本地播放"}",
+                    Modifier.weight(1f),style = MaterialTheme.typography.labelMedium,letterSpacing = 2.sp,color = MaterialTheme.colorScheme.primary)
+                IconButton(onClick = onDismiss) { Icon(Icons.Rounded.Close,"关闭播放器") }
+            }
+            AdaptivePaneLayout(primary = {
+                Box(Modifier.fillMaxWidth(),contentAlignment = Alignment.Center) {
+                    Cover(song,Modifier.widthIn(max = 320.dp).fillMaxWidth(0.85f).aspectRatio(1f).clip(RoundedCornerShape(36.dp)))
+                }
             Row(Modifier.fillMaxWidth(),verticalAlignment = Alignment.CenterVertically) {
                 Column(Modifier.weight(1f),verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     Text(song?.title ?: "选择一首音乐",style = MaterialTheme.typography.titleLarge,maxLines = 2,overflow = TextOverflow.Ellipsis)
@@ -251,6 +258,7 @@ import kotlinx.coroutines.withContext
                         if (song?.id in library.favorites) "取消收藏" else "收藏",tint = MaterialTheme.colorScheme.tertiary)
                 }
             }
+            },secondary = {
             Column {
                 Slider(value = drag ?: state.position.toFloat().coerceIn(0f,state.duration.coerceAtLeast(1).toFloat()),
                     onValueChange = { drag = it },onValueChangeFinished = { drag?.let { music.seek(it.toLong()) }; drag = null },
@@ -297,6 +305,8 @@ import kotlinx.coroutines.withContext
             }
             state.error?.let { Text(it,color = MaterialTheme.colorScheme.error,style = MaterialTheme.typography.bodyMedium) }
             LyricsPanel(song,state.position)
+            Spacer(Modifier.height(24.dp))
+            })
         }
     }
 }
