@@ -151,12 +151,19 @@ class LandscapeLayoutTest {
         awaitPlayerOrientation(false)
         compose.onNodeWithText("收起播放队列 · 1 首").assertExists()
         saveDesignScreenshot("player-portrait-before-scroll")
-        compose.onNodeWithText("收起播放队列 · 1 首").performScrollTo()
+        // Exercise the user's gesture through the sheet's nested scroll connection after
+        // rotation, including the viewport clipped by the system navigation area.
+        compose.onNodeWithTag("adaptive-panes").performTouchInput {
+            swipeUp(startY = height * 0.8f,endY = height * 0.25f)
+        }
+        compose.waitUntil(5_000) { compose.onNodeWithText("收起播放队列 · 1 首").isDisplayed() }
         saveDesignScreenshot("player-portrait-after-scroll")
         compose.onNodeWithText("收起播放队列 · 1 首").assertIsDisplayed()
         rotate(true)
         awaitPlayerOrientation(true)
         compose.onNodeWithText("收起播放队列 · 1 首").performScrollTo().assertIsDisplayed()
+        compose.onNodeWithText("收起播放队列 · 1 首").performTouchInput { click() }
+        compose.onNodeWithText("查看播放队列 · 1 首").assertIsDisplayed()
     }
 
     @Test fun recordsShowCalendarBesideDayDetails() {
