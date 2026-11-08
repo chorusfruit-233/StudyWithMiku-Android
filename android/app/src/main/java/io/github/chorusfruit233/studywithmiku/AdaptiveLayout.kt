@@ -33,7 +33,7 @@ internal val LocalCompactHeight = compositionLocalOf { false }
         val primaryScroll = rememberScrollState()
         val secondaryScroll = rememberScrollState()
         Layout(
-            modifier = Modifier.fillMaxSize().then(if (twoPanes) Modifier else Modifier.verticalScroll(pageScroll)),
+            modifier = Modifier.fillMaxSize().testTag("adaptive-panes").then(if (twoPanes) Modifier else Modifier.verticalScroll(pageScroll)),
             content = {
                 Column(Modifier.then(if (twoPanes) Modifier.verticalScroll(primaryScroll) else Modifier).testTag("primary-pane"),
                     verticalArrangement = Arrangement.spacedBy(16.dp),content = primary)

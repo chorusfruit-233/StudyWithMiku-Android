@@ -9,6 +9,8 @@ mkdir -p "$device_report"
 device_diagnostics() {
   local result=$?
   if [[ "$result" -ne 0 ]]; then
+    mkdir -p "$device_report/design-screenshots"
+    adb pull /sdcard/Download/studywithmiku-design/. "$device_report/design-screenshots/" || true
     adb logcat -d -b crash > "$device_report/framework-crash.txt" 2>&1 || true
     tail -100 "$device_report/framework-crash.txt" || true
     adb shell df -h /data || true

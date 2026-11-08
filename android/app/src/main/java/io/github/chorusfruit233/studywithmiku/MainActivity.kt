@@ -166,7 +166,7 @@ class MainActivity : ComponentActivity() {
     val compact = LocalCompactHeight.current
     Column(Modifier.padding(top = 12.dp,bottom = 10.dp),verticalArrangement = Arrangement.spacedBy(if (compact) 4.dp else 8.dp)) {
         Text(eyebrow,color = MaterialTheme.colorScheme.primary,style = MaterialTheme.typography.labelMedium,letterSpacing = 2.sp)
-        Text(if (compact) title.replace("\n","") else title,style = if (compact) MaterialTheme.typography.headlineSmall else MaterialTheme.typography.headlineLarge)
+        Text(title,style = if (compact) MaterialTheme.typography.headlineSmall else MaterialTheme.typography.headlineLarge)
         subtitle?.let { Text(it,style = MaterialTheme.typography.bodyMedium,color = MaterialTheme.colorScheme.onSurfaceVariant) }
     }
 }

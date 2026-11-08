@@ -52,7 +52,9 @@ class LandscapeLayoutTest {
             compose.activity.requestedOrientation = if (landscape) ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE else ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
         }
         compose.waitUntil(10_000) {
-            compose.activity.resources.configuration.orientation == if (landscape) Configuration.ORIENTATION_LANDSCAPE else Configuration.ORIENTATION_PORTRAIT
+            val view = compose.activity.window.decorView
+            compose.activity.resources.configuration.orientation == (if (landscape) Configuration.ORIENTATION_LANDSCAPE else Configuration.ORIENTATION_PORTRAIT) &&
+                view.width > 0 && view.height > 0 && (view.width > view.height) == landscape && !view.isLayoutRequested
         }
         compose.waitForIdle()
     }
@@ -78,6 +80,15 @@ class LandscapeLayoutTest {
         val second = compose.onNodeWithTag("secondary-pane").fetchSemanticsNode().boundsInRoot
         assertTrue("Panels must not overlap: $first / $second",second.left >= first.right)
         assertEquals(first.top,second.top,1f)
+    }
+
+    private fun awaitPlayerOrientation(landscape: Boolean) {
+        // Configuration arrives before the dialog's resized surface on Android 17.
+        compose.waitUntil(10_000) {
+            val bounds = compose.onNodeWithTag("adaptive-panes").fetchSemanticsNode().boundsInRoot
+            bounds.width > 0 && bounds.height > 0 && (bounds.width > bounds.height) == landscape
+        }
+        compose.waitForIdle()
     }
 
     @Test fun landscapeFocusHasVisibleTimerAndNavigationAndRotationKeepsSelection() = isolated { context,store ->
@@ -137,8 +148,14 @@ class LandscapeLayoutTest {
         saveDesignScreenshot("landscape-player")
         compose.onNodeWithText("查看播放队列 · 1 首").performScrollTo().performClick()
         rotate(false)
-        compose.onNodeWithText("收起播放队列 · 1 首").performScrollTo().assertIsDisplayed()
+        awaitPlayerOrientation(false)
+        compose.onNodeWithText("收起播放队列 · 1 首").assertExists()
+        saveDesignScreenshot("player-portrait-before-scroll")
+        compose.onNodeWithText("收起播放队列 · 1 首").performScrollTo()
+        saveDesignScreenshot("player-portrait-after-scroll")
+        compose.onNodeWithText("收起播放队列 · 1 首").assertIsDisplayed()
         rotate(true)
+        awaitPlayerOrientation(true)
         compose.onNodeWithText("收起播放队列 · 1 首").performScrollTo().assertIsDisplayed()
     }
 
