@@ -1,10 +1,19 @@
 # 验证记录
 
-## 公开发布状态（2026-10-31 核对）
+## 公开发布状态（2026-11-08 核对）
 
-仓库已公开，当前正式版为 [v1.2.15](https://github.com/chorusfruit-233/StudyWithMiku-Android/releases/tag/v1.2.15)。GitHub 元数据确认 `draft=false`、`prerelease=false`，发布时间为 `2026-10-31T17:14:06Z`，Latest 指向此版本。Release 提供固定签名 APK、文件校验值、公开证书资料和 Release 检查报告。
+仓库已公开，当前正式版为 [v1.2.16](https://github.com/chorusfruit-233/StudyWithMiku-Android/releases/tag/v1.2.16)。GitHub 元数据确认 `draft=false`、`prerelease=false`，发布时间为 `2026-11-08T03:49:50Z`，Latest 指向此版本。Release 提供固定签名 APK、文件校验值、公开证书资料和 Release 检查报告。
 
-下文保留各版本真实构建、测试结果与验收范围。仓库公开不会自动发布历史 Debug 草稿；因此以草稿标识保留旧产物来源，不将其作为公众下载入口。本目录的回归报告与截图可随源码公开查看。
+下文保留各版本真实构建、测试结果与验收范围。历史 Debug 草稿未公开发布；本目录的回归报告与截图可随源码公开查看。
+
+## 1.2.16 横屏与窗口适配
+
+- 横屏采用侧边导航与紧凑顶部播放器，专注页、记录页和播放器在可用宽度足够时分栏，各栏独立滚动；窄窗口和大字体回退单栏。聊天面板、日期选择器与倒数日编辑适应较低窗口，内容避让系统栏。旋转保留当前页面、队列展开与正在编辑的文字。
+- 构建源码为 `c92f56756ac5864060a29b43b2a5ccac72c92447`，版本 1.2.16／versionCode=19，上游基线不变。[Debug Actions 42443380155](https://github.com/chorusfruit-233/StudyWithMiku-Android/actions/runs/42443380155) 与[签名 Release Actions 42443380154](https://github.com/chorusfruit-233/StudyWithMiku-Android/actions/runs/42443380154) 成功。下载报告确认 Debug／Release 各 105 项 JVM、Android 15／17 各 49 项设备测试通过，0 失败／错误／跳过，Lint 0 错误。
+- 新增 8 项设备用例实际旋转窗口、滑动和触摸播放器、保留任务输入、确认软键盘可见、滚动设置／日历及同步弹窗，并覆盖窄窗口大字体。初次回归发现三键导航减少可用宽度，已调整分栏阈值；Android 17 的旋转后语义滚动断言曾失败，最终使用真实滑动和触摸检验队列可见性与操作结果。[原始报告、失败记录及截图](validation/landscape-1.2.16/README.txt) 保留完整验证过程。
+- APK 为 131,027,607 字节，SHA-256 `5f6b64664f9159303f363d4723f2b852c4ef704f22548f8e746fe13879a53f8f`。重新下载后核对包名、版本、minSdk=26、targetSdk=37、关闭调试标志、固定证书与 ZIP 对齐；测试 Activity 不在正式包中，公开四项附件摘要与本地一致。
+- [发布 Actions 42444310932](https://github.com/chorusfruit-233/StudyWithMiku-Android/actions/runs/42444310932) 已公开发布 [v1.2.16](https://github.com/chorusfruit-233/StudyWithMiku-Android/releases/tag/v1.2.16)，标签指向上述源码，Latest 指向本版。后续文档提交不改变编译输入。
+- 设备回归使用 Debug APK、生产界面组件、隔离的合成资料和本地服务；未写入真实账号，未将模拟器结果视为签名正式包真机或真实云端端到端验收。
 
 ## 1.2.15 接口地址与工作流清理
 

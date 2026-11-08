@@ -1,0 +1,130 @@
+{
+  "sourceCommit": "c92f56756ac5864060a29b43b2a5ccac72c92447",
+  "debugRun": 42443380155,
+  "releaseRun": 42443380154,
+  "firstFailureRun": 42440186403,
+  "versionName": "1.2.16",
+  "versionCode": 19,
+  "secondFailureRun": 42441044227,
+  "thirdFailureRun": 42441990715,
+  "date": "2026-11-08",
+  "publishRun": 42444310932,
+  "reports": {
+    "debugJvm": {
+      "tests": 105,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "releaseJvm": {
+      "tests": 105,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "android35": {
+      "tests": 49,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "android37": {
+      "tests": 49,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "debugLintErrors": 0,
+    "releaseLintErrors": 0
+  },
+  "releaseApkBytes": 131027607,
+  "releaseApkSha256": "5f6b64664f9159303f363d4723f2b852c4ef704f22548f8e746fe13879a53f8f",
+  "certificateSha256": "e07a05095f2b19e1b7b37d48e67016da4b5cf78386a03020410a3a134e1f12ad",
+  "releaseUrl": "https://github.com/chorusfruit-233/StudyWithMiku-Android/releases/tag/v1.2.16",
+  "publishedAt": "2026-11-08T03:49:50Z",
+  "releaseDraft": false,
+  "releasePrerelease": false,
+  "screenshots": {
+    "api-35/landscape-chat-keyboard.png": {
+      "width": 1920,
+      "height": 1080,
+      "sha256": "29880658d8ba48150960413974569f3984f96a8a6f1817c9bbb0299b272fb20d"
+    },
+    "api-35/landscape-player.png": {
+      "width": 1920,
+      "height": 1080,
+      "sha256": "5f9eb0cb9d15133b0b39fa52dee8a83f5af73296b0fd30765efd8aaf067f785c"
+    },
+    "api-35/landscape-focus.png": {
+      "width": 1920,
+      "height": 1080,
+      "sha256": "46e7f98decc7ef6c364dfc29d9a82eaa7045852e658b60fc46378946a05852c6"
+    },
+    "api-35/landscape-settings.png": {
+      "width": 1920,
+      "height": 1080,
+      "sha256": "7466651cdda1cb396c222e318c9ec4225034f8620549d8950168654939848776"
+    },
+    "api-35/landscape-calendar.png": {
+      "width": 1920,
+      "height": 1080,
+      "sha256": "74e2dbc21a83c4c038bc59b69ee0f19e03a31d3dfa437facf8ebb969a300f2d8"
+    },
+    "api-35/landscape-records.png": {
+      "width": 1920,
+      "height": 1080,
+      "sha256": "7ee4c9b149ce82b7183128051ee3c99e36e69123c7db04feded87acb678402de"
+    },
+    "api-35/landscape-task-editor.png": {
+      "width": 1920,
+      "height": 1080,
+      "sha256": "1ce5c2d06ebc07d49d39231af834d682df446325308c7d437f51ceda0a2b7c4d"
+    },
+    "api-35/landscape-sync-choice.png": {
+      "width": 1920,
+      "height": 1080,
+      "sha256": "2afecda31dbeda63c3f02f3c0627126c6012b079637a878105b27bfcbff391ea"
+    },
+    "api-37/landscape-chat-keyboard.png": {
+      "width": 1920,
+      "height": 1080,
+      "sha256": "cbb02d1491c3ee6e0b668914c6c0469bdc19e2e25cdf0c29dd64f361621c7f72"
+    },
+    "api-37/landscape-player.png": {
+      "width": 1920,
+      "height": 1080,
+      "sha256": "b114d0227235381e4e72b466ba907215b06df92f3c12047a6750800d18405473"
+    },
+    "api-37/landscape-focus.png": {
+      "width": 1920,
+      "height": 1080,
+      "sha256": "b51c8935c30ef7abdbc3a7b12ab95c883ae7ff429878ab58047277a0b90091c4"
+    },
+    "api-37/landscape-settings.png": {
+      "width": 1920,
+      "height": 1080,
+      "sha256": "bf07c6e958274ac3ecc88341349af7a94c5bfd426a03f101455cbd36b4b706c8"
+    },
+    "api-37/landscape-calendar.png": {
+      "width": 1920,
+      "height": 1080,
+      "sha256": "84bd1ce4f190d3c8ef13f5730accc97abbf9d206b52f622aa27cd3acabab2f5f"
+    },
+    "api-37/landscape-records.png": {
+      "width": 1920,
+      "height": 1080,
+      "sha256": "98bc4bcdc34dc7aa77f066516cd63c25ef47180a9a1befe3117bc123a7f3faad"
+    },
+    "api-37/landscape-task-editor.png": {
+      "width": 1920,
+      "height": 1080,
+      "sha256": "19e57c4ea3b0e150d7d6327580301c0c5e733473953f671d112d2b4c80dc9aa7"
+    },
+    "api-37/landscape-sync-choice.png": {
+      "width": 1920,
+      "height": 1080,
+      "sha256": "d36e99fee1d4442a816f7ec93e80296c41d28a9ba3a38e4965c06329101e2851"
+    }
+  },
+  "scope": "Debug APK device regression on Android 15 and 17. Actual window rotation, onscreen IME visibility, production UI with isolated local data, and a narrow-width/large-font fixture. No production account writes or signed-phone acceptance claimed."
+}

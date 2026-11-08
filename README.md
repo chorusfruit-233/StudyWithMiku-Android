@@ -50,7 +50,7 @@ Debug APK 输出到 `android/app/build/outputs/apk/debug/app-debug.apk`，构建
 
 正式发行见 [Release 构建与发布指南](android/RELEASING.md)。`Android app` 工作流负责 Debug 构建和 Android 模拟器回归；`Android signed release` 负责固定签名的 Release 构建。两项检查通过后，`Publish verified release` 可将已验证的产物公开发布。历史 Debug 草稿仍仅供有仓库写入权限的维护者查看。
 
-1.2.15 对齐上游 `bcc6627`，资料与用户信息请求使用独立 API 域名，登录仍使用原账号网站；已清理临时及历史一次性工作流。构建、设备回归和签名结果见 [验证记录](android/VALIDATION.md)，差异映射见 [上游适配记录](android/UPSTREAM.md)。设备测试使用合成音频和本地服务，真实账号与正式包真机验收另行确认。
+1.2.16 增加横屏侧边导航、专注／记录／播放器分栏，以及低高度窗口、键盘和旋转状态适配；上游基线仍为 `bcc6627`。构建、设备回归和签名结果见 [验证记录](android/VALIDATION.md)，差异映射见 [上游适配记录](android/UPSTREAM.md)。设备测试使用合成音频和本地服务，真实账号与正式包真机验收另行确认。
 
 安装包体积主要来自 11 首音乐（约 65 MB）与 3 段视频（约 44 MB）。当前尚未启用 R8 代码裁剪及资源裁剪，音视频沿用原始编码。
 
