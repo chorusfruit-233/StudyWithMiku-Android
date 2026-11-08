@@ -1,9 +1,11 @@
+@file:OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
 package io.github.chorusfruit233.studywithmiku
 
 import android.content.Context
 import android.content.ContextWrapper
 import android.content.pm.ActivityInfo
 import android.content.res.Configuration
+import android.os.ParcelFileDescriptor
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.*
@@ -24,6 +26,7 @@ import androidx.test.platform.app.InstrumentationRegistry
 import kotlinx.coroutines.flow.MutableStateFlow
 import org.json.JSONObject
 import org.junit.After
+import org.junit.Before
 import org.junit.Assert.*
 import org.junit.Rule
 import org.junit.Test
@@ -33,6 +36,16 @@ import java.util.UUID
 /** Actual window rotation, offline fixtures, and the production layouts on both device APIs. */
 class LandscapeLayoutTest {
     @get:Rule val compose = createAndroidComposeRule<LayoutTestActivity>()
+    private var originalKeyboardSetting = "null"
+
+    private fun shell(command: String) = ParcelFileDescriptor.AutoCloseInputStream(
+        InstrumentationRegistry.getInstrumentation().uiAutomation.executeShellCommand(command)
+    ).bufferedReader().use { it.readText().trim() }
+
+    @Before fun enableOnscreenKeyboard() {
+        originalKeyboardSetting = shell("settings get secure show_ime_with_hard_keyboard")
+        shell("settings put secure show_ime_with_hard_keyboard 1")
+    }
 
     private fun rotate(landscape: Boolean) {
         compose.runOnUiThread {
@@ -44,7 +57,12 @@ class LandscapeLayoutTest {
         compose.waitForIdle()
     }
 
-    @After fun restoreOrientation() { closeSoftKeyboard(); rotate(false) }
+    @After fun restoreOrientation() {
+        closeSoftKeyboard()
+        if (originalKeyboardSetting == "null") shell("settings delete secure show_ime_with_hard_keyboard")
+        else shell("settings put secure show_ime_with_hard_keyboard $originalKeyboardSetting")
+        rotate(false)
+    }
 
     private fun isolated(test: (Context,MikuStore) -> Unit) {
         val target = InstrumentationRegistry.getInstrumentation().targetContext
@@ -151,9 +169,12 @@ class LandscapeLayoutTest {
 
     @Test fun chatComposerStaysAccessibleWithLandscapeKeyboard() {
         rotate(true)
+        var imeVisible = false
         compose.setContent {
             MikuTheme(Preferences()) {
                 FocusChatSheet({}) {
+                    val keyboardOpen = WindowInsets.isImeVisible
+                    SideEffect { imeVisible = keyboardOpen }
                     var input by rememberSaveable { mutableStateOf("") }
                     Column(Modifier.fillMaxSize().imePadding()) {
                         LazyColumn(Modifier.weight(1f).testTag("chat-messages")) {
@@ -165,6 +186,7 @@ class LandscapeLayoutTest {
             }
         }
         compose.onNodeWithTag("chat-input").assertIsDisplayed().performClick().performTextInput("横屏消息")
+        compose.waitUntil(10_000) { imeVisible }
         compose.onNodeWithTag("chat-input").assertIsDisplayed().assertTextContains("横屏消息")
         saveDesignScreenshot("landscape-chat-keyboard")
         closeSoftKeyboard()
