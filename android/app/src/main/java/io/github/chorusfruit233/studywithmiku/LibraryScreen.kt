@@ -23,6 +23,8 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -236,6 +238,10 @@ import kotlinx.coroutines.withContext
     var drag by remember(state.songId) { mutableStateOf<Float?>(null) }
     var queue by rememberSaveable { mutableStateOf(false) }
     val sheet = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val window = LocalWindowInfo.current.containerSize
+    val coverSize = with(LocalDensity.current) {
+        if (window.width > window.height) (window.height.toDp()-200.dp).coerceIn(96.dp,280.dp) else 320.dp
+    }
     ModalBottomSheet(onDismissRequest = onDismiss,sheetState = sheet,containerColor = MaterialTheme.colorScheme.surface,
         sheetMaxWidth = adaptiveSheetMaxWidth()) {
         Column(Modifier.fillMaxWidth().fillMaxHeight().windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal))) {
@@ -246,66 +252,66 @@ import kotlinx.coroutines.withContext
             }
             AdaptivePaneLayout(primary = {
                 Box(Modifier.fillMaxWidth(),contentAlignment = Alignment.Center) {
-                    Cover(song,Modifier.widthIn(max = 320.dp).fillMaxWidth(0.85f).aspectRatio(1f).clip(RoundedCornerShape(36.dp)))
+                    Cover(song,Modifier.widthIn(max = coverSize).fillMaxWidth(0.85f).aspectRatio(1f).clip(RoundedCornerShape(36.dp)))
                 }
-            Row(Modifier.fillMaxWidth(),verticalAlignment = Alignment.CenterVertically) {
-                Column(Modifier.weight(1f),verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    Text(song?.title ?: "选择一首音乐",style = MaterialTheme.typography.titleLarge,maxLines = 2,overflow = TextOverflow.Ellipsis)
-                    Text(song?.artist ?: "",style = MaterialTheme.typography.bodyMedium,color = MaterialTheme.colorScheme.onSurfaceVariant)
-                }
-                IconButton(onClick = { song?.let { store.toggleFavorite(it.id) } },enabled = song != null) {
-                    Icon(if (song?.id in library.favorites) Icons.Rounded.Favorite else Icons.Rounded.FavoriteBorder,
-                        if (song?.id in library.favorites) "取消收藏" else "收藏",tint = MaterialTheme.colorScheme.tertiary)
-                }
-            }
-            },secondary = {
-            Column {
-                Slider(value = drag ?: state.position.toFloat().coerceIn(0f,state.duration.coerceAtLeast(1).toFloat()),
-                    onValueChange = { drag = it },onValueChangeFinished = { drag?.let { music.seek(it.toLong()) }; drag = null },
-                    valueRange = 0f..state.duration.coerceAtLeast(1).toFloat(),enabled = state.connected && state.duration > 0)
-                Row(Modifier.fillMaxWidth(),horizontalArrangement = Arrangement.SpaceBetween) {
-                    Text(timeLabel((drag ?: state.position.toFloat()).toLong()),style = MaterialTheme.typography.labelSmall)
-                    Text(timeLabel(state.duration),style = MaterialTheme.typography.labelSmall)
-                }
-            }
-            BoxWithConstraints(Modifier.fillMaxWidth()) {
-                val compact = maxWidth < 288.dp
-                Row(Modifier.fillMaxWidth(),verticalAlignment = Alignment.CenterVertically,horizontalArrangement = Arrangement.SpaceEvenly) {
-                    IconButton(onClick = { music.shuffle() },enabled = state.connected && state.queueIds.size > 1) { Icon(Icons.Rounded.Shuffle,
-                        if (state.shuffle) "关闭随机播放" else "开启随机播放",tint = if (state.shuffle) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant) }
-                    IconButton(onClick = { music.previous() },enabled = state.connected && state.queueIds.size > 1,modifier = Modifier.size(if (compact) 48.dp else 52.dp)) { Icon(Icons.Rounded.SkipPrevious,"上一首",Modifier.size(32.dp)) }
-                    Button(onClick = { music.toggle() },shapes = ButtonDefaults.shapes(shape = RoundedCornerShape(if (state.playing) 28.dp else 44.dp),pressedShape = RoundedCornerShape(20.dp)),
-                        modifier = Modifier.size(if (compact) 64.dp else 80.dp),contentPadding = PaddingValues(0.dp),enabled = song != null && state.connected && !state.loading) {
-                        if (state.loading) CircularProgressIndicator(Modifier.size(30.dp),strokeWidth = 3.dp)
-                        else Icon(if (state.playing) Icons.Rounded.Pause else Icons.Rounded.PlayArrow,if (state.playing) "暂停" else "播放",Modifier.size(38.dp))
+                Row(Modifier.fillMaxWidth(),verticalAlignment = Alignment.CenterVertically) {
+                    Column(Modifier.weight(1f),verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                        Text(song?.title ?: "选择一首音乐",style = MaterialTheme.typography.titleLarge,maxLines = 2,overflow = TextOverflow.Ellipsis)
+                        Text(song?.artist ?: "",style = MaterialTheme.typography.bodyMedium,color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
-                    IconButton(onClick = { music.next() },enabled = state.connected && state.queueIds.size > 1,modifier = Modifier.size(if (compact) 48.dp else 52.dp)) { Icon(Icons.Rounded.SkipNext,"下一首",Modifier.size(32.dp)) }
-                    IconButton(onClick = { music.repeat() },enabled = state.connected && state.queueIds.isNotEmpty()) { Icon(if (state.repeat == Player.REPEAT_MODE_ONE) Icons.Rounded.RepeatOne else Icons.Rounded.Repeat,
-                        "切换循环模式，当前${if (state.repeat == Player.REPEAT_MODE_ONE) "单曲循环" else if (state.repeat == Player.REPEAT_MODE_ALL) "列表循环" else "顺序播放"}",
-                        tint = if (state.repeat != Player.REPEAT_MODE_OFF) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant) }
+                    IconButton(onClick = { song?.let { store.toggleFavorite(it.id) } },enabled = song != null) {
+                        Icon(if (song?.id in library.favorites) Icons.Rounded.Favorite else Icons.Rounded.FavoriteBorder,
+                            if (song?.id in library.favorites) "取消收藏" else "收藏",tint = MaterialTheme.colorScheme.tertiary)
+                    }
                 }
-            }
-            Text(if (state.shuffle) "随机播放" else if (state.repeat == Player.REPEAT_MODE_ONE) "单曲循环" else if (state.repeat == Player.REPEAT_MODE_ALL) "列表循环" else "顺序播放",
-                style = MaterialTheme.typography.labelMedium,color = MaterialTheme.colorScheme.onSurfaceVariant)
-            Row(Modifier.fillMaxWidth(),verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Rounded.VolumeDown,"音量")
-                Slider(state.volume,{ music.volume(it) },modifier = Modifier.weight(1f),enabled = state.connected)
-                Icon(Icons.Rounded.VolumeUp,null)
-            }
-            if (song != null && song.playlistId.isNotBlank()) FilledTonalButton(onClick = { onShare(song) }) { Icon(Icons.Rounded.Share,null); Spacer(Modifier.width(8.dp)); Text("分享到聊天室") }
-            TextButton(onClick = { queue = !queue },enabled = state.queueIds.isNotEmpty()) { Text("${if (queue) "收起" else "查看"}播放队列 · ${state.queueIds.size} 首") }
-            if (queue) LazyColumn(Modifier.fillMaxWidth().heightIn(max = 240.dp)) {
-                items(state.queueIds,key = { it }) { id ->
-                    val queued = library.songs.find { it.id == id }
-                    ListItem(headlineContent = { Text(queued?.title ?: "音乐",maxLines = 1,overflow = TextOverflow.Ellipsis) },
-                        supportingContent = { Text(queued?.artist ?: "",maxLines = 1) },
-                        leadingContent = { Icon(if (id == state.songId) Icons.Rounded.GraphicEq else Icons.Rounded.MusicNote,null) },
-                        modifier = Modifier.clickable(enabled = state.connected) { music.select(id) })
+            },secondary = {
+                Column {
+                    Slider(value = drag ?: state.position.toFloat().coerceIn(0f,state.duration.coerceAtLeast(1).toFloat()),
+                        onValueChange = { drag = it },onValueChangeFinished = { drag?.let { music.seek(it.toLong()) }; drag = null },
+                        valueRange = 0f..state.duration.coerceAtLeast(1).toFloat(),enabled = state.connected && state.duration > 0)
+                    Row(Modifier.fillMaxWidth(),horizontalArrangement = Arrangement.SpaceBetween) {
+                        Text(timeLabel((drag ?: state.position.toFloat()).toLong()),style = MaterialTheme.typography.labelSmall)
+                        Text(timeLabel(state.duration),style = MaterialTheme.typography.labelSmall)
+                    }
                 }
-            }
-            state.error?.let { Text(it,color = MaterialTheme.colorScheme.error,style = MaterialTheme.typography.bodyMedium) }
-            LyricsPanel(song,state.position)
-            Spacer(Modifier.height(24.dp))
+                BoxWithConstraints(Modifier.fillMaxWidth()) {
+                    val compact = maxWidth < 288.dp
+                    Row(Modifier.fillMaxWidth(),verticalAlignment = Alignment.CenterVertically,horizontalArrangement = Arrangement.SpaceEvenly) {
+                        IconButton(onClick = { music.shuffle() },enabled = state.connected && state.queueIds.size > 1) { Icon(Icons.Rounded.Shuffle,
+                            if (state.shuffle) "关闭随机播放" else "开启随机播放",tint = if (state.shuffle) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant) }
+                        IconButton(onClick = { music.previous() },enabled = state.connected && state.queueIds.size > 1,modifier = Modifier.size(if (compact) 48.dp else 52.dp)) { Icon(Icons.Rounded.SkipPrevious,"上一首",Modifier.size(32.dp)) }
+                        Button(onClick = { music.toggle() },shapes = ButtonDefaults.shapes(shape = RoundedCornerShape(if (state.playing) 28.dp else 44.dp),pressedShape = RoundedCornerShape(20.dp)),
+                            modifier = Modifier.size(if (compact) 64.dp else 80.dp),contentPadding = PaddingValues(0.dp),enabled = song != null && state.connected && !state.loading) {
+                            if (state.loading) CircularProgressIndicator(Modifier.size(30.dp),strokeWidth = 3.dp)
+                            else Icon(if (state.playing) Icons.Rounded.Pause else Icons.Rounded.PlayArrow,if (state.playing) "暂停" else "播放",Modifier.size(38.dp))
+                        }
+                        IconButton(onClick = { music.next() },enabled = state.connected && state.queueIds.size > 1,modifier = Modifier.size(if (compact) 48.dp else 52.dp)) { Icon(Icons.Rounded.SkipNext,"下一首",Modifier.size(32.dp)) }
+                        IconButton(onClick = { music.repeat() },enabled = state.connected && state.queueIds.isNotEmpty()) { Icon(if (state.repeat == Player.REPEAT_MODE_ONE) Icons.Rounded.RepeatOne else Icons.Rounded.Repeat,
+                            "切换循环模式，当前${if (state.repeat == Player.REPEAT_MODE_ONE) "单曲循环" else if (state.repeat == Player.REPEAT_MODE_ALL) "列表循环" else "顺序播放"}",
+                            tint = if (state.repeat != Player.REPEAT_MODE_OFF) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant) }
+                    }
+                }
+                Text(if (state.shuffle) "随机播放" else if (state.repeat == Player.REPEAT_MODE_ONE) "单曲循环" else if (state.repeat == Player.REPEAT_MODE_ALL) "列表循环" else "顺序播放",
+                    style = MaterialTheme.typography.labelMedium,color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Row(Modifier.fillMaxWidth(),verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Rounded.VolumeDown,"音量")
+                    Slider(state.volume,{ music.volume(it) },modifier = Modifier.weight(1f),enabled = state.connected)
+                    Icon(Icons.Rounded.VolumeUp,null)
+                }
+                if (song != null && song.playlistId.isNotBlank()) FilledTonalButton(onClick = { onShare(song) }) { Icon(Icons.Rounded.Share,null); Spacer(Modifier.width(8.dp)); Text("分享到聊天室") }
+                TextButton(onClick = { queue = !queue },enabled = state.queueIds.isNotEmpty()) { Text("${if (queue) "收起" else "查看"}播放队列 · ${state.queueIds.size} 首") }
+                if (queue) LazyColumn(Modifier.fillMaxWidth().heightIn(max = 240.dp)) {
+                    items(state.queueIds,key = { it }) { id ->
+                        val queued = library.songs.find { it.id == id }
+                        ListItem(headlineContent = { Text(queued?.title ?: "音乐",maxLines = 1,overflow = TextOverflow.Ellipsis) },
+                            supportingContent = { Text(queued?.artist ?: "",maxLines = 1) },
+                            leadingContent = { Icon(if (id == state.songId) Icons.Rounded.GraphicEq else Icons.Rounded.MusicNote,null) },
+                            modifier = Modifier.clickable(enabled = state.connected) { music.select(id) })
+                    }
+                }
+                state.error?.let { Text(it,color = MaterialTheme.colorScheme.error,style = MaterialTheme.typography.bodyMedium) }
+                LyricsPanel(song,state.position)
+                Spacer(Modifier.height(24.dp))
             })
         }
     }

@@ -7,6 +7,9 @@ import android.content.res.Configuration
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.ChatBubbleOutline
+import androidx.compose.material.icons.rounded.Tune
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
@@ -65,11 +68,18 @@ class LandscapeLayoutTest {
         compose.setContent {
             val engine = remember { FocusEngine(context,store) }
             val extras = remember { OnlineExtras(context) }
+            val music = remember { MusicConnection(context) }
+            DisposableEffect(music) { onDispose { music.close() } }
             var tab by rememberSaveable { mutableIntStateOf(0) }
             MikuTheme(Preferences(animateScene = false)) {
                 AdaptiveAppScaffold(tab,{ tab = it },remember { SnackbarHostState() },
-                    title = { Text("STUDY WITH MIKU",Modifier.weight(1f)) },actions = {},
-                    miniPlayer = { Text("Offline music",Modifier.height(50.dp)) }) {
+                    title = { Text("STUDY WITH MIKU",Modifier.weight(1f)) },actions = {
+                        IconButton({}) { Icon(Icons.Rounded.ChatBubbleOutline,"打开聊天室") }
+                        IconButton({}) { Icon(Icons.Rounded.Tune,"设置") }
+                    },miniPlayer = { compact ->
+                        MiniPlayer(Song("fixture","午后学习音乐","Miku","asset:///fixture.mp3"),
+                            PlaybackState(connected = true),music,compact = compact) {}
+                    }) {
                     if (tab == 0) FocusScreen(Preferences(animateScene = false),FocusClock(),emptyMap(),emptyList(),store,engine,extras) { toggles++ }
                     else Text("Selected $tab")
                 }
@@ -104,6 +114,7 @@ class LandscapeLayoutTest {
         }
         assertSideBySide()
         compose.onNodeWithContentDescription("播放").assertIsDisplayed()
+        compose.onNodeWithText("横屏播放测试").assertIsDisplayed()
         compose.onNodeWithContentDescription("关闭播放器").assertIsDisplayed()
         saveDesignScreenshot("landscape-player")
         compose.onNodeWithText("查看播放队列 · 1 首").performScrollTo().performClick()

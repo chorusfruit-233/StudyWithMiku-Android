@@ -27,7 +27,7 @@ import androidx.compose.ui.unit.dp
     val icons = listOf(Icons.Rounded.Timer,Icons.Rounded.Headphones,Icons.Rounded.Checklist,Icons.Rounded.BarChart,Icons.Rounded.Forum)
     val labels = listOf("专注","音乐","计划","记录","社区")
     BoxWithConstraints(Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal))) {
-        val rail = maxWidth >= 600.dp && (maxWidth > maxHeight || maxWidth >= 840.dp)
+        val rail = (maxWidth >= 480.dp && maxWidth > maxHeight) || maxWidth >= 840.dp
         val compact = maxHeight < 480.dp
         CompositionLocalProvider(LocalCompactHeight provides compact) {
             Row(Modifier.fillMaxSize()) {

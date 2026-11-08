@@ -28,7 +28,7 @@ internal val LocalCompactHeight = compositionLocalOf { false }
     secondary: @Composable ColumnScope.() -> Unit,
 ) {
     BoxWithConstraints(Modifier.fillMaxSize().padding(horizontal = 24.dp)) {
-        val twoPanes = maxWidth >= 560.dp * LocalDensity.current.fontScale.coerceAtLeast(1f)
+        val twoPanes = maxWidth >= 520.dp * LocalDensity.current.fontScale.coerceAtLeast(1f)
         val pageScroll = rememberScrollState()
         val primaryScroll = rememberScrollState()
         val secondaryScroll = rememberScrollState()
