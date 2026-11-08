@@ -1,13 +1,14 @@
 # 更新记录
 
-当前公开正式版：[v1.2.16](https://github.com/chorusfruit-233/StudyWithMiku-Android/releases/tag/v1.2.16)。此前版本的构建记录见 [验证文档](android/VALIDATION.md)，历史 Debug 草稿未公开发布。
+当前公开正式版：[v1.2.17](https://github.com/chorusfruit-233/StudyWithMiku-Android/releases/tag/v1.2.17)。此前版本的构建记录见 [验证文档](android/VALIDATION.md)，历史 Debug 草稿未公开发布。
 
-## 1.2.17（构建验证中）
+## 1.2.17
 
 - 设置 → 功能模块新增“音乐模块”总开关，默认开启，仅对本机生效。
 - 关闭后隐藏音乐导航、迷你播放器和播放面板，停止播放、缓存下载及未完成的歌单加载；聊天室歌曲卡片保留文字，停用播放和封面请求。
 - 保留歌单、收藏、缓存与队列；重新开启后等待手动播放或继续下载。重启、云端同步和切换账号不会重置开关。
 - 计时、场景、社区与 Miku 完成语音继续独立工作；隐藏停用模块的休息暂停与交叉淡入淡出设置。
+- Debug／Release 各 105 项单元测试、Android 15／17 各 55 项设备回归通过，Lint 0 错误；沿用固定证书公开发布。
 
 ## 1.2.16
 

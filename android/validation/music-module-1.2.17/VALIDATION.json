@@ -1,0 +1,48 @@
+{
+  "sourceCommit": "64c7c83de2c17fc072232eb5f3d7bbb61d34d172",
+  "debugRun": 42445863717,
+  "releaseRun": 42445863541,
+  "versionName": "1.2.17",
+  "versionCode": 20,
+  "date": "2026-11-08",
+  "publishRun": 42446586067,
+  "publishedAt": "2026-11-08T04:23:05Z",
+  "releaseUrl": "https://github.com/chorusfruit-233/StudyWithMiku-Android/releases/tag/v1.2.17",
+  "releaseDraft": false,
+  "releasePrerelease": false,
+  "reports": {
+    "debugJvm": {
+      "tests": 105,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "releaseJvm": {
+      "tests": 105,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "android35": {
+      "tests": 55,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "android37": {
+      "tests": 55,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "debugLintErrors": 0,
+    "releaseLintErrors": 0
+  },
+  "releaseApkBytes": 131043987,
+  "releaseApkSha256": "6772ceb9b08942259b1a1f20e2cf3146b257358cdf2555b4eb4c7cdfda9838ef",
+  "screenshots": {
+    "api-35-music-module-disabled.png": "733ee00ff04e9bc39554b8c652bed8d5687eb091868e5b9311140eb838716c18",
+    "api-37-music-module-disabled.png": "b93eacf9b6b0a3d30c57378e3316a53c3c131eb3893f50982169de697929a659"
+  },
+  "certificateSha256": "e07a05095f2b19e1b7b37d48e67016da4b5cf78386a03020410a3a134e1f12ad"
+}

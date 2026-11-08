@@ -2,9 +2,18 @@
 
 ## 公开发布状态（2026-11-08 核对）
 
-仓库已公开，当前正式版为 [v1.2.16](https://github.com/chorusfruit-233/StudyWithMiku-Android/releases/tag/v1.2.16)。GitHub 元数据确认 `draft=false`、`prerelease=false`，发布时间为 `2026-11-08T03:49:50Z`，Latest 指向此版本。Release 提供固定签名 APK、文件校验值、公开证书资料和 Release 检查报告。
+仓库已公开，当前正式版为 [v1.2.17](https://github.com/chorusfruit-233/StudyWithMiku-Android/releases/tag/v1.2.17)。GitHub 元数据确认 `draft=false`、`prerelease=false`，发布时间为 `2026-11-08T04:23:05Z`，Latest 指向此版本。Release 提供固定签名 APK、文件校验值、公开证书资料和 Release 检查报告。
 
 下文保留各版本真实构建、测试结果与验收范围。历史 Debug 草稿未公开发布；本目录的回归报告与截图可随源码公开查看。
+
+## 1.2.17 音乐模块总开关
+
+- 设置 → 功能模块可关闭本机音乐功能，隐藏音乐导航、迷你播放器和播放弹窗，停止播放与缓存下载，取消未完成的歌单加载。聊天歌曲卡片保留文字，停用播放和封面请求。保留队列、歌单、收藏及缓存，重新开启不自动播放或下载；开关不随云端同步和账号切换重置，计时与完成语音独立运行。
+- 构建源码为 `64c7c83de2c17fc072232eb5f3d7bbb61d34d172`，版本 1.2.17／versionCode=20。[Debug Actions 42445863717](https://github.com/chorusfruit-233/StudyWithMiku-Android/actions/runs/42445863717) 与[签名 Release Actions 42445863541](https://github.com/chorusfruit-233/StudyWithMiku-Android/actions/runs/42445863541) 成功。下载报告确认 Debug／Release 各 105 项 JVM、Android 15／17 各 55 项设备测试通过，0 失败／错误／跳过，Lint 0 错误。
+- 新增 6 项设备用例覆盖生产设置和横竖屏导航、聊天歌曲卡片、重建／云端导入／账号切换后的开关保留、正在播放的生产服务退出及拒绝外部控制器、活跃下载停止和缓存保留、迟到歌单响应及禁止新请求。测试观察到真实下载请求后再关闭模块，并等待播放服务完全退出后恢复资料。[原始报告和设置截图](validation/music-module-1.2.17/README.txt) 随源码保留。
+- APK 为 131,043,987 字节，SHA-256 `6772ceb9b08942259b1a1f20e2cf3146b257358cdf2555b4eb4c7cdfda9838ef`。重新下载后核对包名、版本、minSdk=26、targetSdk=37、关闭调试标志、固定证书与 ZIP 对齐；四项公开附件摘要与本地文件一致。
+- [发布 Actions 42446586067](https://github.com/chorusfruit-233/StudyWithMiku-Android/actions/runs/42446586067) 已公开发布 [v1.2.17](https://github.com/chorusfruit-233/StudyWithMiku-Android/releases/tag/v1.2.17)，标签指向上述源码，Latest 指向本版。后续文档提交不改变编译输入。
+- 设备回归使用 Debug APK、模拟器、合成资料与本地 HTTP 服务，未写入真实账号或向聊天室发言；不代表签名正式包真机或真实账号端到端验收。
 
 ## 1.2.16 横屏与窗口适配
 
