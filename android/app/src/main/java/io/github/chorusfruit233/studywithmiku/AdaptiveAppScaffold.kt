@@ -22,10 +22,12 @@ import androidx.compose.ui.unit.dp
     title: @Composable RowScope.() -> Unit,
     actions: @Composable RowScope.() -> Unit,
     miniPlayer: (@Composable (compact: Boolean) -> Unit)? = null,
+    musicEnabled: Boolean = true,
     content: @Composable () -> Unit,
 ) {
     val icons = listOf(Icons.Rounded.Timer,Icons.Rounded.Headphones,Icons.Rounded.Checklist,Icons.Rounded.BarChart,Icons.Rounded.Forum)
     val labels = listOf("专注","音乐","计划","记录","社区")
+    val destinations = labels.indices.filter { musicEnabled || it != 1 }
     BoxWithConstraints(Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal))) {
         val rail = (maxWidth >= 480.dp && maxWidth > maxHeight) || maxWidth >= 840.dp
         val compact = maxHeight < 480.dp
@@ -36,7 +38,8 @@ import androidx.compose.ui.unit.dp
                         .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Vertical))
                         .verticalScroll(rememberScrollState()).selectableGroup().padding(vertical = 8.dp),
                         verticalArrangement = Arrangement.spacedBy(4.dp),horizontalAlignment = Alignment.CenterHorizontally) {
-                        labels.forEachIndexed { i,label ->
+                        destinations.forEach { i ->
+                            val label = labels[i]
                             NavigationRailItem(selected = tab == i,onClick = { onTabChange(i) },
                                 icon = { Icon(icons[i],label) },
                                 label = if (compact) null else { { Text(label) } },
@@ -50,7 +53,7 @@ import androidx.compose.ui.unit.dp
                         Row(Modifier.fillMaxWidth().windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Top))
                             .padding(horizontal = if (rail) 12.dp else 24.dp,vertical = if (compact) 2.dp else 8.dp),
                             verticalAlignment = Alignment.CenterVertically) {
-                            if (rail && miniPlayer != null) Box(Modifier.weight(1f)) { miniPlayer(true) }
+                            if (rail && musicEnabled && miniPlayer != null) Box(Modifier.weight(1f)) { miniPlayer(true) }
                             else title()
                             actions()
                         }
@@ -58,10 +61,11 @@ import androidx.compose.ui.unit.dp
                     snackbarHost = { SnackbarHost(snackbar) },
                     bottomBar = {
                         if (!rail) Column {
-                            miniPlayer?.invoke(false)
+                            if (musicEnabled) miniPlayer?.invoke(false)
                             NavigationBar(modifier = Modifier.testTag("navigation-bar"),
                                 containerColor = MaterialTheme.colorScheme.surfaceContainerLow,tonalElevation = 0.dp) {
-                                labels.forEachIndexed { i,label ->
+                                destinations.forEach { i ->
+                                    val label = labels[i]
                                     NavigationBarItem(selected = tab == i,onClick = { onTabChange(i) },
                                         icon = { Icon(icons[i],label) },
                                         label = { Text(label,fontWeight = if (tab == i) FontWeight.Bold else FontWeight.Medium) },

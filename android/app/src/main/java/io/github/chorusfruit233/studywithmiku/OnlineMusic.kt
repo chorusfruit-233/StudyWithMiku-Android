@@ -4,15 +4,45 @@ import android.content.Context
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.distinctUntilChanged
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.IOException
 import java.io.ByteArrayOutputStream
 import java.net.HttpURLConnection
 import java.net.URL
+import okhttp3.Call
+import okhttp3.Callback
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.Response
+import java.util.concurrent.TimeUnit
+import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
 
 /** Bounded requests with platform TLS checks, redirects and actionable HTTP errors. */
 object MusicHttp {
+    private val client by lazy { OkHttpClient.Builder().connectTimeout(10,TimeUnit.SECONDS)
+        .readTimeout(20,TimeUnit.SECONDS).callTimeout(30,TimeUnit.SECONDS).build() }
+    /** Cancelling a music screen/request closes its socket as well as suppressing its result. */
+    suspend fun cancellableText(url: String): String = suspendCancellableCoroutine { continuation ->
+        val call = client.newCall(Request.Builder().url(url).header("User-Agent","StudyWithMiku-Android/${BuildConfig.VERSION_NAME}").build())
+        continuation.invokeOnCancellation { call.cancel() }
+        call.enqueue(object : Callback {
+            override fun onFailure(call: Call,e: IOException) { continuation.resumeWithException(e) }
+            override fun onResponse(call: Call,response: Response) {
+                val result = runCatching { response.use {
+                    if (!it.isSuccessful) throw IOException("音乐服务返回 HTTP ${it.code}")
+                    val source = it.body?.source() ?: throw IOException("音乐服务响应为空")
+                    source.request(8 * 1024 * 1024L + 1)
+                    if (source.buffer.size > 8 * 1024 * 1024L) throw IOException("音乐服务响应过大")
+                    source.readUtf8()
+                } }
+                result.fold({ continuation.resume(it) },{ continuation.resumeWithException(it) })
+            }
+        })
+    }
     fun bytes(url: String, maxBytes: Int = 8 * 1024 * 1024): ByteArray {
         val connection = URL(url).openConnection() as HttpURLConnection
         connection.connectTimeout = 10_000
@@ -56,11 +86,21 @@ class OnlineMusic(context: Context, private val store: MikuStore,private val pla
     private var initialized = false
     private var generation = 0L
     private val specialOrder = JSONArray(context.assets.open("special-song-order.json").bufferedReader().use { it.readText() }).strings()
-    fun ensureLoaded() { if (!initialized) { initialized = true; load(_state.value.config) } }
+    init {
+        scope.launch { store.prefs.map { it.musicEnabled }.distinctUntilChanged().collect { enabled ->
+            if (!enabled) {
+                generation++; job?.cancel(); initialized = false
+                _state.value = _state.value.copy(loading = false,loadingName = "",error = null)
+            }
+        } }
+    }
+    fun ensureLoaded() { if (store.prefs.value.musicEnabled && !initialized) { initialized = true; load(_state.value.config) } }
     fun retry() = load(attempted,saveCustom = attemptedSaveCustom,forceRefresh = true)
+    internal fun close() { scope.cancel() }
     fun currentPlaylist(): OfflinePlaylist = store.readNetworkSnapshot(_state.value.config)
         ?: OfflinePlaylist(_state.value.config,_state.value.ids.mapNotNull { id -> store.library.value.songs.find { it.id == id } })
     fun openOffline(playlist: OfflinePlaylist,readyOnly: Boolean = false,cache: AudioCacheState = AudioCacheState()) {
+        if (!store.prefs.value.musicEnabled) return
         generation++
         job?.cancel()
         val songs = if (readyOnly) cache.readySongs(playlist) else playlist.songs
@@ -70,6 +110,7 @@ class OnlineMusic(context: Context, private val store: MikuStore,private val pla
     }
     fun deleteSavedPlaylist(item: SavedNetworkPlaylist) = store.deleteNetworkPlaylist(item.platform,item.id)
     fun load(config: MusicConfig = _state.value.config,saveCustom: Boolean = false,forceRefresh: Boolean = false, onLoaded: (List<Song>) -> Unit = {}) {
+        if (!store.prefs.value.musicEnabled) return
         val serial = ++generation
         job?.cancel()
         if (!forceRefresh) store.readNetworkSnapshot(config)?.let { snapshot ->
@@ -84,7 +125,7 @@ class OnlineMusic(context: Context, private val store: MikuStore,private val pla
         job = scope.launch {
             try {
                 val (loadedConfig,songs) = withContext(Dispatchers.IO) {
-                    val fetched = MusicProtocol.songs(MusicHttp.text(MusicProtocol.playlistUrl(config)),config,names)
+                    val fetched = MusicProtocol.songs(MusicHttp.cancellableText(MusicProtocol.playlistUrl(config)),config,names)
                     ensureActive()
                     check(fetched.isNotEmpty()) { "歌单为空或暂不可用，请检查歌单 ID、平台或稍后重试" }
                     val title = if (saveCustom) store.networkPlaylists.value.find { it.platform == config.platform && it.id == config.id }?.name
@@ -99,7 +140,7 @@ class OnlineMusic(context: Context, private val store: MikuStore,private val pla
                     namedConfig to list
                 }
                 ensureActive()
-                if (serial != generation) return@launch
+                if (serial != generation || !store.prefs.value.musicEnabled) return@launch
                 // Commit on the owning dispatcher so a superseded load cannot write after a newer selection.
                 store.cacheOnline(loadedConfig,songs)
                 if (saveCustom) store.saveNetworkPlaylist(loadedConfig.platform,loadedConfig.id,loadedConfig.name)
@@ -107,7 +148,7 @@ class OnlineMusic(context: Context, private val store: MikuStore,private val pla
                 onLoaded(songs)
             } catch (e: CancellationException) { throw e }
             catch (e: Exception) {
-                if (serial != generation) return@launch
+                if (serial != generation || !store.prefs.value.musicEnabled) return@launch
                 _state.value = _state.value.copy(loading = false,error = "${config.name}加载失败：${e.message ?: "请检查网络连接"}")
             }
         }

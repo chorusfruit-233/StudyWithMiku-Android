@@ -2,6 +2,7 @@
 package io.github.chorusfruit233.studywithmiku
 
 import android.content.Context
+import android.content.Intent
 import android.net.Uri
 import androidx.media3.common.MimeTypes
 import androidx.media3.database.StandaloneDatabaseProvider
@@ -22,6 +23,9 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.collectLatest
 import java.io.File
 import java.util.concurrent.Executors
 
@@ -58,9 +62,16 @@ class AudioCache(private val context: Context,private val store: MikuStore,
     init {
         manager.addListener(object : DownloadManager.Listener {
             override fun onInitialized(downloadManager: DownloadManager) { refresh() }
-            override fun onDownloadChanged(downloadManager: DownloadManager,download: Download,finalException: Exception?) { refresh() }
+            override fun onDownloadChanged(downloadManager: DownloadManager,download: Download,finalException: Exception?) {
+                if (!store.prefs.value.musicEnabled && download.stopReason == Download.STOP_REASON_NONE && download.state != Download.STATE_COMPLETED)
+                    downloadManager.setStopReason(download.request.id,MODULE_DISABLED)
+                refresh()
+            }
             override fun onDownloadRemoved(downloadManager: DownloadManager,download: Download) { refresh() }
-            override fun onDownloadsPausedChanged(downloadManager: DownloadManager,downloadsPaused: Boolean) { refresh() }
+            override fun onDownloadsPausedChanged(downloadManager: DownloadManager,downloadsPaused: Boolean) {
+                if (!downloadsPaused && !store.prefs.value.musicEnabled) downloadManager.pauseDownloads()
+                refresh()
+            }
             override fun onWaitingForRequirementsChanged(downloadManager: DownloadManager,waitingForRequirements: Boolean) { refresh() }
         })
         scope.launch {
@@ -92,10 +103,24 @@ class AudioCache(private val context: Context,private val store: MikuStore,
                 _state.value = AudioCacheState(songs,store.readOfflinePlaylists(),cache.cacheSpace,paused,waiting,manager.isInitialized)
             }
         }
-        scope.launch { while (isActive) { refresh(); delay(1000) } }
+        scope.launch {
+            store.prefs.map { it.musicEnabled }.distinctUntilChanged().collectLatest { enabled ->
+                if (!enabled) {
+                    manager.pauseDownloads()
+                    manager.setStopReason(null,MODULE_DISABLED)
+                    context.stopService(Intent(context,MusicDownloadService::class.java))
+                    refresh()
+                } else {
+                    // Clear the module lock, but retain the paused queue until an explicit resume.
+                    manager.setStopReason(null,Download.STOP_REASON_NONE)
+                    while (isActive) { refresh(); delay(1000) }
+                }
+            }
+        }
     }
     private fun refresh() { refreshes.trySend(Unit) }
     fun download(playlist: OfflinePlaylist) {
+        if (!store.prefs.value.musicEnabled) return
         store.saveOfflinePlaylist(playlist)
         playlist.songs.filter { song -> song.online && (_state.value.songs[song.cacheKey]?.status.let {
             it == null || it == AudioCacheStatus.FAILED
@@ -106,7 +131,7 @@ class AudioCache(private val context: Context,private val store: MikuStore,
         refresh()
     }
     fun pause() = DownloadService.sendPauseDownloads(context,MusicDownloadService::class.java,false)
-    fun resume() = DownloadService.sendResumeDownloads(context,MusicDownloadService::class.java,true)
+    fun resume() { if (store.prefs.value.musicEnabled) DownloadService.sendResumeDownloads(context,MusicDownloadService::class.java,true) }
     fun clear() {
         DownloadService.sendRemoveAllDownloads(context,MusicDownloadService::class.java,true)
         store.clearOfflinePlaylists(); refresh()
@@ -120,6 +145,7 @@ class AudioCache(private val context: Context,private val store: MikuStore,
         cache.release(); database.close()
     }
     companion object {
+        private const val MODULE_DISABLED = 1
         fun request(song: Song) = DownloadRequest.Builder(song.cacheKey,Uri.parse(song.uri)).setCustomCacheKey(song.cacheKey)
             .setMimeType(MimeTypes.AUDIO_MPEG).setData(song.title.toByteArray(Charsets.UTF_8)).build()
     }

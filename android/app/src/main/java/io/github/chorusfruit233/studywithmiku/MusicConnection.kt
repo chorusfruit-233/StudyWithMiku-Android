@@ -16,19 +16,23 @@ data class PlaybackState(val connected: Boolean = false, val songId: String? = n
     val playing: Boolean = false, val loading: Boolean = false, val position: Long = 0,
     val duration: Long = 0, val shuffle: Boolean = false, val repeat: Int = Player.REPEAT_MODE_ALL,
     val error: String? = null, val queueIds: List<String> = emptyList(), val volume: Float = 1f)
-class MusicConnection(context: Context) {
+class MusicConnection(context: Context,enabled: Boolean = (context.applicationContext as? MikuApplication)?.store?.prefs?.value?.musicEnabled != false) {
     private val _state = MutableStateFlow(PlaybackState())
     val state = _state.asStateFlow()
-    private var controller: MediaController? = null
-    private val future = MediaController.Builder(context,SessionToken(context,ComponentName(context,PlaybackService::class.java))).buildAsync()
+    private var connectedController: MediaController? = null
+    private val controller get() = connectedController.takeIf {
+        !closed && (context.applicationContext as? MikuApplication)?.store?.prefs?.value?.musicEnabled != false
+    }
+    private val context = context.applicationContext
+    private val future = if (enabled) MediaController.Builder(context,SessionToken(context,ComponentName(context,PlaybackService::class.java))).buildAsync() else null
     private val handler = Handler(Looper.getMainLooper())
     private var closed = false
     private val loop = object : Runnable {
         override fun run() { update(); if (!closed) handler.postDelayed(this,500) }
     }
     init {
-        future.addListener({
-            if (!closed) runCatching { controller = future.get() }.onSuccess {
+        future?.addListener({
+            if (!closed) runCatching { connectedController = future?.get() }.onSuccess {
                 controller?.addListener(object : Player.Listener {
                     override fun onEvents(player: Player, events: Player.Events) { update() }
                     override fun onPlayerError(error: PlaybackException) { _state.value = _state.value.copy(error = "这首音乐无法播放，请检查网络、重试播放或选择下一首") }
@@ -38,7 +42,7 @@ class MusicConnection(context: Context) {
         },ContextCompat.getMainExecutor(context))
     }
     private fun update() {
-        val p = controller ?: return
+        val p = controller?.takeIf { it.isConnected } ?: run { _state.value = PlaybackState(); return }
         _state.value = PlaybackState(true,p.currentMediaItem?.mediaId,p.isPlaying,
             p.playbackState == Player.STATE_BUFFERING,p.currentPosition,p.duration.coerceAtLeast(0),
             p.shuffleModeEnabled,p.repeatMode,if (p.playerError == null) null else _state.value.error,
@@ -71,5 +75,5 @@ class MusicConnection(context: Context) {
     fun shuffle() { controller?.let { it.shuffleModeEnabled = !it.shuffleModeEnabled } }
     fun repeat() { controller?.let { it.repeatMode = if (it.repeatMode == Player.REPEAT_MODE_ALL) Player.REPEAT_MODE_ONE else if (it.repeatMode == Player.REPEAT_MODE_ONE) Player.REPEAT_MODE_OFF else Player.REPEAT_MODE_ALL } }
     fun remove(id: String) { controller?.let { p -> for (i in p.mediaItemCount-1 downTo 0) if (p.getMediaItemAt(i).mediaId == id) p.removeMediaItem(i) } }
-    fun close() { closed = true; handler.removeCallbacks(loop); MediaController.releaseFuture(future) }
+    fun close() { closed = true; handler.removeCallbacks(loop); future?.let(MediaController::releaseFuture); connectedController = null; _state.value = PlaybackState() }
 }

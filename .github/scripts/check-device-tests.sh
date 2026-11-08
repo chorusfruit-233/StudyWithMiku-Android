@@ -63,7 +63,7 @@ for report in reports:
     for suite in root.iter('testsuite'):
         for key in totals:
             totals[key] += int(suite.get(key, '0'))
-if totals['tests'] < 49 or any(totals[key] for key in ('failures', 'errors', 'skipped')):
+if totals['tests'] < 55 or any(totals[key] for key in ('failures', 'errors', 'skipped')):
     raise SystemExit(f"API {os.environ['MIKU_DEVICE_API']}: incomplete or failed device suite: {totals}")
 print(f"API {os.environ['MIKU_DEVICE_API']}: verified device test results: {totals}")
 PY
@@ -73,6 +73,7 @@ mkdir -p "$screenshots"
 adb pull /sdcard/Download/studywithmiku-design/. "$screenshots/"
 test -s "$screenshots/sync-choice.png"
 test -s "$screenshots/task-edit.png"
+test -s "$screenshots/music-module-disabled.png"
 
 for name in landscape-focus landscape-player landscape-records landscape-task-editor landscape-chat-keyboard landscape-settings landscape-calendar landscape-sync-choice; do
   test -s "$screenshots/$name.png"

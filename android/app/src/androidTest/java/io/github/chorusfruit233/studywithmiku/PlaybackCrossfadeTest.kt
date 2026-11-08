@@ -24,6 +24,53 @@ import java.util.concurrent.TimeUnit
 class PlaybackCrossfadeTest {
     @get:Rule val compose = createComposeRule()
     private val context get() = InstrumentationRegistry.getInstrumentation().targetContext
+    @Test fun disablingModuleDisconnectsPlayingServiceRejectsControllersAndRestoresPausedQueue() = runBlocking {
+        compose.setContent { Text("Music module service fixture") }
+        val app = context.applicationContext as MikuApplication
+        val previous = app.store.prefs.value
+        val saved = app.store.readQueue()
+        val song = app.store.library.value.songs.first { it.builtin }
+        var music: MusicConnection? = null
+        try {
+            withContext(Dispatchers.Main) {
+                app.store.updatePreferences(previous.copy(musicEnabled = true,pauseMusicDuringBreak = false,crossfade = false))
+                music = MusicConnection(app)
+            }
+            until { music!!.state.value.connected }
+            withContext(Dispatchers.Main) { music!!.play(listOf(song)) }
+            until { music!!.state.value.playing }
+            withContext(Dispatchers.Main) { app.store.updatePreferences(app.store.prefs.value.copy(musicEnabled = false)) }
+            until { !music!!.state.value.connected && !music!!.state.value.playing }
+            assertEquals(listOf(song.id),app.store.readQueue().getJSONArray("ids").strings())
+            val rejected = withContext(Dispatchers.Main) {
+                MediaController.Builder(context,SessionToken(context,ComponentName(context,PlaybackService::class.java))).buildAsync()
+            }
+            try {
+                try { rejected.get(10,TimeUnit.SECONDS); fail("Disabled service must reject even external controllers") }
+                catch (expected: java.util.concurrent.ExecutionException) { /* Session is unavailable while disabled. */ }
+            } finally { withContext(Dispatchers.Main) { MediaController.releaseFuture(rejected); music!!.close() } }
+            until {
+                val manager = context.getSystemService(android.app.ActivityManager::class.java)
+                @Suppress("DEPRECATION")
+                manager.getRunningServices(100).none { it.service.className == PlaybackService::class.java.name }
+            }
+            withContext(Dispatchers.Main) {
+                app.store.updatePreferences(app.store.prefs.value.copy(musicEnabled = true))
+                music = MusicConnection(app)
+            }
+            until { music!!.state.value.connected && music!!.state.value.songId == song.id }
+            assertFalse(music!!.state.value.playing)
+            assertFalse(music!!.state.value.loading)
+        } finally {
+            withContext(Dispatchers.Main) {
+                music?.close()
+                context.stopService(android.content.Intent(context,PlaybackService::class.java))
+                app.store.updatePreferences(previous)
+                app.store.saveQueue(saved.optJSONArray("ids")?.strings() ?: emptyList(),saved.optInt("index"),saved.optLong("position"),
+                    saved.optInt("repeat",Player.REPEAT_MODE_ALL),saved.optBoolean("shuffle"),saved.finiteDouble("volume",1.0).toFloat())
+            }
+        }
+    }
     private fun tracks(directory: File): List<MediaItem> = (0..2).map { index ->
         val samples = 22_050*20
         val b = ByteBuffer.allocate(44+samples*2).order(ByteOrder.LITTLE_ENDIAN)

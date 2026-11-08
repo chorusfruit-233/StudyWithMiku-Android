@@ -25,6 +25,43 @@ import java.util.concurrent.TimeUnit
 
 class AudioCacheTest {
     @get:Rule val compose = createComposeRule()
+    @Test fun moduleOffPausesDownloadsRejectsResumeAndPreservesCompletedCacheAcrossRestart() = fixture { context,store,directory,name ->
+        val server = server(wave(20),slow = true)
+        val track = song(server.url("/module.wav").toString())
+        var cache = withContext(Dispatchers.Main) { AudioCache(context,store,directory,name) }
+        try {
+            await(cache) { it.initialized }
+            store.saveOfflinePlaylist(OfflinePlaylist(MusicConfig(id = "42"),listOf(track)))
+            withContext(Dispatchers.Main) { cache.manager.addDownload(AudioCache.request(track)); cache.manager.resumeDownloads() }
+            await(cache) { it.songs[track.cacheKey]?.status == AudioCacheStatus.DOWNLOADING }
+            withContext(Dispatchers.Main) { store.updatePreferences(store.prefs.value.copy(musicEnabled = false)) }
+            await(cache) { it.paused && it.songs[track.cacheKey]?.status == AudioCacheStatus.PAUSED }
+            val requests = server.requestCount
+            withContext(Dispatchers.Main) { cache.resume(); cache.manager.resumeDownloads() }
+            delay(250)
+            assertEquals(requests,server.requestCount)
+            withContext(Dispatchers.Main) {
+                assertTrue(cache.manager.downloadsPaused)
+                store.updatePreferences(store.prefs.value.copy(musicEnabled = true))
+            }
+            await(cache) { it.paused }
+            withContext(Dispatchers.Main) { cache.manager.resumeDownloads() }
+            await(cache) { it.ready(track) }
+            withContext(Dispatchers.Main) {
+                store.updatePreferences(store.prefs.value.copy(musicEnabled = false))
+                cache.release()
+            }
+            server.shutdown()
+            cache = withContext(Dispatchers.Main) { AudioCache(context,MikuStore(context),directory,name) }
+            val restored = await(cache) { it.initialized && it.ready(track) }
+            assertTrue(restored.bytes > 0)
+            assertEquals(track.id,restored.playlists.single().songs.single().id)
+            withContext(Dispatchers.Main) { cache.manager.resumeDownloads(); assertTrue(cache.manager.downloadsPaused) }
+        } finally {
+            withContext(Dispatchers.Main) { cache.release() }
+            runCatching { server.shutdown() }
+        }
+    }
     @Test fun productionDownloadServiceAndMediaControllerPlayOffline() {
         val app = InstrumentationRegistry.getInstrumentation().targetContext.applicationContext as MikuApplication
         val server = server(wave())

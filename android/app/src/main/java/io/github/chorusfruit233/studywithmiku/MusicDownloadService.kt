@@ -12,6 +12,15 @@ class MusicDownloadService : DownloadService(3001,1000,"music_downloads",R.strin
     override fun getDownloadManager() = (application as MikuApplication).audioCache.manager
     // Requirements changes resume within the running process; after force-stop, resume from the music page.
     override fun getScheduler() = null
+    override fun onStartCommand(intent: Intent?,flags: Int,startId: Int): Int {
+        if (!(application as MikuApplication).store.prefs.value.musicEnabled) {
+            getDownloadManager().pauseDownloads()
+            stopForeground(STOP_FOREGROUND_REMOVE)
+            stopSelf()
+            return START_NOT_STICKY
+        }
+        return super.onStartCommand(intent,flags,startId)
+    }
     override fun getForegroundNotification(downloads: List<Download>,notMetRequirements: Int): Notification {
         val open = PendingIntent.getActivity(this,0,Intent(this,MainActivity::class.java),PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
         return DownloadNotificationHelper(this,"music_downloads").buildProgressNotification(this,R.drawable.ic_notification,

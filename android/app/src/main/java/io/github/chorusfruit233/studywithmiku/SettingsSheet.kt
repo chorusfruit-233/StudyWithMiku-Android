@@ -13,6 +13,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlin.math.roundToInt
@@ -30,6 +32,11 @@ import kotlin.math.roundToInt
         Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(horizontal = 24.dp).padding(bottom = 32.dp),verticalArrangement = Arrangement.spacedBy(16.dp)) {
             Text("让这里，更像你的角落。",style = MaterialTheme.typography.headlineMedium)
             Text("按自己的节奏，调整一点点。",style = MaterialTheme.typography.bodyMedium,color = MaterialTheme.colorScheme.onSurfaceVariant)
+            SettingSection("功能模块") {
+                SettingSwitch("音乐模块","关闭后隐藏音乐入口，停止播放与缓存下载；保留歌单、收藏及缓存。仅影响本机，完成语音可单独设置。",prefs.musicEnabled) {
+                    update(prefs.copy(musicEnabled = it))
+                }
+            }
             SettingSection("专注节奏") {
                 if (clock.running) Text("暂停计时后，可以调整本轮时长。",style = MaterialTheme.typography.bodySmall,color = MaterialTheme.colorScheme.primary)
                 DurationField("专注时长",prefs.focusSeconds,100,!clock.running) { update(prefs.copy(focusSeconds = it,focusMinutes = (it+59)/60),true) }
@@ -47,8 +54,10 @@ import kotlin.math.roundToInt
                     Text("${(prefs.notificationVolume*100).roundToInt()}%",style = MaterialTheme.typography.labelLarge,color = MaterialTheme.colorScheme.primary)
                 }
                 Slider(prefs.notificationVolume,{ update(prefs.copy(notificationVolume = it)) },enabled = prefs.completionSound)
-                SettingSwitch("休息时暂停音乐","淡出后暂停，专注开始时恢复",prefs.pauseMusicDuringBreak) { update(prefs.copy(pauseMusicDuringBreak = it)) }
-                SettingSwitch("音乐交叉淡入淡出","提前缓冲下一首，平滑衔接",prefs.crossfade) { update(prefs.copy(crossfade = it)) }
+                if (prefs.musicEnabled) {
+                    SettingSwitch("休息时暂停音乐","淡出后暂停，专注开始时恢复",prefs.pauseMusicDuringBreak) { update(prefs.copy(pauseMusicDuringBreak = it)) }
+                    SettingSwitch("音乐交叉淡入淡出","提前缓冲下一首，平滑衔接",prefs.crossfade) { update(prefs.copy(crossfade = it)) }
+                }
             }
             SettingSection("外观与陪伴") {
                 Text("主题",style = MaterialTheme.typography.titleMedium)
@@ -70,7 +79,7 @@ import kotlin.math.roundToInt
                 Row(Modifier.padding(18.dp),verticalAlignment = Alignment.CenterVertically,horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     Icon(Icons.Rounded.CloudSync,null,Modifier.size(30.dp),tint = MaterialTheme.colorScheme.primary)
                     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                        Text("音乐在线，专注在当下。",style = MaterialTheme.typography.titleMedium)
+                        Text("记录每一份专注。",style = MaterialTheme.typography.titleMedium)
                         Text("使用原站账号可同步学习记录与设置。\n在社区页登录、管理云端数据。",style = MaterialTheme.typography.bodySmall)
                     }
                 }
@@ -136,7 +145,7 @@ import kotlin.math.roundToInt
             Text(title,style = MaterialTheme.typography.titleMedium)
             Text(subtitle,style = MaterialTheme.typography.bodySmall,color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
-        Switch(checked,onChange)
+        Switch(checked,onChange,modifier = Modifier.semantics { contentDescription = title })
     }
 }
 

@@ -13,7 +13,8 @@ data class Preferences(
     val hidePomodoroOnIdle: Boolean = false, val crossfade: Boolean = true,
     val focusSeconds: Int = focusMinutes * 60, val breakSeconds: Int = breakMinutes * 60, val countdownSeconds: Int = countdownMinutes * 60,
     val longBreakSeconds: Int = longBreakMinutes * 60,
-    val timerMode: String = "pomodoro", val overlayOpacity: Float = 0.3f
+    val timerMode: String = "pomodoro", val overlayOpacity: Float = 0.3f,
+    val musicEnabled: Boolean = true
 )
 data class Todo(val id: String, val text: String, val date: String = "", val done: Boolean = false,
     val pinned: Boolean = false, val color: String = "#39c5bb")

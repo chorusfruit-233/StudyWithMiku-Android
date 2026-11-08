@@ -56,11 +56,12 @@ class MikuStore(private val context: Context) : StudySyncStore {
             breakSeconds = p.optInt("breakSeconds",p.optInt("break",5)*60).coerceIn(6,6000),
             countdownSeconds = p.optInt("countdownSeconds",p.optInt("countdown",30)*60).coerceIn(6,36000),
             longBreakSeconds = p.optInt("longSeconds",p.optInt("long",15)*60).coerceIn(6,12000),
-            timerMode = p.optString("timerMode","pomodoro"),overlayOpacity = p.optDouble("overlay",0.3).toFloat().coerceIn(0f,1f))
+            timerMode = p.optString("timerMode","pomodoro"),overlayOpacity = p.optDouble("overlay",0.3).toFloat().coerceIn(0f,1f),
+            musicEnabled = disk.getBoolean("music_enabled",true))
     }
     fun updatePreferences(p: Preferences) {
-        _prefs.value = p
-        disk.edit().putString("preferences",JSONObject().put("focus",p.focusMinutes).put("break",p.breakMinutes)
+        // Device-wide module choice is outside account backups and the cloud study payload.
+        disk.edit().putBoolean("music_enabled",p.musicEnabled).putString("preferences",JSONObject().put("focus",p.focusMinutes).put("break",p.breakMinutes)
             .put("long",p.longBreakMinutes).put("countdown",p.countdownMinutes).put("goal",p.dailyGoalMinutes)
             .put("scene",p.scene).put("theme",p.theme).put("dynamic",p.dynamicColor)
             .put("animate",p.animateScene).put("screen",p.keepScreenOn).put("sound",p.completionSound)
@@ -68,6 +69,7 @@ class MikuStore(private val context: Context) : StudySyncStore {
             .put("notificationVolume",p.notificationVolume).put("autoAdvance",p.autoAdvance).put("hideIdle",p.hidePomodoroOnIdle)
             .put("crossfade",p.crossfade).put("focusSeconds",p.focusSeconds).put("breakSeconds",p.breakSeconds)
             .put("countdownSeconds",p.countdownSeconds).put("longSeconds",p.longBreakSeconds).put("timerMode",p.timerMode).put("overlay",p.overlayOpacity).toString()).apply()
+        _prefs.value = p
         markLearningChanged()
     }
     private fun readTodos() = arr("todos").objects().map {

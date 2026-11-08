@@ -11,6 +11,7 @@ import androidx.media3.session.MediaSessionService
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import android.os.SystemClock
 
 @androidx.annotation.OptIn(markerClass = [androidx.media3.common.util.UnstableApi::class])
@@ -30,8 +31,10 @@ class PlaybackService : MediaSessionService() {
     private var breakResume = false
     private var breakJob: Job? = null
     private var duckJob: Job? = null
+    private var releasing = false
     override fun onCreate() {
         super.onCreate()
+        if (!store.prefs.value.musicEnabled) { stopSelf(); return }
         fun create() = ExoPlayer.Builder(this).setMediaSourceFactory(DefaultMediaSourceFactory(app.audioCache.playbackFactory)).build().apply {
             setAudioAttributes(AudioAttributes.Builder().setContentType(C.AUDIO_CONTENT_TYPE_MUSIC).setUsage(C.USAGE_MEDIA).build(),false)
             setHandleAudioBecomingNoisy(true); setWakeMode(C.WAKE_MODE_NETWORK)
@@ -107,7 +110,8 @@ class PlaybackService : MediaSessionService() {
         if (items.isNotEmpty()) {
             player.setMediaItems(items,saved.optInt("index").coerceIn(0,items.lastIndex),saved.optLong("position").coerceAtLeast(0))
             player.repeatMode = saved.optInt("repeat",Player.REPEAT_MODE_ALL)
-            player.shuffleModeEnabled = saved.optBoolean("shuffle"); player.prepare()
+            // Restoring a queue must not restart network buffering or playback by itself.
+            player.shuffleModeEnabled = saved.optBoolean("shuffle")
         }
         player.addListener(object : Player.Listener {
             override fun onEvents(player: Player, events: Player.Events) {
@@ -117,6 +121,16 @@ class PlaybackService : MediaSessionService() {
             }
 
         })
+        scope.launch {
+            store.prefs.map { it.musicEnabled }.distinctUntilChanged().collect { enabled ->
+                if (!enabled) {
+                    releasePlayback()
+                    stopForeground(STOP_FOREGROUND_REMOVE)
+                    stopSelf()
+                    scope.cancel()
+                }
+            }
+        }
         scope.launch { while (isActive) { crossfade.tick(); delay(50) } }
         scope.launch {
             combine(app.timer.state,store.prefs) { clock,prefs -> (clock.mode == TimerMode.POMODORO && clock.phase != Phase.FOCUS) to prefs.pauseMusicDuringBreak }
@@ -154,15 +168,29 @@ class PlaybackService : MediaSessionService() {
         preview.volume = userVolume*previewGain*breakGain*duckGain
     }
     private fun save(player: Player) {
+        if (releasing) return
         store.saveQueue((0 until player.mediaItemCount).map { player.getMediaItemAt(it).mediaId },
             player.currentMediaItemIndex.coerceAtLeast(0),player.currentPosition,player.repeatMode,player.shuffleModeEnabled,userVolume)
     }
-    override fun onGetSession(controllerInfo: MediaSession.ControllerInfo) = session
+    override fun onGetSession(controllerInfo: MediaSession.ControllerInfo) = session.takeIf { store.prefs.value.musicEnabled }
+    override fun onStartCommand(intent: Intent?,flags: Int,startId: Int): Int {
+        if (!store.prefs.value.musicEnabled) { stopSelf(); return START_NOT_STICKY }
+        return super.onStartCommand(intent,flags,startId)
+    }
     override fun onTaskRemoved(rootIntent: Intent?) { session?.player?.let { save(it); if (!it.playWhenReady) stopSelf() } }
     override fun onDestroy() {
         scope.cancel()
-        session?.let { save(it.player); crossfade.close(); preview.release(); player.release(); it.release() }; session = null
+        releasePlayback()
         super.onDestroy()
+    }
+    private fun releasePlayback() {
+        val active = session ?: return
+        save(active.player)
+        releasing = true
+        session = null
+        breakResume = false; breakJob?.cancel(); duckJob?.cancel()
+        crossfade.close(); preview.stop(); player.stop()
+        removeSession(active); active.release(); preview.release(); player.release()
     }
 }
 fun Song.mediaItem(): MediaItem = MediaItem.Builder().setMediaId(id).setUri(uri)

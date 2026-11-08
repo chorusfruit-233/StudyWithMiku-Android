@@ -8,6 +8,26 @@ import org.junit.Test
 import java.util.UUID
 
 class PartialPreferencesTest {
+    @Test fun musicModuleIsDeviceLocalAndSurvivesRestartCloudImportAndAccountSwitches() = fixture { context ->
+        val store = MikuStore(context)
+        assertTrue(store.prefs.value.musicEnabled)
+        store.saveQueue(listOf("saved-track"),0,1234,2,false,.3f)
+        store.saveNetworkPlaylist("netease","42","Saved playlist")
+        val snapshot = store.studySnapshot()
+        store.updatePreferences(store.prefs.value.copy(musicEnabled = false))
+        assertFalse(MikuStore(context).prefs.value.musicEnabled)
+        store.applyStudy(snapshot)
+        assertFalse(store.prefs.value.musicEnabled)
+        assertFalse(store.studySnapshot().data.getJSONObject("settings").has("musicEnabled"))
+        store.switchStudyOwner("other-account")
+        assertFalse(store.prefs.value.musicEnabled)
+        store.switchStudyOwner("")
+        assertFalse(store.prefs.value.musicEnabled)
+        assertEquals(listOf("saved-track"),store.readQueue().getJSONArray("ids").strings())
+        assertEquals("Saved playlist",store.networkPlaylists.value.single().name)
+        store.updatePreferences(store.prefs.value.copy(musicEnabled = true))
+        assertTrue(MikuStore(context).prefs.value.musicEnabled)
+    }
     private fun fixture(test: (Context) -> Unit) {
         val target = InstrumentationRegistry.getInstrumentation().targetContext
         val name = "partial_settings_${UUID.randomUUID()}"

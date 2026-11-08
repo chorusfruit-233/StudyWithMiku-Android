@@ -224,7 +224,7 @@ private data class LyricsLoadState(val lines: List<LyricLine> = emptyList(),val 
         value = LyricsLoadState()
         try {
             val text = withContext(Dispatchers.IO) {
-                song!!.lyrics.let { if (it.startsWith("[")) it else MusicHttp.text(it) }
+                song!!.lyrics.let { if (it.startsWith("[")) it else MusicHttp.cancellableText(it) }
             }
             value = LyricsLoadState(lines = MusicProtocol.lyrics(text),loading = false)
         } catch (e: CancellationException) { throw e }

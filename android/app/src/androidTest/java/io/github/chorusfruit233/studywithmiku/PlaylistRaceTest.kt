@@ -16,6 +16,43 @@ import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
 class PlaylistRaceTest {
+    @Test fun disablingModuleCancelsPendingPlaylistAndBlocksNewLoadsUntilEnabled() = runBlocking {
+        val target = InstrumentationRegistry.getInstrumentation().targetContext
+        val name = "playlist_disabled_${UUID.randomUUID()}"
+        val context = object : ContextWrapper(target) {
+            override fun getSharedPreferences(ignored: String,mode: Int) = target.getSharedPreferences(name,mode)
+        }
+        val store = MikuStore(context)
+        val online = OnlineMusic(context,store)
+        MockWebServer().use { server ->
+            server.enqueue(MockResponse().setBody("""[{"id":"late","name":"Late track","url":"https://example.test/late.mp3"}]""")
+                .setBodyDelay(1,TimeUnit.SECONDS))
+            server.start()
+            val config = MusicConfig(api = server.url("/meting/").toString(),id = "42",name = "Pending playlist")
+            var callbacks = 0
+            try {
+                withContext(Dispatchers.Main) { online.load(config,forceRefresh = true) { callbacks++ } }
+                assertNotNull(server.takeRequest(10,TimeUnit.SECONDS))
+                withContext(Dispatchers.Main) { store.updatePreferences(store.prefs.value.copy(musicEnabled = false)) }
+                withTimeout(5000) { online.state.first { !it.loading } }
+                withContext(Dispatchers.Main) { online.load(config,forceRefresh = true) { callbacks++ }; online.ensureLoaded() }
+                delay(1250)
+                assertEquals(1,server.requestCount)
+                assertEquals(0,callbacks)
+                assertNull(store.readNetworkSnapshot(config))
+                assertNull(online.state.value.error)
+                val cached = Song("retained","Retained track","Miku","https://example.test/retained.mp3",platform = "netease")
+                store.cacheOnline(config,listOf(cached))
+                withContext(Dispatchers.Main) {
+                    store.updatePreferences(store.prefs.value.copy(musicEnabled = true))
+                    online.load(config) { callbacks++ }
+                }
+                assertEquals(1,callbacks)
+                assertEquals(listOf(cached.id),online.state.value.ids)
+                assertEquals(1,server.requestCount)
+            } finally { withContext(Dispatchers.Main) { online.close() }; target.deleteSharedPreferences(name) }
+        }
+    }
     @Test fun lateSuccessCannotReplaceNewRemoteSelectionOrRunOldPlaybackCallback() = scenario(false)
     @Test fun lateFailureCannotReplaceOfflineSelectionOrItsSavedConfig() = scenario(true)
     private fun scenario(offline: Boolean) = runBlocking {

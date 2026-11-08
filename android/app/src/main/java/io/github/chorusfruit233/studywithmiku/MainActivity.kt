@@ -57,13 +57,13 @@ class MainActivity : ComponentActivity() {
     override fun onStop() { app.timer.flush(); app.chat.stop(); app.extras.stop(); super.onStop() }
 }
 
-@Composable private fun MikuApp(app: MikuApplication,backgroundAccess: BackgroundAccess) {
+@Composable internal fun MikuApp(app: MikuApplication,backgroundAccess: BackgroundAccess) {
     val prefs by app.store.prefs.collectAsStateWithLifecycle()
     val timer by app.timer.state.collectAsStateWithLifecycle()
     val library by app.store.library.collectAsStateWithLifecycle()
     val logs by app.store.logs.collectAsStateWithLifecycle()
     val todos by app.store.todos.collectAsStateWithLifecycle()
-    val music = remember { MusicConnection(app) }
+    val music = remember(prefs.musicEnabled) { MusicConnection(app,enabled = prefs.musicEnabled) }
     val playback by music.state.collectAsStateWithLifecycle()
     LaunchedEffect(library.songs,playback.connected) { music.syncLibrary(library.songs) }
     DisposableEffect(music) { onDispose { music.close() } }
@@ -73,6 +73,9 @@ class MainActivity : ComponentActivity() {
     var communityPage by rememberSaveable { mutableIntStateOf(0) }
     var player by remember { mutableStateOf(false) }
     var chatSheet by remember { mutableStateOf(false) }
+    LaunchedEffect(prefs.musicEnabled) {
+        if (!prefs.musicEnabled) { if (tab == 1) tab = 0; player = false }
+    }
     val chat by app.chat.state.collectAsStateWithLifecycle()
     val snackbar = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
@@ -114,7 +117,8 @@ class MainActivity : ComponentActivity() {
             permission.launch(Manifest.permission.POST_NOTIFICATIONS)
         } else app.timer.toggle()
     }
-    AdaptiveAppScaffold(tab,{ tab = it },snackbar,
+    val visibleTab = if (!prefs.musicEnabled && tab == 1) 0 else tab
+    AdaptiveAppScaffold(visibleTab,{ tab = it },snackbar,
         title = {
             Row(Modifier.weight(1f),verticalAlignment = Alignment.CenterVertically,horizontalArrangement = Arrangement.spacedBy(9.dp)) {
                 Surface(shape = RoundedCornerShape(12.dp),color = MaterialTheme.colorScheme.primaryContainer) {
@@ -130,14 +134,15 @@ class MainActivity : ComponentActivity() {
             if (tab != 4) IconButton(onClick = { chatSheet = true }) { Icon(Icons.Rounded.ChatBubbleOutline,"打开聊天室") }
             IconButton(onClick = { settings = true }) { Icon(Icons.Rounded.Tune,"设置") }
         },
-        miniPlayer = if (playback.songId == null) null else { compact ->
+        musicEnabled = prefs.musicEnabled,
+        miniPlayer = if (!prefs.musicEnabled || playback.songId == null) null else { compact ->
             MiniPlayer(library.songs.find { it.id == playback.songId },playback,music,compact = compact) { player = true }
         },
     ) {
-        AnimatedContent(targetState = tab,transitionSpec = { fadeIn() togetherWith fadeOut() },label = "页面切换") { selected ->
+        AnimatedContent(targetState = visibleTab,transitionSpec = { fadeIn() togetherWith fadeOut() },label = "页面切换") { selected ->
             when (selected) {
                 0 -> FocusScreen(prefs,timer,logs,todos,app.store,app.timer,app.extras,::toggleTimer)
-                1 -> LibraryScreen(library,playback,app.store,music,app.onlineMusic,::message) { player = true }
+                1 -> if (prefs.musicEnabled) LibraryScreen(library,playback,app.store,music,app.onlineMusic,::message) { player = true }
                 2 -> TasksScreen(todos,app.store) { content -> if (!app.auth.state.value.loggedIn) app.openLogin() else if (app.chat.sendChat(content,app.extras.messageLocation())) { communityPage = 0; tab = 4; message("已分享到聊天室") } else message("连接成功后再分享") }
                 3 -> RecordsScreen(logs,todos)
                 else -> CommunityScreen(app,music,::message,communityPage,{ communityPage = it }) { player = true }
@@ -151,7 +156,7 @@ class MainActivity : ComponentActivity() {
         batteryGuidance = false; openAppSystemSettings()
     })
     if (about) AboutSheet { about = false }
-    if (player) PlayerSheet(library,playback,app.store,music,onShare = { song ->
+    if (player && prefs.musicEnabled) PlayerSheet(library,playback,app.store,music,onShare = { song ->
         if (!app.auth.state.value.loggedIn) app.openLogin()
         else if (app.chat.sendChat(StudyProtocol.songShare(song) ?: "",app.extras.messageLocation())) { player = false; chatSheet = false; communityPage = 0; tab = 4; message("已分享到聊天室") }
         else message("连接成功后再分享")

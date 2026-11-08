@@ -56,6 +56,7 @@ fun MikuApplication.openLogin() = startActivity(Intent(this,LoginActivity::class
     val account by app.auth.state.collectAsStateWithLifecycle()
     val profiles by app.chat.profiles.collectAsStateWithLifecycle()
     val onlineMusic by app.onlineMusic.state.collectAsStateWithLifecycle()
+    val prefs by app.store.prefs.collectAsStateWithLifecycle()
     var input by rememberSaveable { mutableStateOf("") }
     var stickers by remember { mutableStateOf(false) }
     var replyingToId by rememberSaveable(account.userId) { mutableStateOf<String?>(null) }
@@ -105,11 +106,11 @@ fun MikuApplication.openLogin() = startActivity(Intent(this,LoginActivity::class
                             if (!account.loggedIn) app.openLogin()
                             else { replyingToId = m.id; stickers = false; focusRequester.requestFocus(); keyboard?.show() }
                         },
-                        api = onlineMusic.config.api,onSong = { share ->
+                        api = onlineMusic.config.api,musicEnabled = prefs.musicEnabled,onSong = { share ->
                             app.onlineMusic.load(app.onlineMusic.state.value.config.copy(platform = share.platform,id = share.playlistId,name = share.playlistName.ifBlank { "分享的歌单" })) { songs ->
                                 val selected = songs.getOrNull(share.index)?.takeIf { share.name.isBlank() || it.title == share.name || it.webTitle == share.name }
                                     ?: songs.find { it.title == share.name || it.webTitle == share.name } ?: songs.getOrNull(share.index) ?: songs.firstOrNull()
-                                selected?.let { music.play(songs,it.id); openPlayer() }
+                                selected?.takeIf { app.store.prefs.value.musicEnabled }?.let { music.play(songs,it.id); openPlayer() }
                             }
                         })
                 }
@@ -172,7 +173,7 @@ internal fun chatDisplayName(message: ChatMessage,profile: UserProfile?) = profi
 }
 
 @Composable internal fun ChatBubble(m: ChatMessage,profile: UserProfile?,own: Boolean,grouped: Boolean,api: String,
-    referenced: ChatMessage? = null,referencedProfile: UserProfile? = null,onReply: () -> Unit = {},onSong: (SharedSong)->Unit) {
+    referenced: ChatMessage? = null,referencedProfile: UserProfile? = null,onReply: () -> Unit = {},musicEnabled: Boolean = true,onSong: (SharedSong)->Unit) {
     val name = chatDisplayName(m,profile)
     Row(Modifier.fillMaxWidth(),horizontalArrangement = Arrangement.spacedBy(8.dp),verticalAlignment = Alignment.Top) {
         if (!grouped) UserAvatar(profile?.avatar,name,Modifier.size(34.dp)) else Spacer(Modifier.width(34.dp))
@@ -201,13 +202,14 @@ internal fun chatDisplayName(message: ChatMessage,profile: UserProfile?) = profi
             val day = StudyProtocol.countdown(content)
             when {
                 sticker != null -> AsyncImage("file:///android_asset/sticker/$sticker.${stickerExtension(sticker)}","表情包 $sticker",Modifier.size(130.dp),contentScale = ContentScale.Fit)
-                song != null -> Surface(onClick = { onSong(song) },shape = RoundedCornerShape(20.dp),color = MaterialTheme.colorScheme.primaryContainer) {
+                song != null -> Surface(onClick = { onSong(song) },enabled = musicEnabled,shape = RoundedCornerShape(20.dp),color = MaterialTheme.colorScheme.primaryContainer) {
                     Row(Modifier.padding(12.dp),verticalAlignment = Alignment.CenterVertically,horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                         val cover = StudyProtocol.sharedCover(song,api)
-                        if (cover.isNotBlank()) AsyncImage(cover,null,Modifier.size(52.dp).clip(RoundedCornerShape(12.dp)),contentScale = ContentScale.Crop)
+                        if (musicEnabled && cover.isNotBlank()) AsyncImage(cover,null,Modifier.size(52.dp).clip(RoundedCornerShape(12.dp)),contentScale = ContentScale.Crop)
                         else Icon(Icons.Rounded.LibraryMusic,null,Modifier.size(40.dp))
                         Column(Modifier.weight(1f)) { Text(song.name.ifBlank { "分享的歌曲" },style = MaterialTheme.typography.titleSmall,maxLines = 2); Text(song.playlistName,style = MaterialTheme.typography.bodySmall,maxLines = 1) }
-                        Icon(Icons.Rounded.PlayCircle,"播放分享的歌曲")
+                        if (musicEnabled) Icon(Icons.Rounded.PlayCircle,"播放分享的歌曲")
+                        else Text("音乐模块已关闭",style = MaterialTheme.typography.labelSmall)
                     }
                 }
                 day != null -> Surface(shape = RoundedCornerShape(20.dp),color = MaterialTheme.colorScheme.tertiaryContainer) {
