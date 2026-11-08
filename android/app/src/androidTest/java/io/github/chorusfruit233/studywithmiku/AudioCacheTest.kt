@@ -34,6 +34,8 @@ class AudioCacheTest {
             store.saveOfflinePlaylist(OfflinePlaylist(MusicConfig(id = "42"),listOf(track)))
             withContext(Dispatchers.Main) { cache.manager.addDownload(AudioCache.request(track)); cache.manager.resumeDownloads() }
             await(cache) { it.songs[track.cacheKey]?.status == AudioCacheStatus.DOWNLOADING }
+            // Observe an actual request before disabling; a queued download alone is insufficient.
+            assertNotNull(server.takeRequest(10,TimeUnit.SECONDS))
             withContext(Dispatchers.Main) { store.updatePreferences(store.prefs.value.copy(musicEnabled = false)) }
             await(cache) { it.paused && it.songs[track.cacheKey]?.status == AudioCacheStatus.PAUSED }
             val requests = server.requestCount

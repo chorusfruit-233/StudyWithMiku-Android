@@ -65,6 +65,13 @@ class PlaybackCrossfadeTest {
             withContext(Dispatchers.Main) {
                 music?.close()
                 context.stopService(android.content.Intent(context,PlaybackService::class.java))
+            }
+            until {
+                @Suppress("DEPRECATION")
+                context.getSystemService(android.app.ActivityManager::class.java).getRunningServices(100)
+                    .none { it.service.className == PlaybackService::class.java.name }
+            }
+            withContext(Dispatchers.Main) {
                 app.store.updatePreferences(previous)
                 app.store.saveQueue(saved.optJSONArray("ids")?.strings() ?: emptyList(),saved.optInt("index"),saved.optLong("position"),
                     saved.optInt("repeat",Player.REPEAT_MODE_ALL),saved.optBoolean("shuffle"),saved.finiteDouble("volume",1.0).toFloat())
