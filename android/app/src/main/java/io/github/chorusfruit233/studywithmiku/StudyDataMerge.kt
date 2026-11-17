@@ -5,7 +5,7 @@ import org.json.JSONObject
 
 /** Three-way merge matching upstream studyDataMerge.js. A missing field is distinct from JSON null. */
 object StudyDataMerge {
-    private fun equal(a: Any?,b: Any?): Boolean = if (a == null || b == null) a == b else StudyProtocol.sameJson(a,b)
+    private fun equal(a: Any?,b: Any?): Boolean = if (a == null || b == null) a === b else StudyProtocol.sameJson(a,b)
     private fun clone(value: Any?): Any? = when (value) {
         is JSONObject -> JSONObject(value.toString())
         is JSONArray -> JSONArray(value.toString())

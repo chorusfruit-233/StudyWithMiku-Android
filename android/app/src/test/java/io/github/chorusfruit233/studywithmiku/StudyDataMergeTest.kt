@@ -43,6 +43,8 @@ class StudyDataMergeTest {
         assertEquals(listOf("z",3,"a","3","b"),(0 until result.length()).map { result.getJSONObject(it).get("id") })
     }
     @Test fun nullAndMissingAreDistinctAndInputsAreNotMutated() {
+        val explicitNull = merge("{}","""{"settings":null}""","""{"settings":{"theme":"dark"}}""")
+        assertTrue(explicitNull.has("settings")); assertTrue(explicitNull.isNull("settings"))
         val base = JSONObject("""{"settings":{"a":null,"b":1,"list":[1]}}""")
         val local = JSONObject("""{"settings":{"b":1,"list":[2]}}""")
         val remote = JSONObject("""{"settings":{"a":null,"b":2,"list":[3]}}""")
