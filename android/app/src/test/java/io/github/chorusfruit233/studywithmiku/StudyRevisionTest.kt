@@ -84,6 +84,7 @@ class StudyRevisionTest {
             assertEquals("retain locally",saved.data.getString("serverOnly"))
             assertEquals("retain calendar metadata",saved.calendar.getString("updated_at"))
             if (versioned) assertEquals("new",saved.data.getString("serverStamp"))
+            else assertFalse("A legacy server must not inherit a stale local revision",saved.data.has("revision"))
             assertFalse(JSONObject(server.takeRequest().body.readUtf8()).has("serverOnly"))
             assertFalse(JSONObject(server.takeRequest().body.readUtf8()).has("updated_at"))
         }

@@ -96,8 +96,10 @@ class StudyApi(private val baseUrl: String = ACCOUNT_API_SITE,client: OkHttpClie
         // Projection is a wire concern. Keep read-only/forward-compatible fields in the local shadow.
         var saved = retained(study.data,data)
         var expected = revision(baseline?.data)
-        if (expected == null) execute("/api/study/data",token,dataBody)
-        else {
+        if (expected == null) {
+            execute("/api/study/data",token,dataBody)
+            saved.remove("revision") // Capability comes from the server, never a stale local snapshot.
+        } else {
             var base = baseline?.data
             var pending = data
             for (attempt in 0..2) {
