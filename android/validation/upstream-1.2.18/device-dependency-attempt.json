@@ -1,0 +1,10 @@
+{
+  "run": 44123818193,
+  "attempt": 1,
+  "source": "23db11e38d786ba6a6e90bce6988aaf6df4bc2fa",
+  "buildUnitAndLint": "success",
+  "deviceTests": "not started",
+  "reason": "Maven Central HTTP 429 resolving junit-platform-launcher and junit-platform-engine 1.13.3 for the Android unified test platform",
+  "time": "2026-11-17T16:20:04Z",
+  "resolution": "Rerun failed job on the same source commit."
+}

@@ -1,0 +1,36 @@
+{
+  "debug": {
+    "unit": {
+      "tests": 134,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "lintErrors": 0,
+    "lintWarnings": 40,
+    "reportSha256": "5dfc8c25759a86bf55d5083f54772fb20f414ffb1615fd22010b90960c87d737"
+  },
+  "api35": {
+    "tests": 59,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "api37": {
+    "tests": 59,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "release": {
+    "unit": {
+      "tests": 134,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "lintErrors": 0,
+    "lintWarnings": 42,
+    "reportSha256": "43c629ea33035ee8f4b73e11045fba6b8cdbe26bf08e219bad1847f7a1aedffc"
+  }
+}

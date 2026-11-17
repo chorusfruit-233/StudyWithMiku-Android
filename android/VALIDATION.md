@@ -1,10 +1,20 @@
 # 验证记录
 
-## 公开发布状态（2026-11-08 核对）
+## 公开发布状态（2026-11-17 核对）
 
-仓库已公开，当前正式版为 [v1.2.17](https://github.com/chorusfruit-233/StudyWithMiku-Android/releases/tag/v1.2.17)。GitHub 元数据确认 `draft=false`、`prerelease=false`，发布时间为 `2026-11-08T04:23:05Z`，Latest 指向此版本。Release 提供固定签名 APK、文件校验值、公开证书资料和 Release 检查报告。
+仓库已公开，当前正式版为 [v1.2.18](https://github.com/chorusfruit-233/StudyWithMiku-Android/releases/tag/v1.2.18)。GitHub 元数据确认 `draft=false`、`prerelease=false`，发布时间为 `2026-11-17T16:36:52Z`，Latest 指向此版本。Release 提供固定签名 APK、文件校验值、公开证书资料和 Release 检查报告。
 
-下文保留各版本真实构建、测试结果与验收范围。历史 Debug 草稿未公开发布；本目录的回归报告与截图可随源码公开查看。
+下文保留各版本真实构建、测试结果与验收范围。历史 Debug 草稿未公开发布；回归报告与截图可随源码公开查看。
+
+## 1.2.18 上游 main 协议与内容适配
+
+- 对齐上游 `981c9c910340cd9b9896a3537e20ebfe4643f094`（2026-11-15），审阅相对 `bcc6627` 的 17 个提交、25 个变更文件及 168 项 npm 锁文件路径版本变化。上游 30 项 Node 测试通过；49 条一言、33 条日志与 21 个表情文件逐项核对，APK 中的 23 份对应文本／图片文件摘要与源码一致。[原生映射](UPSTREAM.md) 和 [审阅资料](validation/upstream-1.2.18/README.txt) 保留核对依据。
+- 新增服务器版本校验与三方合并、日历部分失败检查点、并发本地编辑保留、服务端退出登录，以及聊天持久发送队列、能力协商、确认与去重重试、失败草稿和连接超时恢复。手动切歌改为快速淡出／淡入，并协调通知与休息的音量变化。保留本机音乐开关、缓存和横屏布局。
+- 构建源码 `0345102f6a4b8c970903a56e52e65bfc8448f6c4`，版本 1.2.18／versionCode=21。[Debug Actions 44125479320](https://github.com/chorusfruit-233/StudyWithMiku-Android/actions/runs/44125479320) 和 [签名 Release Actions 44125480963](https://github.com/chorusfruit-233/StudyWithMiku-Android/actions/runs/44125480963) 成功。下载原始报告确认 Debug／Release 各 134 项 JVM、Android 15／17 各 59 项设备测试通过，0 失败／错误／跳过，Lint 0 错误。
+- 设备测试实际发现两项旧同步回归：只上传可写字段的投影误删了本机附加字段。已修复普通上传与日历失败重试的快照保留，原断言保留且最终通过。新旧协议切换不会继承残留本地版本号。首次模拟器下载中断，以及后续 Maven 429 均发生于设备测试开始前，按原源码重跑；失败原始 XML 和环境记录随验证资料保留。
+- 新增设备检查覆盖真实 SharedPreferences 的发件箱恢复、待发送气泡与草稿恢复、运行中计时快照保留和今日合并记录的日历补传；既有实际音频过渡、触底聊天手势、横屏、音乐模块关闭、同步和缓存用例继续通过。截图来自使用生产组件的测试窗口与既有布局回归，不作为全部主题／字体或真实账号端到端验收。
+- APK 为 135,143,070 字节，SHA-256 `56b3befc4a91e2045f83f030045289ecdd7423158b56c5aeab7b46ab84211f9b`。重新下载后核对包名、版本、minSdk=26、targetSdk=37、关闭调试标志、固定证书、ZIP 对齐和正式包不含测试 Activity；四项公开附件摘要与本地文件一致。
+- [发布 Actions 44127726526](https://github.com/chorusfruit-233/StudyWithMiku-Android/actions/runs/44127726526) 已公开发布 [v1.2.18](https://github.com/chorusfruit-233/StudyWithMiku-Android/releases/tag/v1.2.18)，标签指向上述源码，Latest 指向本版。后续文档提交不改变编译输入。设备回归使用 Debug APK、合成资料、本地 HTTP 服务与生成音频，未修改原站后端、写入真实账号或向公开聊天室发言。
 
 ## 1.2.17 音乐模块总开关
 

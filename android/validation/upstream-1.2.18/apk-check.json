@@ -1,0 +1,18 @@
+{
+  "source": "0345102f6a4b8c970903a56e52e65bfc8448f6c4",
+  "version": "1.2.18",
+  "versionCode": 21,
+  "apkBytes": 135143070,
+  "apkSha256": "56b3befc4a91e2045f83f030045289ecdd7423158b56c5aeab7b46ab84211f9b",
+  "releaseUnit": {
+    "tests": 134,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "lintErrors": 0,
+  "certificateSha256": "e07a05095f2b19e1b7b37d48e67016da4b5cf78386a03020410a3a134e1f12ad",
+  "auditedAssetFiles": 23,
+  "zipAlignment": true,
+  "testActivityAbsent": true
+}

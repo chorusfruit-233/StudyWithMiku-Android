@@ -1,0 +1,57 @@
+{
+  "source": "77968f8c6ba2342c4f53e81438ddabcb776060aa",
+  "tasks": [
+    "assembleDebug",
+    "testDebugUnitTest",
+    "lintDebug",
+    "assembleDebugAndroidTest"
+  ],
+  "unit": {
+    "tests": 133,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "lintErrors": 0,
+  "lintWarnings": 40,
+  "deviceTests": "Not run locally; no KVM device. GitHub Actions runs API 35 and 37.",
+  "followup": {
+    "source": "416c4235e808863e5274dbecc598a3318764510b",
+    "tasks": [
+      "testDebugUnitTest"
+    ],
+    "unit": {
+      "tests": 133,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "change": "Exact JSON Content-Type for upstream logout; full final source verification runs in Actions."
+  },
+  "metadataFix": {
+    "source": "23db11e38d786ba6a6e90bce6988aaf6df4bc2fa",
+    "tasks": [
+      "testDebugUnitTest"
+    ],
+    "unit": {
+      "tests": 134,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "change": "Preserve legacy read-only metadata and pending calendar shadow; device and final release checks recorded separately."
+  },
+  "finalUnitCheck": {
+    "source": "0345102f6a4b8c970903a56e52e65bfc8448f6c4",
+    "tasks": [
+      "testDebugUnitTest"
+    ],
+    "unit": {
+      "tests": 134,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "change": "Server capability controls revision negotiation; read-only local fields remain retained."
+  }
+}

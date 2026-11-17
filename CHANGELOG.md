@@ -1,6 +1,6 @@
 # 更新记录
 
-当前公开正式版：[v1.2.17](https://github.com/chorusfruit-233/StudyWithMiku-Android/releases/tag/v1.2.17)。此前版本的构建记录见 [验证文档](android/VALIDATION.md)，历史 Debug 草稿未公开发布。
+当前公开正式版：[v1.2.18](https://github.com/chorusfruit-233/StudyWithMiku-Android/releases/tag/v1.2.18)。此前版本的构建记录见 [验证文档](android/VALIDATION.md)，历史 Debug 草稿未公开发布。
 
 ## 1.2.18
 

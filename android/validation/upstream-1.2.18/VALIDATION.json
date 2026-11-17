@@ -1,0 +1,88 @@
+{
+  "source": "0345102f6a4b8c970903a56e52e65bfc8448f6c4",
+  "upstream": "981c9c910340cd9b9896a3537e20ebfe4643f094",
+  "debugRun": 44125479320,
+  "releaseRun": 44125480963,
+  "publishRun": 44127726526,
+  "publishedAt": "2026-11-17T16:36:52Z",
+  "url": "https://github.com/chorusfruit-233/StudyWithMiku-Android/releases/tag/v1.2.18",
+  "draft": false,
+  "prerelease": false,
+  "latest": "v1.2.18",
+  "apk": {
+    "source": "0345102f6a4b8c970903a56e52e65bfc8448f6c4",
+    "version": "1.2.18",
+    "versionCode": 21,
+    "apkBytes": 135143070,
+    "apkSha256": "56b3befc4a91e2045f83f030045289ecdd7423158b56c5aeab7b46ab84211f9b",
+    "releaseUnit": {
+      "tests": 134,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "lintErrors": 0,
+    "certificateSha256": "e07a05095f2b19e1b7b37d48e67016da4b5cf78386a03020410a3a134e1f12ad",
+    "auditedAssetFiles": 23,
+    "zipAlignment": true,
+    "testActivityAbsent": true
+  },
+  "reports": {
+    "debug": {
+      "unit": {
+        "tests": 134,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "lintErrors": 0,
+      "lintWarnings": 40,
+      "reportSha256": "5dfc8c25759a86bf55d5083f54772fb20f414ffb1615fd22010b90960c87d737"
+    },
+    "api35": {
+      "tests": 59,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "api37": {
+      "tests": 59,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "release": {
+      "unit": {
+        "tests": 134,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "lintErrors": 0,
+      "lintWarnings": 42,
+      "reportSha256": "43c629ea33035ee8f4b73e11045fba6b8cdbe26bf08e219bad1847f7a1aedffc"
+    }
+  },
+  "assets": [
+    {
+      "name": "Android-release-check-reports.zip",
+      "bytes": 134044,
+      "digest": "sha256:43c629ea33035ee8f4b73e11045fba6b8cdbe26bf08e219bad1847f7a1aedffc"
+    },
+    {
+      "name": "SHA256SUMS.txt",
+      "bytes": 107,
+      "digest": "sha256:35348af17d205ee78b480d0aeaa27650eded8b751c5007d5d691d51f0fc49374"
+    },
+    {
+      "name": "SIGNING-CERTIFICATE.txt",
+      "bytes": 216,
+      "digest": "sha256:33dec94ad097f4030f327817f9f3b694c1f989a7b3f5961cefdd64384a8498ba"
+    },
+    {
+      "name": "StudyWithMiku-Android-1.2.18-release.apk",
+      "bytes": 135143070,
+      "digest": "sha256:56b3befc4a91e2045f83f030045289ecdd7423158b56c5aeab7b46ab84211f9b"
+    }
+  ]
+}
