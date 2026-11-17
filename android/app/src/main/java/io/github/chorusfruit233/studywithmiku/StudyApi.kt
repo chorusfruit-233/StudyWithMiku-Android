@@ -27,7 +27,7 @@ class StudyApi(private val baseUrl: String = ACCOUNT_API_SITE,client: OkHttpClie
         val builder = Request.Builder().url(baseUrl+path).header("Cache-Control","no-store").header("Pragma","no-cache")
             .header("User-Agent","StudyWithMiku-Android/1.2").header("Accept","application/json")
             .header("Origin",STUDY_SITE).header("Referer","$STUDY_SITE/")
-        if (path.substringBefore('?') in listOf("/api/study/data","/api/study/calendar")) builder.header("Content-Type","application/json")
+        if (path.substringBefore('?') in listOf("/api/study/data","/api/study/calendar","/api/study/logout")) builder.header("Content-Type","application/json")
         if (token.isNotBlank()) builder.header("Authorization","Bearer $token")
         // Like the original cross-origin browser fetch: Bearer only, with an exact JSON media type.
         if (post) builder.post(ByteArray(0).toRequestBody(null))
@@ -41,7 +41,7 @@ class StudyApi(private val baseUrl: String = ACCOUNT_API_SITE,client: OkHttpClie
                     else -> "账号资料"
                 }
                 val payload = if (response.code == 409) runCatching { JSONObject(response.peekBody(8 * 1024 * 1024).string()) }.getOrNull() else null
-                throw StudyApiException(response.code,verb+section,payload)
+                throw StudyApiException(response.code,if (post) "退出登录" else verb+section,payload)
             }
             if (post) return@use JSONObject()
             val input = response.body ?: throw IOException("账号服务返回空响应")

@@ -68,6 +68,7 @@ class StudyRevisionTest {
             val request = server.takeRequest()
             assertEquals("POST",request.method); assertEquals("/api/study/logout",request.path)
             assertEquals("Bearer token",request.getHeader("Authorization")); assertEquals("no-store",request.getHeader("Cache-Control"))
+            assertEquals("application/json",request.getHeader("Content-Type")); assertEquals(0L,request.bodySize)
             assertNull(request.getHeader("Cookie"))
         }
         server.enqueue(MockResponse().setResponseCode(500))
