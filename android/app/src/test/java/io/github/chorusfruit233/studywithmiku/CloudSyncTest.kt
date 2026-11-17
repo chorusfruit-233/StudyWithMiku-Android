@@ -52,7 +52,8 @@ class CloudSyncTest {
     }
     private class Account : StudySyncAccount {
         override val state = MutableStateFlow(AccountState("u","Miku",Long.MAX_VALUE))
-        override fun token() = if (state.value.loggedIn) "fixture-token" else ""
+        var credential = "fixture-token"
+        override fun token() = if (state.value.loggedIn) credential else ""
         override fun expire() { state.value = state.value.copy(expired = true) }
         override fun logout() { state.value = AccountState() }
     }
@@ -61,6 +62,11 @@ class CloudSyncTest {
         var writes = 0
         var error: Exception? = null
         var onRead: (() -> Unit)? = null
+        var onUpload: ((CloudStudy,CloudStudy?) -> CloudStudy)? = null
+        var logoutError: Exception? = null
+        var onLogout: (() -> Unit)? = null
+        override fun logout(token: String) { onLogout?.invoke(); logoutError?.let { throw it } }
+        override fun push(token: String,study: CloudStudy,baseline: CloudStudy?): CloudStudy = onUpload?.invoke(study,baseline) ?: super.push(token,study,baseline)
         override fun fetch(token: String): CloudStudy {
             reads++; onRead?.invoke(); error?.let { throw it }; return copy(remote)
         }
@@ -247,4 +253,75 @@ class CloudSyncTest {
         assertFalse(store.pendingStudyUpload); assertNull(sync.state.value.error)
         assertEquals(2,api.writes)
     }
+    @Test fun failedServerLogoutRetainsCurrentAccountAndProfile() = scenario {
+        val api = Api(); val store = Store(api.remote); val account = Account(); val sync = coordinator(store,api,account)
+        runCurrent(); api.logoutError = StudyApiException(500)
+        sync.logout(); runCurrent()
+        assertTrue(account.state.value.loggedIn); assertEquals("u",store.studyOwner)
+        assertFalse(sync.state.value.busy); assertTrue(sync.state.value.error!!.contains("退出失败"))
+        api.logoutError = null; sync.logout(); runCurrent()
+        assertFalse(account.state.value.loggedIn); assertEquals("",store.studyOwner)
+    }
+    @Test fun serverMergePreservesEditsMadeWhileUploadWasInFlight() = scenario {
+        val api = Api(study(100)); val store = Store(api.remote); val sync = coordinator(store,api)
+        runCurrent()
+        store.local = study(160); store.revision.value++
+        api.onUpload = { snapshot,baseline ->
+            assertEquals(100,baseline!!.data.getJSONObject("stats").getInt("totalStudyTime"))
+            assertEquals(160,snapshot.data.getJSONObject("stats").getInt("totalStudyTime"))
+            store.local = study(170,"edited during upload"); store.revision.value++
+            study(190,"server merged").also { it.data.put("revision",3) }
+        }
+        sync.syncNow(); runCurrent()
+        assertEquals(200,store.local.data.getJSONObject("stats").getInt("totalStudyTime"))
+        assertEquals("edited during upload",store.local.data.getJSONArray("todos").getJSONObject(0).getString("text"))
+        assertTrue(store.pendingStudyUpload); assertEquals(190,store.cloud!!.data.getJSONObject("stats").getInt("totalStudyTime"))
+    }
+    @Test fun partialUploadCheckpointPreventsCountingSameDeltaTwiceOnRetry() = scenario {
+        val api = Api(study(100).also { it.data.put("revision",1) }); val store = Store(api.remote); val sync = coordinator(store,api)
+        runCurrent(); store.local = study(160); store.revision.value++
+        api.onUpload = { _,_ -> throw StudyPartialUploadException(study(190).also { it.data.put("revision",3) },StudyApiException(500,"上传日历")) }
+        sync.syncNow(); runCurrent()
+        assertTrue(store.pendingStudyUpload); assertEquals(190,store.local.data.getJSONObject("stats").getInt("totalStudyTime"))
+        assertEquals(3,store.cloud!!.data.getInt("revision"))
+        api.onUpload = { snapshot,baseline ->
+            assertEquals(3,baseline!!.data.getInt("revision"))
+            assertEquals(190,snapshot.data.getJSONObject("stats").getInt("totalStudyTime"))
+            snapshot.copy(data = StudyProtocol.deepCopy(snapshot.data).put("revision",4))
+        }
+        sync.syncNow(); runCurrent()
+        assertFalse(store.pendingStudyUpload); assertNull(sync.state.value.error)
+        assertEquals(190,store.local.data.getJSONObject("stats").getInt("totalStudyTime"))
+    }
+    @Test fun localChoiceUsesFetchedServerRevisionRatherThanLocalSnapshotMetadata() = scenario {
+        val api = Api(study(120).also { it.data.put("revision",9) }); val store = Store(study(60))
+        val sync = coordinator(store,api); runCurrent()
+        api.onUpload = { snapshot,baseline ->
+            assertEquals(9,baseline!!.data.getInt("revision"))
+            assertEquals(60,snapshot.data.getJSONObject("stats").getInt("totalStudyTime")); snapshot
+        }
+        sync.resolve(2); runCurrent(); assertNull(sync.state.value.error); assertTrue(sync.state.value.ready)
+    }
+
+    @Test fun oldLogoutResponseCannotClearNewCredentialsForSameAccount() = scenario {
+        val api = Api(); val store = Store(api.remote); val account = Account(); val sync = coordinator(store,api,account)
+        runCurrent(); api.onLogout = { account.credential = "new-token" }
+        sync.logout(); runCurrent()
+        assertTrue(account.state.value.loggedIn); assertEquals("new-token",account.token())
+        assertEquals("u",store.studyOwner); assertFalse(sync.state.value.busy)
+    }
+
+    @Test fun revisionMetadataAloneDoesNotCreateConflictOrScheduleRedundantUpload() = scenario {
+        val remote = study(120).also { it.data.put("revision",8) }
+        val api = Api(remote); val store = Store(study(120)); val sync = coordinator(store,api)
+        runCurrent(); assertNull(sync.state.value.conflict); assertTrue(sync.state.value.ready)
+        api.onUpload = { snapshot,_ -> snapshot.copy(data = StudyProtocol.deepCopy(snapshot.data).put("revision",9)) }
+        sync.syncNow(); runCurrent()
+        assertFalse(store.pendingStudyUpload)
+        sync.close()
+        api.remote.data.put("revision",9)
+        val restarted = coordinator(store,api); runCurrent()
+        assertNull(restarted.state.value.conflict); assertTrue(restarted.state.value.ready)
+    }
+
 }

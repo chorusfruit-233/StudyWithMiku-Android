@@ -131,13 +131,13 @@ class PlaybackService : MediaSessionService() {
                 }
             }
         }
-        scope.launch { while (isActive) { crossfade.tick(); delay(50) } }
+        scope.launch { while (isActive) { crossfade.tick(); if (crossfade.fading && duckJob?.isActive == true) cancelDuck(); delay(50) } }
         scope.launch {
             combine(app.timer.state,store.prefs) { clock,prefs -> (clock.mode == TimerMode.POMODORO && clock.phase != Phase.FOCUS) to prefs.pauseMusicDuringBreak }
                 .distinctUntilChanged().collect { (rest,enabled) ->
                     breakJob?.cancel()
                     if (rest && enabled && player.playWhenReady) {
-                        breakResume = true; crossfade.cancel(finishManual = true)
+                        cancelDuck(); breakResume = true; crossfade.cancel(finishManual = true)
                         breakJob = launch {
                             fadeBreak(0f)
                             if (breakResume) { player.pause(); breakGain = 1f; gains() }
@@ -149,11 +149,24 @@ class PlaybackService : MediaSessionService() {
                 }
         }
         scope.launch { app.timer.completions.collect {
-            duckJob?.cancel()
-            duckJob = launch { duckGain = .3f; gains(); delay(3000); duckGain = 1f; gains() }
+            if (player.isPlaying && userVolume > 0f && !crossfade.fading && breakJob?.isActive != true && duckJob?.isActive != true) {
+                duckJob = launch {
+                    fadeDuck(.2f); delay(3000); fadeDuck(1f)
+                }
+            }
         } }
     }
-    private fun manualControl() { breakResume = false; breakJob?.cancel(); breakGain = 1f; gains() }
+    private fun manualControl() { cancelDuck(); breakResume = false; breakJob?.cancel(); breakGain = 1f; gains() }
+    private fun cancelDuck() { duckJob?.cancel(); duckGain = 1f; gains() }
+    private suspend fun fadeDuck(target: Float) {
+        val start = duckGain; val begun = SystemClock.elapsedRealtime()
+        while (currentCoroutineContext().isActive) {
+            val progress = ((SystemClock.elapsedRealtime()-begun)/300f).coerceIn(0f,1f)
+            duckGain = start+(target-start)*progress; gains()
+            if (progress >= 1f) return
+            delay(25)
+        }
+    }
     private suspend fun fadeBreak(target: Float) {
         val start = breakGain; val begun = SystemClock.elapsedRealtime()
         while (currentCoroutineContext().isActive) {

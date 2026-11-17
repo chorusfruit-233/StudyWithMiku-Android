@@ -57,7 +57,7 @@ fun MikuApplication.openLogin() = startActivity(Intent(this,LoginActivity::class
     val profiles by app.chat.profiles.collectAsStateWithLifecycle()
     val onlineMusic by app.onlineMusic.state.collectAsStateWithLifecycle()
     val prefs by app.store.prefs.collectAsStateWithLifecycle()
-    var input by rememberSaveable { mutableStateOf("") }
+    var input by rememberSaveable(account.userId) { mutableStateOf("") }
     var stickers by remember { mutableStateOf(false) }
     var replyingToId by rememberSaveable(account.userId) { mutableStateOf<String?>(null) }
     val messageById = remember(chat.messages) { chat.messages.associateBy { it.id } }
@@ -68,11 +68,13 @@ fun MikuApplication.openLogin() = startActivity(Intent(this,LoginActivity::class
     val list = rememberLazyListState()
     val scope = rememberCoroutineScope()
     val atBottom by remember { derivedStateOf { !list.canScrollForward } }
-    fun latest() { unread = 0; scope.launch { if (chat.messages.isNotEmpty()) list.animateScrollToItem(chat.messages.size) } }
+    val lastItem = chat.messages.size+chat.pending.size+chat.drafts.size
+    fun latest() { unread = 0; scope.launch { if (lastItem > 0) list.animateScrollToItem(lastItem) } }
+    LaunchedEffect(chat.pending.lastOrNull()?.clientId) { if (chat.pending.isNotEmpty()) list.scrollToItem(lastItem) }
     LaunchedEffect(chat.messages.lastOrNull()?.id) {
         val last = chat.messages.lastOrNull()
         if (last != null && last.id != previousLast) {
-            if (previousLast == null || atBottom || last.userId == account.userId) { list.scrollToItem(chat.messages.size); unread = 0 }
+            if (previousLast == null || atBottom || last.userId == account.userId) { list.scrollToItem(lastItem); unread = 0 }
             else unread++
             previousLast = last.id
         }
@@ -114,8 +116,22 @@ fun MikuApplication.openLogin() = startActivity(Intent(this,LoginActivity::class
                             }
                         })
                 }
+                items(chat.pending,key = { "pending:${it.clientId}" }) { draft ->
+                    ChatBubble(draft.message(),profiles[draft.userId],true,false,onlineMusic.config.api,
+                        pendingStatus = if (chat.authenticated) "发送中…" else "等待连接后发送…",
+                        musicEnabled = prefs.musicEnabled,onSong = {})
+                }
+                items(chat.drafts,key = { "draft:${it.clientId}" }) { draft ->
+                    ChatFailedDraft(draft,canRestore = input.isBlank(),onRestore = {
+                        if (input.isBlank() && app.chat.discardDraft(draft.clientId)) {
+                            val reply = StudyProtocol.reply(draft.content)
+                            input = reply?.text ?: draft.content; replyingToId = reply?.replyToId
+                            focusRequester.requestFocus()
+                        }
+                    },onDiscard = { app.chat.discardDraft(draft.clientId) })
+                }
             }
-            if (!atBottom && chat.messages.isNotEmpty()) FilledTonalButton(onClick = { latest() },modifier = Modifier.align(Alignment.BottomEnd).padding(12.dp)) {
+            if (!atBottom && lastItem > 0) FilledTonalButton(onClick = { latest() },modifier = Modifier.align(Alignment.BottomEnd).padding(12.dp)) {
                 Icon(Icons.Rounded.KeyboardArrowDown,null); Text(if (unread > 0) "$unread 条新消息" else "最新消息")
             }
         }
@@ -144,7 +160,7 @@ fun MikuApplication.openLogin() = startActivity(Intent(this,LoginActivity::class
     }
     if (stickers) AlertDialog(onDismissRequest = { stickers = false },title = { Text("给大家发一个 Miku") },text = {
         LazyVerticalGrid(columns = GridCells.Fixed(4),modifier = Modifier.heightIn(max = 340.dp),horizontalArrangement = Arrangement.spacedBy(6.dp),verticalArrangement = Arrangement.spacedBy(6.dp)) {
-            items((1..16).filter { it != 10 }) { id ->
+            items(StudyProtocol.stickerOrder) { id ->
                 AsyncImage("file:///android_asset/sticker/$id.${stickerExtension(id)}","发送表情包 $id",
                     Modifier.size(62.dp).clip(RoundedCornerShape(12.dp)).clickable {
                         if (sendContent(StudyProtocol.stickerMessage(id))) { stickers = false; latest() }
@@ -153,7 +169,7 @@ fun MikuApplication.openLogin() = startActivity(Intent(this,LoginActivity::class
         }
     },confirmButton = { TextButton(onClick = { stickers = false }) { Text("关闭") } })
 }
-fun stickerExtension(id: Int) = when (id) { 4,11,13,14 -> "jpg"; 12,15 -> "gif"; 16 -> "png"; else -> "webp" }
+fun stickerExtension(id: Int) = StudyProtocol.stickerExtension(id)
 
 internal fun chatDisplayName(message: ChatMessage,profile: UserProfile?) = profile?.username?.takeIf { it.isNotBlank() } ?: message.username.ifBlank { "游客" }
 
@@ -173,7 +189,7 @@ internal fun chatDisplayName(message: ChatMessage,profile: UserProfile?) = profi
 }
 
 @Composable internal fun ChatBubble(m: ChatMessage,profile: UserProfile?,own: Boolean,grouped: Boolean,api: String,
-    referenced: ChatMessage? = null,referencedProfile: UserProfile? = null,onReply: () -> Unit = {},musicEnabled: Boolean = true,onSong: (SharedSong)->Unit) {
+    referenced: ChatMessage? = null,referencedProfile: UserProfile? = null,pendingStatus: String? = null,onReply: () -> Unit = {},musicEnabled: Boolean = true,onSong: (SharedSong)->Unit) {
     val name = chatDisplayName(m,profile)
     Row(Modifier.fillMaxWidth(),horizontalArrangement = Arrangement.spacedBy(8.dp),verticalAlignment = Alignment.Top) {
         if (!grouped) UserAvatar(profile?.avatar,name,Modifier.size(34.dp)) else Spacer(Modifier.width(34.dp))
@@ -202,14 +218,14 @@ internal fun chatDisplayName(message: ChatMessage,profile: UserProfile?) = profi
             val day = StudyProtocol.countdown(content)
             when {
                 sticker != null -> AsyncImage("file:///android_asset/sticker/$sticker.${stickerExtension(sticker)}","表情包 $sticker",Modifier.size(130.dp),contentScale = ContentScale.Fit)
-                song != null -> Surface(onClick = { onSong(song) },enabled = musicEnabled,shape = RoundedCornerShape(20.dp),color = MaterialTheme.colorScheme.primaryContainer) {
+                song != null -> Surface(onClick = { onSong(song) },enabled = musicEnabled && pendingStatus == null,shape = RoundedCornerShape(20.dp),color = MaterialTheme.colorScheme.primaryContainer) {
                     Row(Modifier.padding(12.dp),verticalAlignment = Alignment.CenterVertically,horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                         val cover = StudyProtocol.sharedCover(song,api)
                         if (musicEnabled && cover.isNotBlank()) AsyncImage(cover,null,Modifier.size(52.dp).clip(RoundedCornerShape(12.dp)),contentScale = ContentScale.Crop)
                         else Icon(Icons.Rounded.LibraryMusic,null,Modifier.size(40.dp))
                         Column(Modifier.weight(1f)) { Text(song.name.ifBlank { "分享的歌曲" },style = MaterialTheme.typography.titleSmall,maxLines = 2); Text(song.playlistName,style = MaterialTheme.typography.bodySmall,maxLines = 1) }
-                        if (musicEnabled) Icon(Icons.Rounded.PlayCircle,"播放分享的歌曲")
-                        else Text("音乐模块已关闭",style = MaterialTheme.typography.labelSmall)
+                        if (musicEnabled && pendingStatus == null) Icon(Icons.Rounded.PlayCircle,"播放分享的歌曲")
+                        else if (!musicEnabled) Text("音乐模块已关闭",style = MaterialTheme.typography.labelSmall)
                     }
                 }
                 day != null -> Surface(shape = RoundedCornerShape(20.dp),color = MaterialTheme.colorScheme.tertiaryContainer) {
@@ -223,8 +239,19 @@ internal fun chatDisplayName(message: ChatMessage,profile: UserProfile?) = profi
                 }
             }
             }
-            IconButton(onClick = onReply) { Icon(Icons.Rounded.Reply,"回复 $name",Modifier.size(20.dp)) }
+            if (pendingStatus == null) IconButton(onClick = onReply) { Icon(Icons.Rounded.Reply,"回复 $name",Modifier.size(20.dp)) }
             }
+            pendingStatus?.let { Text(it,style = MaterialTheme.typography.labelSmall,color = MaterialTheme.colorScheme.onSurfaceVariant) }
+        }
+    }
+}
+@Composable internal fun ChatFailedDraft(draft: ChatDraft,canRestore: Boolean,onRestore: () -> Unit,onDiscard: () -> Unit) {
+    Surface(shape = RoundedCornerShape(18.dp),color = MaterialTheme.colorScheme.errorContainer) {
+        Column(Modifier.fillMaxWidth().padding(12.dp),verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            Text(draft.failure,style = MaterialTheme.typography.labelLarge)
+            Text(StudyProtocol.replySummary(draft.content),maxLines = 2,overflow = TextOverflow.Ellipsis)
+            if (!canRestore) Text("发送或清空输入框后可恢复草稿",style = MaterialTheme.typography.bodySmall)
+            Row { TextButton(onClick = onRestore,enabled = canRestore) { Text("恢复草稿") }; TextButton(onClick = onDiscard) { Text("丢弃") } }
         }
     }
 }
@@ -300,7 +327,7 @@ internal fun chatDisplayName(message: ChatMessage,profile: UserProfile?) = profi
                 StatCard("累计番茄","${total.sessions}","个",Icons.Rounded.LocalFlorist,Modifier.weight(1f),false)
             }
             Text("今日学习 ${today.millis/60_000} 分钟 · ${today.sessions} 个番茄",style = MaterialTheme.typography.bodyMedium)
-            TextButton(onClick = { logout = true }) { Text("退出登录") }
+            TextButton(onClick = { logout = true },enabled = !sync.busy) { Text("退出登录") }
         }
         HorizontalDivider()
         Text("聊天隐私",style = MaterialTheme.typography.titleMedium)
@@ -311,7 +338,7 @@ internal fun chatDisplayName(message: ChatMessage,profile: UserProfile?) = profi
         Text("地区根据 IP 获取，不请求手机定位权限。",style = MaterialTheme.typography.bodySmall,color = MaterialTheme.colorScheme.onSurfaceVariant)
         TextButton(onClick = { app.extras.refreshLocation(true) },enabled = shareLocation) { Text("刷新地区") }
     }
-    if (logout) AlertDialog(onDismissRequest = { logout = false },title = { Text("退出当前账号？") },text = { Text("该账号的本地学习资料会保留，退出后切回游客资料。") },
+    if (logout) AlertDialog(onDismissRequest = { logout = false },title = { Text("退出当前账号？") },text = { Text("将通知账号服务使当前登录凭据失效。该账号的本地学习资料会保留，退出后切回游客资料。") },
         confirmButton = { TextButton(onClick = { app.sync.logout(); logout = false }) { Text("退出") } },dismissButton = { TextButton(onClick = { logout = false }) { Text("取消") } })
 }
 

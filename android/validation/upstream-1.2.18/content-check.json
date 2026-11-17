@@ -1,0 +1,142 @@
+{
+  "upstream": "981c9c910340cd9b9896a3537e20ebfe4643f094",
+  "quotes": 49,
+  "updates": 33,
+  "stickerOrder": [
+    1,
+    2,
+    3,
+    4,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20,
+    21
+  ],
+  "files": [
+    {
+      "name": "quotes.json",
+      "sha256": "241b76d9bc0edc48b32dcd436ea50019f9d16e007a1d534127700981d0b7971d"
+    },
+    {
+      "name": "updates.json",
+      "sha256": "014c9234240a173eced147e9c41a4457363969cee54940fcd770c8fca32eb4bb"
+    },
+    {
+      "name": "sticker/1.webp",
+      "sha256": "e04190151513e4c23d9525ced341c74a5566c355eaea697bf6f07da9109d19d3",
+      "bytes": 24834
+    },
+    {
+      "name": "sticker/2.webp",
+      "sha256": "326d18dee08c62571b37d411bc82183d5366f91099c349dd3dc1af1e879d5743",
+      "bytes": 29728
+    },
+    {
+      "name": "sticker/3.webp",
+      "sha256": "4519389c9c623dd684b8c4549369f0ca0140468ff7509124d257906a7310ffd9",
+      "bytes": 29730
+    },
+    {
+      "name": "sticker/4.jpg",
+      "sha256": "ad87bcff6b09f8c61d1d62858cd83a43d17f969bc7866db2eebe9ad9766c842c",
+      "bytes": 22954
+    },
+    {
+      "name": "sticker/5.webp",
+      "sha256": "3a65223a00abaf18984b50ecf9450b9c1043a822e59e209b4a7104f5f189fc7a",
+      "bytes": 20500
+    },
+    {
+      "name": "sticker/6.webp",
+      "sha256": "231bb84eac52240ab738e48f84d2171f54fdc4b0089984759b3f9fc7d026d1e9",
+      "bytes": 22320
+    },
+    {
+      "name": "sticker/7.webp",
+      "sha256": "fb7eeafb5e25816178ec18820cd3d46de796040ce3c4196a70506e5f3f5eb2c0",
+      "bytes": 25842
+    },
+    {
+      "name": "sticker/8.webp",
+      "sha256": "16e754d9ee80e0305a20924da7bd03195d99e87ea205410af636b10d4b0fbcf4",
+      "bytes": 24852
+    },
+    {
+      "name": "sticker/9.webp",
+      "sha256": "d2d1df5542ee14ed25e77d105595066e7affd1ff40ea1fd6229991e81b4fbfb1",
+      "bytes": 18990
+    },
+    {
+      "name": "sticker/10.webp",
+      "sha256": "a55074d4d6067e8e69c1cbf45b506680aa2f4e4fec29d66c42ba59ad2f8f7d71",
+      "bytes": 24526
+    },
+    {
+      "name": "sticker/11.jpg",
+      "sha256": "887cf1c51cdce68c80bfc2d396cbd5ece908038b0a3361bbff87d1236a9d5953",
+      "bytes": 102003
+    },
+    {
+      "name": "sticker/12.gif",
+      "sha256": "85d11532fa709f0b611f49cf99819cc730dbcb8f664d6a977580ff355b919a72",
+      "bytes": 469932
+    },
+    {
+      "name": "sticker/13.jpg",
+      "sha256": "42c8c7c6bcf2daf3e4707ba4c3f40c6a37dda435ab97b9efa2c986701aa08646",
+      "bytes": 16934
+    },
+    {
+      "name": "sticker/14.jpg",
+      "sha256": "3afe05ef455d926034f9aa8d11d07eee5a403d2b0f13de5223be1f879ebcc08a",
+      "bytes": 115852
+    },
+    {
+      "name": "sticker/15.gif",
+      "sha256": "39c35ad122c8727b077daa8f96de48794a48a0d7b5ac0809e22844c671a4febc",
+      "bytes": 1790338
+    },
+    {
+      "name": "sticker/16.png",
+      "sha256": "7a98b673e5813bc2dbe550d9f927ee8b01be1c3e442593db02c1de4115f20e42",
+      "bytes": 1507839
+    },
+    {
+      "name": "sticker/17.jpg",
+      "sha256": "bf219cad34411aa58bd43a678001cd50331567b212c8a41ae99e6aa804b44df9",
+      "bytes": 167446
+    },
+    {
+      "name": "sticker/18.jpg",
+      "sha256": "8738f42d1982e1df9ec02e1024d9fc1ebdbf2380d5426ed1839070326e4c88df",
+      "bytes": 56796
+    },
+    {
+      "name": "sticker/19.jpg",
+      "sha256": "1ee2cc24ff3ca300141f432d8190ca0fdda77d47f61a143b105eac5f45d08a4a",
+      "bytes": 112565
+    },
+    {
+      "name": "sticker/20.gif",
+      "sha256": "2308facc6bc80402a0a35fc3e245504cd449a2a835b220376142bb51d0231462",
+      "bytes": 2039983
+    },
+    {
+      "name": "sticker/21.gif",
+      "sha256": "b26715ad6967cee11918fcddff66f9db76cfcb397db8bb793ffc1f5ed4faa7bc",
+      "bytes": 1704821
+    }
+  ]
+}

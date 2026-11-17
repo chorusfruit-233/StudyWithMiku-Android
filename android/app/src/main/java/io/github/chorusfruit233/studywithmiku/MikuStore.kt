@@ -308,6 +308,11 @@ class MikuStore(private val context: Context) : StudySyncStore {
     override fun rememberCloud(study: CloudStudy) {
         disk.edit().putString("study_shadow",JSONObject().put("data",study.data).put("calendar",study.calendar).toString()).apply()
     }
+    @Synchronized override fun applyUploadedStudy(study: CloudStudy) {
+        val clock = disk.getString("clock",null)
+        applyStudy(study)
+        if (clock != null) disk.edit().putString("clock",clock).apply()
+    }
     @Synchronized override fun applyStudy(study: CloudStudy) {
         importingStudy = true
         try {

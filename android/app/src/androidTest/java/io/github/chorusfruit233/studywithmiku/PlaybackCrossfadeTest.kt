@@ -112,12 +112,14 @@ class PlaybackCrossfadeTest {
             directory.deleteRecursively()
         }
     }
-    @Test fun manualSwitchOverlapsDecodersAndHandsOffWithoutResettingIncomingPosition() = fixture { f,_ ->
+    @Test fun manualSwitchFadesOutThenInWithoutOverlappingTracks() = fixture { f,_ ->
         withContext(Dispatchers.Main) { assertTrue(f.mixer.switchTo(1)) }
-        until { f.main.isPlaying && f.preview.isPlaying && f.main.volume in 0.01f..0.39f && f.preview.volume in 0.01f..0.39f }
-        withContext(Dispatchers.Main) { assertEquals(.4f,f.main.volume+f.preview.volume,.005f) }
-        until { f.main.currentMediaItemIndex == 1 && f.main.isPlaying && !f.preview.isPlaying && f.main.volume >= .399f }
-        withContext(Dispatchers.Main) { assertTrue(f.main.currentPosition >= 1400); assertEquals(.4f,f.main.volume,.001f) }
+        until { f.main.currentMediaItemIndex == 0 && f.main.volume in 0.01f..0.39f }
+        withContext(Dispatchers.Main) { assertFalse(f.preview.isPlaying); assertEquals(0f,f.preview.volume,.001f) }
+        until { f.main.currentMediaItemIndex == 1 && f.main.isPlaying && f.main.volume in 0.01f..0.39f }
+        withContext(Dispatchers.Main) { assertFalse(f.preview.isPlaying) }
+        until { f.main.currentMediaItemIndex == 1 && f.main.isPlaying && f.main.volume >= .399f }
+        withContext(Dispatchers.Main) { assertTrue(f.main.currentPosition < 1400); assertEquals(.4f,f.main.volume,.001f) }
     }
     @Test fun naturalAdvanceKeepsIncomingPositionAndFinishesSecondaryDecoder() = fixture { f,_ ->
         withContext(Dispatchers.Main) { f.main.seekTo(13_900) }

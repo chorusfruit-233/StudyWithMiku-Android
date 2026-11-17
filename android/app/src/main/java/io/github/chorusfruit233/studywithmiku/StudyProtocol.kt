@@ -21,7 +21,7 @@ const val STUDY_WS = "wss://online.study.mikugame.cc/ws"
 val LOGIN_URL = "$ACCOUNT_SITE/login?redirect=study&callback=${URLEncoder.encode(STUDY_SITE,"UTF-8")}"
 data class TokenClaims(val userId: String, val username: String, val expiresAt: Long)
 data class ChatMessage(val id: String, val userId: String, val username: String, val content: String,
-    val createdAt: String, val location: String = "", val roomId: String = "global") {
+    val createdAt: String, val location: String = "", val roomId: String = "global", val clientId: String = "") {
     val timestamp get() = runCatching { Instant.parse(createdAt).toEpochMilli() }.getOrDefault(0)
 }
 data class SharedSong(val platform: String, val playlistId: String, val index: Int, val name: String, val cover: String, val playlistName: String)
@@ -54,7 +54,7 @@ object StudyProtocol {
         val id = o.optString("id")
         if (id.isBlank()) return null
         return ChatMessage(id,o.optString("userId"),o.optString("username"),o.optString("content"),
-            o.optString("createdAt"),o.optString("location"),o.optString("roomId","global"))
+            o.optString("createdAt"),o.optString("location"),o.optString("roomId","global"),o.optString("clientId"))
     }
     fun mergeMessages(vararg lists: List<ChatMessage>) = lists.flatMap { it }.associateBy { it.id }.values
         .sortedWith(compareBy<ChatMessage> { it.timestamp }.thenBy { it.id })
@@ -77,10 +77,12 @@ object StudyProtocol {
         countdown(body)?.let { return "[倒计时] ${it.title.ifBlank { it.date }}" }
         return if (body.length > 40) body.take(40)+"…" else body
     }
-    fun stickerId(content: String): Int? = Regex("^\\[sticker:([0-9]+)]$").matchEntire(content)?.groupValues?.get(1)?.toIntOrNull()?.takeIf { it in 1..16 }
-    fun stickerMessage(id: Int) = if (id in 1..16 && id != 10) "[sticker:$id]" else ""
+    val stickerOrder = (1..21).filter { it != 5 }
+    fun stickerExtension(id: Int) = when (id) { 4,11,13,14,17,18,19 -> "jpg"; 12,15,20,21 -> "gif"; 16 -> "png"; else -> "webp" }
+    fun stickerId(content: String): Int? = Regex("^\\[sticker:([0-9]+)]$").matchEntire(content)?.groupValues?.get(1)?.toIntOrNull()?.takeIf { it in 1..21 }
+    fun stickerMessage(id: Int) = if (id in stickerOrder) "[sticker:$id]" else ""
     fun stickerUrl(id: Int): String {
-        val ext = when (id) { 4,11,13,14 -> "jpg"; 12,15 -> "gif"; 16 -> "png"; else -> "webp" }
+        val ext = stickerExtension(id)
         return "$STUDY_SITE/sticker/$id.$ext"
     }
     private fun payload(content: String,prefix: String): JSONObject? = if (content.startsWith(prefix) && content.endsWith(']'))
@@ -141,7 +143,7 @@ object StudyProtocol {
     /** Daily history is authoritative locally; midnight rolls the derived today counters over. */
     fun sameLocalStudy(a: CloudStudy,b: CloudStudy): Boolean {
         fun stable(study: CloudStudy): CloudStudy {
-            val data = deepCopy(study.data)
+            val data = deepCopy(study.data).apply { remove("revision") }
             data.optJSONObject("stats")?.let { stats -> listOf("lastDate","todayStudyTime","todayPomodoros").forEach { stats.remove(it) } }
             val calendar = deepCopy(study.calendar)
             calendar.optJSONObject("dailyLog")?.let { log -> log.keys().asSequence().toList().forEach { date ->

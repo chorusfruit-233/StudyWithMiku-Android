@@ -50,7 +50,7 @@ class StudyApiTest {
     }
     @Test fun missingRemoteAccountIsDistinctFromMalformedResponse() = mock { server,api ->
         server.enqueue(MockResponse().setBody("{\"data\":null}")); server.enqueue(MockResponse().setBody("{\"data\":null}"))
-        assertEquals(0,api.fetch("token").data.length())
+        assertEquals(0,api.fetch("token").data.getInt("revision"))
         server.enqueue(MockResponse().setBody("{}"))
         assertThrows(IOException::class.java) { api.fetch("token") }
         assertEquals(3,server.requestCount)

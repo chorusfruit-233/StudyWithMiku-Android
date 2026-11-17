@@ -16,6 +16,8 @@ class CloudSync(private val store: StudySyncStore,private val timer: StudySyncTi
     private var task: Job? = null
     private var lastRevision = -1L
     private var activeUser = ""
+    private var remoteBaseline: CloudStudy? = null
+    private var loggingOut = false
     private var started = false
     @OptIn(FlowPreview::class)
     fun start() {
@@ -23,7 +25,7 @@ class CloudSync(private val store: StudySyncStore,private val timer: StudySyncTi
         started = true
         scope.launch {
             auth.state.map { it.userId.takeIf { _ -> it.loggedIn } ?: "" }.distinctUntilChanged().collect { user ->
-                task?.cancel(); activeUser = user; lastRevision = -1L; _state.value = SyncState()
+                task?.cancel(); activeUser = user; remoteBaseline = null; loggingOut = false; lastRevision = -1L; _state.value = SyncState()
                 if (user.isNotEmpty()) pull()
             }
         }
@@ -61,7 +63,8 @@ class CloudSync(private val store: StudySyncStore,private val timer: StudySyncTi
                 timer.flush()
                 val local = store.studySnapshot()
                 val switching = store.studyOwner != user
-                val remoteExists = remote.data.length() > 0 || remote.calendar.length() > 0
+                remoteBaseline = remote
+                val remoteExists = listOf("stats","todos","settings").any { remote.data.has(it) } || remote.calendar.length() > 0
                 val previousRemote = if (!switching) store.lastCloudStudy() else null
                 val previousLocal = if (!switching) store.lastAppliedStudy() else null
                 when {
@@ -100,6 +103,7 @@ class CloudSync(private val store: StudySyncStore,private val timer: StudySyncTi
                 if (!current(user)) return@launchTask
                 timer.flush()
                 val local = store.studySnapshot()
+                remoteBaseline = remote
                 val selected = when (choice) { 1 -> remote; 2 -> local; else -> StudyProtocol.merged(local,remote) }
                 adopt(selected,needsUpload = choice != 1)
                 if (choice != 1) syncNow()
@@ -130,25 +134,62 @@ class CloudSync(private val store: StudySyncStore,private val timer: StudySyncTi
                 val snapshot = store.studySnapshot()
                 val revision = store.revision.value
                 val token = auth.token(); check(token.isNotBlank()) { "请重新登录" }
-                withContext(networkDispatcher) { api.push(token,snapshot) }
+                val saved = try { withContext(networkDispatcher) { api.push(token,snapshot,remoteBaseline) } }
+                catch (e: StudyPartialUploadException) {
+                    ensureActive()
+                    if (current(user) && store.studyOwner == user) acceptUpload(snapshot,e.saved,revision,partial = true)
+                    throw (e.cause as? Exception ?: e)
+                }
                 ensureActive()
                 // A completed old request must never update the next account or guest profile.
                 if (!current(user) || store.studyOwner != user) return@launchTask
-                store.rememberCloud(snapshot)
-                store.rememberAppliedStudy(snapshot)
-                lastRevision = revision
+                acceptUpload(snapshot,saved,revision,partial = false)
                 _state.value = SyncState(ready = true,lastSync = Instant.now().toEpochMilli(),message = "学习资料已上传云端")
             } catch (e: CancellationException) { throw e }
             catch (e: Exception) { if (current(user)) failure(e) }
         }
+    }
+    private fun acceptUpload(snapshot: CloudStudy,saved: CloudStudy,revision: Long,partial: Boolean) {
+        timer.flush()
+        val current = store.studySnapshot()
+        val changedWhileUploading = store.revision.value != revision || !StudyProtocol.sameLocalStudy(current,snapshot)
+        val merged = StudyDataMerge.merge(snapshot.data,current.data,saved.data)
+        val old = StudyDataMerge.merge(null,current.data,current.data)
+        if (!StudyProtocol.sameJson(old,merged)) store.applyUploadedStudy(CloudStudy(merged,current.calendar))
+        remoteBaseline = saved
+        store.rememberCloud(saved)
+        val projected = store.studySnapshot()
+        // Importing merged today counters may also update the native daily log; upload that calendar change next.
+        val pending = partial || changedWhileUploading || !StudyComparison.same(projected,saved) ||
+            !StudyProtocol.sameJson(projected.calendar,saved.calendar)
+        store.rememberAppliedStudy(projected,pendingUpload = pending)
+        lastRevision = if (pending) -1L else store.revision.value
     }
     private fun failure(e: Exception) {
         if (e is StudyApiException && e.status == 401) auth.expire()
         _state.value = _state.value.copy(busy = false,error = e.message ?: "同步失败，请检查网络",message = null)
     }
     fun logout() {
-        task?.cancel(); timer.pause(); activeUser = ""; _state.value = SyncState()
-        store.switchStudyOwner(""); timer.restoreFromStore(); auth.logout()
+        if (loggingOut) return
+        task?.cancel()
+        val user = auth.state.value.userId
+        val token = auth.token()
+        loggingOut = true
+        _state.value = _state.value.copy(busy = true,error = null,message = null)
+        launchTask {
+            try {
+                if (token.isNotBlank()) withContext(networkDispatcher) { api.logout(token) }
+                ensureActive()
+                if (auth.state.value.userId != user || auth.token() != token) {
+                    _state.value = _state.value.copy(busy = false); return@launchTask
+                }
+                timer.pause(); activeUser = ""; remoteBaseline = null; _state.value = SyncState()
+                store.switchStudyOwner(""); timer.restoreFromStore(); auth.logout()
+            } catch (e: CancellationException) { throw e }
+            catch (e: Exception) {
+                if (auth.state.value.userId == user) _state.value = _state.value.copy(busy = false,error = "退出失败：${e.message ?: "请检查网络"}",message = null)
+            } finally { loggingOut = false }
+        }
     }
     fun cancelChoice() {
         if (!_state.value.busy) _state.value = _state.value.copy(conflict = null,error = null,

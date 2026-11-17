@@ -14,6 +14,7 @@ interface StudySyncStore {
     fun rememberAppliedStudy(study: CloudStudy,pendingUpload: Boolean = false)
     fun switchStudyOwner(id: String)
     fun applyStudy(study: CloudStudy)
+    fun applyUploadedStudy(study: CloudStudy) = applyStudy(study)
     fun rememberCloud(study: CloudStudy)
 }
 interface StudySyncTimer {
@@ -31,4 +32,6 @@ interface StudySyncAccount {
 interface StudySyncApi {
     fun fetch(token: String): CloudStudy
     fun push(token: String,study: CloudStudy)
+    fun push(token: String,study: CloudStudy,baseline: CloudStudy?): CloudStudy { push(token,study); return study }
+    fun logout(token: String) {}
 }

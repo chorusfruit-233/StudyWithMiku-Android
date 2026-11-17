@@ -37,11 +37,12 @@ class StudyProtocolTest {
         assertNull(StudyProtocol.chat(JSONObject("""{"content":"missing id"}""")))
     }
     @Test fun stickersPreserveLegacyRenderingAndExcludeRetiredStickerFromSending() {
-        for (id in 1..16) assertEquals(id,StudyProtocol.stickerId("[sticker:$id]"))
-        assertEquals("",StudyProtocol.stickerMessage(10))
+        for (id in 1..21) assertEquals(id,StudyProtocol.stickerId("[sticker:$id]"))
+        assertEquals("",StudyProtocol.stickerMessage(5))
+        assertEquals("[sticker:10]",StudyProtocol.stickerMessage(10))
         assertEquals("[sticker:12]",StudyProtocol.stickerMessage(12))
         assertTrue(StudyProtocol.stickerUrl(12).endsWith("12.gif"))
-        assertNull(StudyProtocol.stickerId("[sticker:17]"))
+        assertNull(StudyProtocol.stickerId("[sticker:22]"))
         assertNull(StudyProtocol.stickerId("hello [sticker:1]"))
     }
     @Test fun musicSharesRoundTripOriginalWireContract() {

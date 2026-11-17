@@ -1,0 +1,893 @@
+{
+  "base": "bcc6627b80e47515c26c7677823bf68227cd90ef",
+  "head": "981c9c910340cd9b9896a3537e20ebfe4643f094",
+  "checkedAt": "2026-11-17",
+  "commits": [
+    "981c9c910340cd9b9896a3537e20ebfe4643f094 2026-11-15 feat: 优化浮动聊天和待办窗口样式，增强背景透明度和模糊效果",
+    "7d6b4d46de1016cc1ab482f381147c1dcc0d7d07 2026-11-14 feat: 优化浮动聊天和待办窗口样式，增强背景透明度和边框效果",
+    "7bf77551601589042b1593c7c12f60ec2862f246 2026-11-09 feat: 更新测试脚本，添加对响应式对象的支持，优化克隆逻辑",
+    "34b4ab81981b5d87a72cde55a1bdd65f55fa165f 2026-11-09 feat: 优化聊天消息状态显示，修复待发消息合并逻辑",
+    "2d9f46f4585cd17a31fe70ee45dac8362dd7edd0 2026-11-09 feat: 更新聊天功能，添加失败草稿管理，简化消息发送逻辑",
+    "dfda548cb6755b3be4f9d3c07e0526661ffdd9c3 2026-11-09 feat: 优化贴纸ID管理，移除隐藏贴纸逻辑，简化贴纸顺序和ID生成",
+    "ecbccf2f162a0479a5779537b27b0116a5ce50ed 2026-11-09 feat: 更新表情包信息，增加关于miku猫猫跳舞表情的使用率说明",
+    "d6ac69f8e079766669a5d68b9cc428a8ed494d9d 2026-11-09 feat: 添加新的更新记录，包含表情包和聊天室功能改进",
+    "2cfc64e54742a32f8da9f5c1daf0a0f17a876e23 2026-11-09 新表情包",
+    "afe343a1acce5cf3edd18e3e8c57261d54d3e29e 2026-11-09 feat: 更新聊天窗口和待办窗口样式，增强消息发送逻辑，支持服务端能力声明",
+    "6ad828757e370b319594f7c9f8e35b6c7207dbc1 2026-11-08 ┭┮﹏┭┮雅蔑蝶哟",
+    "e74cd249c05a2b4c1f05bf06ec35abbeabeca9e4 2026-11-08 feat: 增强聊天消息处理，支持客户端 ID 和令牌验证",
+    "806cbc65cb6786c758b5b788b1ece5e736235057 2026-11-07 更新依赖，优化在线计数器逻辑，添加单元测试以验证消息持久性和速率限制",
+    "354d9b7e8732d950c47fdc36ee081cc1100fa56b 2026-11-06 更新依赖",
+    "10be188038839e0a2773d6ae583a6688efd82b3b 2026-11-06 修复手动切歌时触发平滑过渡的问题，更新相关说明",
+    "de59a81767254d808c2dd8e895f3cd6b3be9d5d9 2026-11-06 更新",
+    "75ca1f7c9e83c2d388d2c8dda0d565fb8a77e8ce 2026-11-02 优化音量控制逻辑，移除冗余代码并整合音量淡入淡出功能"
+  ],
+  "files": [
+    "package-lock.json",
+    "package.json",
+    "public/sticker/17.jpg",
+    "public/sticker/18.jpg",
+    "public/sticker/19.jpg",
+    "public/sticker/20.gif",
+    "public/sticker/21.gif",
+    "src/components/ChatPanel.vue",
+    "src/components/FloatingChatWindow.vue",
+    "src/components/FloatingTodoWindow.vue",
+    "src/components/PomodoroTimer.vue",
+    "src/composables/studyDataMerge.js",
+    "src/composables/studyDataMerge.test.js",
+    "src/composables/useChatOutbox.js",
+    "src/composables/useChatOutbox.test.js",
+    "src/composables/useCrossfade.js",
+    "src/composables/useOnlineCount.js",
+    "src/composables/useStudyAuth.js",
+    "src/composables/useStudySync.js",
+    "src/data/quotes.js",
+    "src/data/stickers.js",
+    "src/data/updates.js",
+    "src/utils/eventBus.js",
+    "workers/online-counter.js",
+    "workers/online-counter.test.js"
+  ],
+  "npmVersionChanges": [
+    {
+      "path": "node_modules/@babel/code-frame",
+      "before": "7.28.6",
+      "after": "7.29.7"
+    },
+    {
+      "path": "node_modules/@babel/compat-data",
+      "before": "7.28.6",
+      "after": "7.29.7"
+    },
+    {
+      "path": "node_modules/@babel/core",
+      "before": "7.28.6",
+      "after": "7.29.13"
+    },
+    {
+      "path": "node_modules/@babel/generator",
+      "before": "7.28.6",
+      "after": "7.29.13"
+    },
+    {
+      "path": "node_modules/@babel/helper-compilation-targets",
+      "before": "7.28.6",
+      "after": "7.29.13"
+    },
+    {
+      "path": "node_modules/@babel/helper-globals",
+      "before": "7.28.0",
+      "after": "7.29.7"
+    },
+    {
+      "path": "node_modules/@babel/helper-module-imports",
+      "before": "7.28.6",
+      "after": "7.29.7"
+    },
+    {
+      "path": "node_modules/@babel/helper-module-transforms",
+      "before": "7.28.6",
+      "after": "7.29.13"
+    },
+    {
+      "path": "node_modules/@babel/helper-plugin-utils",
+      "before": "7.28.6",
+      "after": "7.29.7"
+    },
+    {
+      "path": "node_modules/@babel/helper-string-parser",
+      "before": "7.27.1",
+      "after": "7.29.13"
+    },
+    {
+      "path": "node_modules/@babel/helper-validator-identifier",
+      "before": "7.28.5",
+      "after": "7.29.7"
+    },
+    {
+      "path": "node_modules/@babel/helper-validator-option",
+      "before": "7.27.1",
+      "after": "7.29.7"
+    },
+    {
+      "path": "node_modules/@babel/helpers",
+      "before": "7.28.6",
+      "after": "7.29.13"
+    },
+    {
+      "path": "node_modules/@babel/parser",
+      "before": "7.28.6",
+      "after": "7.29.13"
+    },
+    {
+      "path": "node_modules/@babel/plugin-transform-modules-systemjs",
+      "before": "7.28.5",
+      "after": "7.29.8"
+    },
+    {
+      "path": "node_modules/@babel/template",
+      "before": "7.28.6",
+      "after": "7.29.7"
+    },
+    {
+      "path": "node_modules/@babel/traverse",
+      "before": "7.28.6",
+      "after": "7.29.13"
+    },
+    {
+      "path": "node_modules/@babel/types",
+      "before": "7.28.6",
+      "after": "7.29.11"
+    },
+    {
+      "path": "node_modules/@cloudflare/kv-asset-handler",
+      "before": "0.4.1",
+      "after": "0.5.0"
+    },
+    {
+      "path": "node_modules/@cloudflare/unenv-preset",
+      "before": "2.7.13",
+      "after": "2.16.2"
+    },
+    {
+      "path": "node_modules/@cloudflare/workerd-darwin-64",
+      "before": "1.20251202.0",
+      "after": "1.20261104.1"
+    },
+    {
+      "path": "node_modules/@cloudflare/workerd-darwin-arm64",
+      "before": "1.20251202.0",
+      "after": "1.20261104.1"
+    },
+    {
+      "path": "node_modules/@cloudflare/workerd-linux-64",
+      "before": "1.20251202.0",
+      "after": "1.20261104.1"
+    },
+    {
+      "path": "node_modules/@cloudflare/workerd-linux-arm64",
+      "before": "1.20251202.0",
+      "after": "1.20261104.1"
+    },
+    {
+      "path": "node_modules/@cloudflare/workerd-windows-64",
+      "before": "1.20251202.0",
+      "after": "1.20261104.1"
+    },
+    {
+      "path": "node_modules/@emnapi/runtime",
+      "before": "1.7.1",
+      "after": "1.11.3"
+    },
+    {
+      "path": "node_modules/@esbuild/aix-ppc64",
+      "before": "0.27.0",
+      "after": null
+    },
+    {
+      "path": "node_modules/@esbuild/android-arm",
+      "before": null,
+      "after": "0.28.2"
+    },
+    {
+      "path": "node_modules/@esbuild/android-arm64",
+      "before": null,
+      "after": "0.28.2"
+    },
+    {
+      "path": "node_modules/@esbuild/android-x64",
+      "before": null,
+      "after": "0.28.2"
+    },
+    {
+      "path": "node_modules/@esbuild/darwin-arm64",
+      "before": null,
+      "after": "0.28.2"
+    },
+    {
+      "path": "node_modules/@esbuild/darwin-x64",
+      "before": null,
+      "after": "0.28.2"
+    },
+    {
+      "path": "node_modules/@esbuild/freebsd-arm64",
+      "before": null,
+      "after": "0.28.2"
+    },
+    {
+      "path": "node_modules/@esbuild/freebsd-x64",
+      "before": null,
+      "after": "0.28.2"
+    },
+    {
+      "path": "node_modules/@esbuild/linux-arm",
+      "before": null,
+      "after": "0.28.2"
+    },
+    {
+      "path": "node_modules/@esbuild/linux-arm64",
+      "before": null,
+      "after": "0.28.2"
+    },
+    {
+      "path": "node_modules/@esbuild/linux-ia32",
+      "before": null,
+      "after": "0.28.2"
+    },
+    {
+      "path": "node_modules/@esbuild/linux-loong64",
+      "before": null,
+      "after": "0.28.2"
+    },
+    {
+      "path": "node_modules/@esbuild/linux-mips64el",
+      "before": null,
+      "after": "0.28.2"
+    },
+    {
+      "path": "node_modules/@esbuild/linux-ppc64",
+      "before": null,
+      "after": "0.28.2"
+    },
+    {
+      "path": "node_modules/@esbuild/linux-riscv64",
+      "before": null,
+      "after": "0.28.2"
+    },
+    {
+      "path": "node_modules/@esbuild/linux-s390x",
+      "before": null,
+      "after": "0.28.2"
+    },
+    {
+      "path": "node_modules/@esbuild/linux-x64",
+      "before": null,
+      "after": "0.28.2"
+    },
+    {
+      "path": "node_modules/@esbuild/netbsd-arm64",
+      "before": "0.27.0",
+      "after": null
+    },
+    {
+      "path": "node_modules/@esbuild/netbsd-x64",
+      "before": null,
+      "after": "0.28.2"
+    },
+    {
+      "path": "node_modules/@esbuild/openbsd-arm64",
+      "before": "0.27.0",
+      "after": null
+    },
+    {
+      "path": "node_modules/@esbuild/openbsd-x64",
+      "before": null,
+      "after": "0.28.2"
+    },
+    {
+      "path": "node_modules/@esbuild/openharmony-arm64",
+      "before": "0.27.0",
+      "after": null
+    },
+    {
+      "path": "node_modules/@esbuild/sunos-x64",
+      "before": null,
+      "after": "0.28.2"
+    },
+    {
+      "path": "node_modules/@esbuild/win32-arm64",
+      "before": null,
+      "after": "0.28.2"
+    },
+    {
+      "path": "node_modules/@esbuild/win32-ia32",
+      "before": null,
+      "after": "0.28.2"
+    },
+    {
+      "path": "node_modules/@esbuild/win32-x64",
+      "before": null,
+      "after": "0.28.2"
+    },
+    {
+      "path": "node_modules/@img/colour",
+      "before": null,
+      "after": "1.1.0"
+    },
+    {
+      "path": "node_modules/@img/sharp-darwin-arm64",
+      "before": "0.33.5",
+      "after": "0.35.5"
+    },
+    {
+      "path": "node_modules/@img/sharp-darwin-x64",
+      "before": "0.33.5",
+      "after": "0.35.5"
+    },
+    {
+      "path": "node_modules/@img/sharp-freebsd-wasm32",
+      "before": null,
+      "after": "0.35.5"
+    },
+    {
+      "path": "node_modules/@img/sharp-libvips-darwin-arm64",
+      "before": "1.0.4",
+      "after": "1.3.4"
+    },
+    {
+      "path": "node_modules/@img/sharp-libvips-darwin-x64",
+      "before": "1.0.4",
+      "after": "1.3.4"
+    },
+    {
+      "path": "node_modules/@img/sharp-libvips-linux-arm",
+      "before": "1.0.5",
+      "after": "1.3.4"
+    },
+    {
+      "path": "node_modules/@img/sharp-libvips-linux-arm64",
+      "before": "1.0.4",
+      "after": "1.3.4"
+    },
+    {
+      "path": "node_modules/@img/sharp-libvips-linux-ppc64",
+      "before": null,
+      "after": "1.3.4"
+    },
+    {
+      "path": "node_modules/@img/sharp-libvips-linux-riscv64",
+      "before": null,
+      "after": "1.3.4"
+    },
+    {
+      "path": "node_modules/@img/sharp-libvips-linux-s390x",
+      "before": "1.0.4",
+      "after": "1.3.4"
+    },
+    {
+      "path": "node_modules/@img/sharp-libvips-linux-x64",
+      "before": "1.0.4",
+      "after": "1.3.4"
+    },
+    {
+      "path": "node_modules/@img/sharp-libvips-linuxmusl-arm64",
+      "before": "1.0.4",
+      "after": "1.3.4"
+    },
+    {
+      "path": "node_modules/@img/sharp-libvips-linuxmusl-x64",
+      "before": "1.0.4",
+      "after": "1.3.4"
+    },
+    {
+      "path": "node_modules/@img/sharp-linux-arm",
+      "before": "0.33.5",
+      "after": "0.35.5"
+    },
+    {
+      "path": "node_modules/@img/sharp-linux-arm64",
+      "before": "0.33.5",
+      "after": "0.35.5"
+    },
+    {
+      "path": "node_modules/@img/sharp-linux-ppc64",
+      "before": null,
+      "after": "0.35.5"
+    },
+    {
+      "path": "node_modules/@img/sharp-linux-riscv64",
+      "before": null,
+      "after": "0.35.5"
+    },
+    {
+      "path": "node_modules/@img/sharp-linux-s390x",
+      "before": "0.33.5",
+      "after": "0.35.5"
+    },
+    {
+      "path": "node_modules/@img/sharp-linux-x64",
+      "before": "0.33.5",
+      "after": "0.35.5"
+    },
+    {
+      "path": "node_modules/@img/sharp-linuxmusl-arm64",
+      "before": "0.33.5",
+      "after": "0.35.5"
+    },
+    {
+      "path": "node_modules/@img/sharp-linuxmusl-x64",
+      "before": "0.33.5",
+      "after": "0.35.5"
+    },
+    {
+      "path": "node_modules/@img/sharp-wasm32",
+      "before": "0.33.5",
+      "after": "0.35.5"
+    },
+    {
+      "path": "node_modules/@img/sharp-webcontainers-wasm32",
+      "before": null,
+      "after": "0.35.5"
+    },
+    {
+      "path": "node_modules/@img/sharp-win32-arm64",
+      "before": null,
+      "after": "0.35.5"
+    },
+    {
+      "path": "node_modules/@img/sharp-win32-ia32",
+      "before": "0.33.5",
+      "after": "0.35.5"
+    },
+    {
+      "path": "node_modules/@img/sharp-win32-x64",
+      "before": "0.33.5",
+      "after": "0.35.5"
+    },
+    {
+      "path": "node_modules/@isaacs/balanced-match",
+      "before": "4.0.1",
+      "after": null
+    },
+    {
+      "path": "node_modules/@isaacs/brace-expansion",
+      "before": "5.0.0",
+      "after": null
+    },
+    {
+      "path": "node_modules/@oxc-project/types",
+      "before": "0.155.0",
+      "after": "0.156.0"
+    },
+    {
+      "path": "node_modules/@poppinss/colors",
+      "before": "4.1.5",
+      "after": "4.1.6"
+    },
+    {
+      "path": "node_modules/@poppinss/exception",
+      "before": "1.2.2",
+      "after": "1.2.3"
+    },
+    {
+      "path": "node_modules/@rolldown/binding-android-arm-eabi",
+      "before": "1.2.15",
+      "after": "1.2.16"
+    },
+    {
+      "path": "node_modules/@rolldown/binding-android-arm64",
+      "before": "1.2.15",
+      "after": "1.2.16"
+    },
+    {
+      "path": "node_modules/@rolldown/binding-darwin-arm64",
+      "before": "1.2.15",
+      "after": "1.2.16"
+    },
+    {
+      "path": "node_modules/@rolldown/binding-darwin-x64",
+      "before": "1.2.15",
+      "after": "1.2.16"
+    },
+    {
+      "path": "node_modules/@rolldown/binding-freebsd-x64",
+      "before": "1.2.15",
+      "after": "1.2.16"
+    },
+    {
+      "path": "node_modules/@rolldown/binding-linux-arm-gnueabihf",
+      "before": "1.2.15",
+      "after": "1.2.16"
+    },
+    {
+      "path": "node_modules/@rolldown/binding-linux-arm64-gnu",
+      "before": "1.2.15",
+      "after": "1.2.16"
+    },
+    {
+      "path": "node_modules/@rolldown/binding-linux-arm64-musl",
+      "before": "1.2.15",
+      "after": "1.2.16"
+    },
+    {
+      "path": "node_modules/@rolldown/binding-linux-ppc64-gnu",
+      "before": "1.2.15",
+      "after": "1.2.16"
+    },
+    {
+      "path": "node_modules/@rolldown/binding-linux-s390x-gnu",
+      "before": "1.2.15",
+      "after": "1.2.16"
+    },
+    {
+      "path": "node_modules/@rolldown/binding-linux-x64-gnu",
+      "before": "1.2.15",
+      "after": "1.2.16"
+    },
+    {
+      "path": "node_modules/@rolldown/binding-linux-x64-musl",
+      "before": "1.2.15",
+      "after": "1.2.16"
+    },
+    {
+      "path": "node_modules/@rolldown/binding-openharmony-arm64",
+      "before": "1.2.15",
+      "after": "1.2.16"
+    },
+    {
+      "path": "node_modules/@rolldown/binding-win32-arm64-msvc",
+      "before": "1.2.15",
+      "after": "1.2.16"
+    },
+    {
+      "path": "node_modules/@rolldown/binding-win32-x64-msvc",
+      "before": "1.2.15",
+      "after": "1.2.16"
+    },
+    {
+      "path": "node_modules/@sindresorhus/is",
+      "before": "7.1.1",
+      "after": "7.2.0"
+    },
+    {
+      "path": "node_modules/@speed-highlight/core",
+      "before": "1.2.12",
+      "after": "1.2.24"
+    },
+    {
+      "path": "node_modules/@vue/compiler-core",
+      "before": "3.5.25",
+      "after": "3.5.45"
+    },
+    {
+      "path": "node_modules/@vue/compiler-dom",
+      "before": "3.5.25",
+      "after": "3.5.45"
+    },
+    {
+      "path": "node_modules/@vue/compiler-sfc",
+      "before": "3.5.25",
+      "after": "3.5.45"
+    },
+    {
+      "path": "node_modules/@vue/compiler-ssr",
+      "before": "3.5.25",
+      "after": "3.5.45"
+    },
+    {
+      "path": "node_modules/@vue/reactivity",
+      "before": "3.5.25",
+      "after": "3.5.45"
+    },
+    {
+      "path": "node_modules/@vue/runtime-core",
+      "before": "3.5.25",
+      "after": "3.5.45"
+    },
+    {
+      "path": "node_modules/@vue/runtime-dom",
+      "before": "3.5.25",
+      "after": "3.5.45"
+    },
+    {
+      "path": "node_modules/@vue/server-renderer",
+      "before": "3.5.25",
+      "after": "3.5.45"
+    },
+    {
+      "path": "node_modules/@vue/shared",
+      "before": "3.5.25",
+      "after": "3.5.45"
+    },
+    {
+      "path": "node_modules/acorn",
+      "before": "8.14.0",
+      "after": null
+    },
+    {
+      "path": "node_modules/acorn-walk",
+      "before": "8.3.2",
+      "after": null
+    },
+    {
+      "path": "node_modules/ajv",
+      "before": "8.17.1",
+      "after": "8.20.0"
+    },
+    {
+      "path": "node_modules/color",
+      "before": "4.2.3",
+      "after": null
+    },
+    {
+      "path": "node_modules/color-string",
+      "before": "1.9.1",
+      "after": null
+    },
+    {
+      "path": "node_modules/entities",
+      "before": "4.5.0",
+      "after": "7.0.1"
+    },
+    {
+      "path": "node_modules/esbuild",
+      "before": null,
+      "after": "0.28.2"
+    },
+    {
+      "path": "node_modules/esbuild/node_modules/@esbuild/aix-ppc64",
+      "before": null,
+      "after": "0.28.2"
+    },
+    {
+      "path": "node_modules/esbuild/node_modules/@esbuild/netbsd-arm64",
+      "before": null,
+      "after": "0.28.2"
+    },
+    {
+      "path": "node_modules/esbuild/node_modules/@esbuild/openbsd-arm64",
+      "before": null,
+      "after": "0.28.2"
+    },
+    {
+      "path": "node_modules/esbuild/node_modules/@esbuild/openharmony-arm64",
+      "before": null,
+      "after": "0.28.2"
+    },
+    {
+      "path": "node_modules/exit-hook",
+      "before": "2.2.1",
+      "after": null
+    },
+    {
+      "path": "node_modules/glob-to-regexp",
+      "before": "0.4.1",
+      "after": null
+    },
+    {
+      "path": "node_modules/is-arrayish",
+      "before": "0.3.4",
+      "after": null
+    },
+    {
+      "path": "node_modules/mime",
+      "before": "3.0.0",
+      "after": null
+    },
+    {
+      "path": "node_modules/miniflare",
+      "before": "4.20251202.1",
+      "after": "5.20261104.0-beta"
+    },
+    {
+      "path": "node_modules/minimatch",
+      "before": "3.1.2",
+      "after": "3.1.5"
+    },
+    {
+      "path": "node_modules/postcss",
+      "before": "8.5.31",
+      "after": "8.5.32"
+    },
+    {
+      "path": "node_modules/rolldown",
+      "before": "1.2.15",
+      "after": "1.2.16"
+    },
+    {
+      "path": "node_modules/semver",
+      "before": "7.7.3",
+      "after": "7.8.6"
+    },
+    {
+      "path": "node_modules/sharp",
+      "before": "0.33.5",
+      "after": "0.35.5"
+    },
+    {
+      "path": "node_modules/simple-swizzle",
+      "before": "0.2.4",
+      "after": null
+    },
+    {
+      "path": "node_modules/stoppable",
+      "before": "1.1.0",
+      "after": null
+    },
+    {
+      "path": "node_modules/tslib",
+      "before": "2.8.1",
+      "after": "2.9.1"
+    },
+    {
+      "path": "node_modules/undici",
+      "before": "7.14.0",
+      "after": "7.30.1"
+    },
+    {
+      "path": "node_modules/vite",
+      "before": "8.3.5",
+      "after": "8.3.6"
+    },
+    {
+      "path": "node_modules/vite-plugin-pwa",
+      "before": "1.2.0",
+      "after": "1.3.0"
+    },
+    {
+      "path": "node_modules/vue",
+      "before": "3.5.25",
+      "after": "3.5.45"
+    },
+    {
+      "path": "node_modules/workbox-build/node_modules/balanced-match",
+      "before": null,
+      "after": "4.0.4"
+    },
+    {
+      "path": "node_modules/workbox-build/node_modules/brace-expansion",
+      "before": null,
+      "after": "5.0.12"
+    },
+    {
+      "path": "node_modules/workbox-build/node_modules/minimatch",
+      "before": "10.1.1",
+      "after": "10.2.6"
+    },
+    {
+      "path": "node_modules/workerd",
+      "before": "1.20251202.0",
+      "after": "1.20261104.1"
+    },
+    {
+      "path": "node_modules/wrangler",
+      "before": "4.53.0",
+      "after": "4.158.0"
+    },
+    {
+      "path": "node_modules/wrangler/node_modules/@esbuild/android-arm",
+      "before": "0.27.0",
+      "after": null
+    },
+    {
+      "path": "node_modules/wrangler/node_modules/@esbuild/android-arm64",
+      "before": "0.27.0",
+      "after": null
+    },
+    {
+      "path": "node_modules/wrangler/node_modules/@esbuild/android-x64",
+      "before": "0.27.0",
+      "after": null
+    },
+    {
+      "path": "node_modules/wrangler/node_modules/@esbuild/darwin-arm64",
+      "before": "0.27.0",
+      "after": null
+    },
+    {
+      "path": "node_modules/wrangler/node_modules/@esbuild/darwin-x64",
+      "before": "0.27.0",
+      "after": null
+    },
+    {
+      "path": "node_modules/wrangler/node_modules/@esbuild/freebsd-arm64",
+      "before": "0.27.0",
+      "after": null
+    },
+    {
+      "path": "node_modules/wrangler/node_modules/@esbuild/freebsd-x64",
+      "before": "0.27.0",
+      "after": null
+    },
+    {
+      "path": "node_modules/wrangler/node_modules/@esbuild/linux-arm",
+      "before": "0.27.0",
+      "after": null
+    },
+    {
+      "path": "node_modules/wrangler/node_modules/@esbuild/linux-arm64",
+      "before": "0.27.0",
+      "after": null
+    },
+    {
+      "path": "node_modules/wrangler/node_modules/@esbuild/linux-ia32",
+      "before": "0.27.0",
+      "after": null
+    },
+    {
+      "path": "node_modules/wrangler/node_modules/@esbuild/linux-loong64",
+      "before": "0.27.0",
+      "after": null
+    },
+    {
+      "path": "node_modules/wrangler/node_modules/@esbuild/linux-mips64el",
+      "before": "0.27.0",
+      "after": null
+    },
+    {
+      "path": "node_modules/wrangler/node_modules/@esbuild/linux-ppc64",
+      "before": "0.27.0",
+      "after": null
+    },
+    {
+      "path": "node_modules/wrangler/node_modules/@esbuild/linux-riscv64",
+      "before": "0.27.0",
+      "after": null
+    },
+    {
+      "path": "node_modules/wrangler/node_modules/@esbuild/linux-s390x",
+      "before": "0.27.0",
+      "after": null
+    },
+    {
+      "path": "node_modules/wrangler/node_modules/@esbuild/linux-x64",
+      "before": "0.27.0",
+      "after": null
+    },
+    {
+      "path": "node_modules/wrangler/node_modules/@esbuild/netbsd-x64",
+      "before": "0.27.0",
+      "after": null
+    },
+    {
+      "path": "node_modules/wrangler/node_modules/@esbuild/openbsd-x64",
+      "before": "0.27.0",
+      "after": null
+    },
+    {
+      "path": "node_modules/wrangler/node_modules/@esbuild/sunos-x64",
+      "before": "0.27.0",
+      "after": null
+    },
+    {
+      "path": "node_modules/wrangler/node_modules/@esbuild/win32-arm64",
+      "before": "0.27.0",
+      "after": null
+    },
+    {
+      "path": "node_modules/wrangler/node_modules/@esbuild/win32-ia32",
+      "before": "0.27.0",
+      "after": null
+    },
+    {
+      "path": "node_modules/wrangler/node_modules/@esbuild/win32-x64",
+      "before": "0.27.0",
+      "after": null
+    },
+    {
+      "path": "node_modules/wrangler/node_modules/esbuild",
+      "before": "0.27.0",
+      "after": null
+    },
+    {
+      "path": "node_modules/ws",
+      "before": "8.18.0",
+      "after": "8.21.0"
+    },
+    {
+      "path": "node_modules/zod",
+      "before": "3.22.3",
+      "after": null
+    }
+  ]
+}

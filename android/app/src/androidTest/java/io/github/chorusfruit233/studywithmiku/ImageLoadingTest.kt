@@ -40,11 +40,14 @@ class ImageLoadingTest {
     }
 
     @Test fun productionImageLoaderKeepsBundledStickersAnimated() = runBlocking {
-        val result = SingletonImageLoader.get(context).execute(
-            ImageRequest.Builder(context).data("file:///android_asset/sticker/12.gif").build())
-        assertTrue("GIF sticker failed: $result",result is SuccessResult)
-        val image = (result as SuccessResult).image
-        assertTrue(image.width > 0 && image.height > 0)
-        assertTrue("Animated sticker became a still image",image.asDrawable(context.resources) is Animatable)
+        for (id in listOf(12,17,18,19,20,21)) {
+            val extension = StudyProtocol.stickerExtension(id)
+            val result = SingletonImageLoader.get(context).execute(
+                ImageRequest.Builder(context).data("file:///android_asset/sticker/$id.$extension").build())
+            assertTrue("Sticker $id failed: $result",result is SuccessResult)
+            val image = (result as SuccessResult).image
+            assertTrue(image.width > 0 && image.height > 0)
+            if (extension == "gif") assertTrue("Animated sticker $id became a still image",image.asDrawable(context.resources) is Animatable)
+        }
     }
 }

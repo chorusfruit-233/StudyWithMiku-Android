@@ -31,7 +31,10 @@ class MikuApplication : Application(), SingletonImageLoader.Factory {
         onlineMusic = OnlineMusic(this,store)
         val api = StudyApi()
         auth = StudyAuth(this,api)
-        chat = ChatClient(auth,api)
+        val chatDisk = getSharedPreferences("chat_outbox",MODE_PRIVATE)
+        chat = ChatClient(auth,api,outbox = ChatOutbox(
+            read = { chatDisk.getString("entries","[]") ?: "[]" },
+            write = { chatDisk.edit().putString("entries",it).commit() }))
         sync = CloudSync(store,timer,auth,api)
         extras = OnlineExtras(this)
         sync.start()

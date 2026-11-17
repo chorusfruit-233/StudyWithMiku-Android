@@ -143,7 +143,7 @@ class MainActivity : ComponentActivity() {
             when (selected) {
                 0 -> FocusScreen(prefs,timer,logs,todos,app.store,app.timer,app.extras,::toggleTimer)
                 1 -> if (prefs.musicEnabled) LibraryScreen(library,playback,app.store,music,app.onlineMusic,::message) { player = true }
-                2 -> TasksScreen(todos,app.store) { content -> if (!app.auth.state.value.loggedIn) app.openLogin() else if (app.chat.sendChat(content,app.extras.messageLocation())) { communityPage = 0; tab = 4; message("已分享到聊天室") } else message("连接成功后再分享") }
+                2 -> TasksScreen(todos,app.store) { content -> if (!app.auth.state.value.loggedIn) app.openLogin() else if (app.chat.sendChat(content,app.extras.messageLocation())) { communityPage = 0; tab = 4; message("已加入聊天发送队列") } else message("连接成功后再分享") }
                 3 -> RecordsScreen(logs,todos)
                 else -> CommunityScreen(app,music,::message,communityPage,{ communityPage = it }) { player = true }
             }
@@ -158,7 +158,7 @@ class MainActivity : ComponentActivity() {
     if (about) AboutSheet { about = false }
     if (player && prefs.musicEnabled) PlayerSheet(library,playback,app.store,music,onShare = { song ->
         if (!app.auth.state.value.loggedIn) app.openLogin()
-        else if (app.chat.sendChat(StudyProtocol.songShare(song) ?: "",app.extras.messageLocation())) { player = false; chatSheet = false; communityPage = 0; tab = 4; message("已分享到聊天室") }
+        else if (app.chat.sendChat(StudyProtocol.songShare(song) ?: "",app.extras.messageLocation())) { player = false; chatSheet = false; communityPage = 0; tab = 4; message("已加入聊天发送队列") }
         else message("连接成功后再分享")
     }) { player = false }
     if (chatSheet) FocusChatSheet(onDismiss = { chatSheet = false }) {

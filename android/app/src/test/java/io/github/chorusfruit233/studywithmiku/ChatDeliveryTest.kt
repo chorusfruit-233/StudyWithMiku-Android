@@ -25,9 +25,10 @@ class ChatDeliveryTest {
     }
     private class Socket(private val original: Request) : WebSocket {
         var accepts = true
+        val frames = mutableListOf<String>()
         override fun request() = original
         override fun queueSize() = 0L
-        override fun send(text: String) = accepts
+        override fun send(text: String): Boolean { if (accepts) frames.add(text); return accepts }
         override fun send(bytes: ByteString) = accepts
         override fun close(code: Int,reason: String?) = true
         override fun cancel() {}
@@ -58,17 +59,32 @@ class ChatDeliveryTest {
             assertEquals(listOf("earliest","old","live"),chat.state.value.messages.map { it.id })
         } finally { chat.close() }
     }
-    @Test fun socketRejectingSendReportsFailureAndSuccessfulRetryClearsIt() {
+    @Test fun disconnectedAndRejectedMessagesStayQueuedAndAckWithoutBroadcastAddsConfirmedBubble() {
         val factory = Factory(); val chat = ChatClient(Account(),StudyApi(),factory)
         try {
-            chat.start(); factory.open(); factory.socket.accepts = false
-            assertFalse(chat.sendChat("Fixture message"))
-            assertEquals("发送失败：连接已断开，请稍后重试",chat.state.value.error)
-            factory.socket.accepts = true
-            assertTrue(chat.sendChat("Fixture retry")); assertNull(chat.state.value.error)
-            chat.stop()
-            assertFalse(chat.sendChat("[sticker:12]"))
-            assertEquals("发送失败：连接已断开，请稍后重试",chat.state.value.error)
+            assertTrue(chat.sendChat("Offline fixture")); assertEquals(1,chat.state.value.pending.size)
+            chat.start()
+            factory.receive("""{"type":"hello","caps":["client_id_v1","chat_ack_v1"]}""")
+            factory.open()
+            val sent = factory.socket.frames.map { JSONObject(it) }.single { it.optString("type") == "chat" }
+            val id = sent.getString("clientId")
+            factory.receive("""{"type":"chat_ack","clientId":"unknown","id":"unknown"}""")
+            assertEquals(1,chat.state.value.pending.size); assertTrue(chat.state.value.messages.isEmpty())
+            factory.receive("""{"type":"chat_ack","clientId":"$id","id":"$id"}""")
+            assertTrue(chat.state.value.pending.isEmpty()); assertEquals("Offline fixture",chat.state.value.messages.single().content)
+            factory.receive("""{"type":"chat","message":{"id":"$id","clientId":"$id","userId":"fixture","content":"Offline fixture","createdAt":"2026-11-17T00:00:00Z"}}""")
+            assertEquals(1,chat.state.value.messages.size)
+            chat.stop(); assertTrue(chat.sendChat("[sticker:21]")); assertEquals(1,chat.state.value.pending.size)
+        } finally { chat.close() }
+    }
+    @Test fun missingServerCapabilitiesUsesSingleSendWithoutPendingAck() {
+        val factory = Factory(); val chat = ChatClient(Account(),StudyApi(),factory)
+        try {
+            chat.start(); factory.open()
+            assertTrue(chat.sendChat("Legacy fixture")); assertTrue(chat.state.value.pending.isEmpty())
+            assertEquals(1,factory.socket.frames.map { JSONObject(it) }.count { it.optString("type") == "chat" })
+            factory.socket.accepts = false
+            assertTrue(chat.sendChat("Waiting fixture")); assertEquals(1,chat.state.value.pending.size)
         } finally { chat.close() }
     }
 }

@@ -102,4 +102,67 @@ class StudyPersistenceTest {
         assertEquals(2_400_500L,reopened.studyTotals().millis)
         assertTrue(reopened.prefs.value.notificationVolume.isFinite())
     }
+    @Test fun applyingUploadedMergePreservesRunningClockAndRevisionAcrossRecreation() = isolated { context ->
+        val store = MikuStore(context)
+        store.switchStudyOwner("fixture-account"); store.applyStudy(remote())
+        val clock = FocusClock(running = true,remainingMs = 123000,lastTickMs = 1000,elapsedMs = 45000)
+        store.saveClock(clock,42)
+        val before = context.getSharedPreferences("fixture",0).getString("clock",null)
+        assertNotNull(before)
+        val saved = remote().also { it.data.put("revision",7); it.data.getJSONObject("stats").put("totalStudyTime",2500.5) }
+        store.applyUploadedStudy(saved)
+        val reopened = MikuStore(context)
+        assertEquals(before,context.getSharedPreferences("fixture",0).getString("clock",null))
+        assertEquals(7,reopened.lastCloudStudy()!!.data.getInt("revision"))
+        assertEquals(2_500_500L,reopened.studyTotals().millis)
+    }
+
+    @Test fun mergedTodayCreditSchedulesCalendarFollowupWithoutPausingRunningTimer() = isolated { context ->
+        InstrumentationRegistry.getInstrumentation().runOnMainSync {
+            val today = LocalDate.now()
+            fun document(time: Int,revision: Int) = CloudStudy(JSONObject().put("revision",revision)
+                .put("stats",JSONObject().put("totalStudyTime",time).put("todayStudyTime",time).put("lastDate",StudyProtocol.jsDate(today))),
+                JSONObject().put("dailyLog",JSONObject().put(today.toString(),JSONObject().put("studyTime",time))))
+            val base = document(100,1)
+            val store = MikuStore(context).apply { autoSync = false; switchStudyOwner("fixture"); applyStudy(base) }
+            var pauses = 0
+            val timer = object : StudySyncTimer {
+                override val state = kotlinx.coroutines.flow.MutableStateFlow(FocusClock(running = true))
+                override fun pause() { pauses++ }
+                override fun flush() {}
+                override fun restoreFromStore() {}
+            }
+            val account = object : StudySyncAccount {
+                override val state = kotlinx.coroutines.flow.MutableStateFlow(AccountState("fixture","Miku",Long.MAX_VALUE))
+                override fun token() = "fixture-token"
+                override fun expire() {}
+                override fun logout() {}
+            }
+            var writes = 0
+            val api = object : StudySyncApi {
+                override fun fetch(token: String) = base
+                override fun push(token: String,study: CloudStudy) { error("Revision upload expected") }
+                override fun push(token: String,study: CloudStudy,baseline: CloudStudy?): CloudStudy {
+                    writes++
+                    return if (writes == 1) CloudStudy(document(190,2).data,study.calendar)
+                    else {
+                        assertEquals(190.0,study.calendar.getJSONObject("dailyLog").getJSONObject(today.toString()).getDouble("studyTime"),0.0)
+                        study.copy(data = StudyProtocol.deepCopy(study.data).put("revision",3))
+                    }
+                }
+            }
+            val sync = CloudSync(store,timer,account,api,kotlinx.coroutines.Dispatchers.Main.immediate)
+            try {
+                sync.start(); assertTrue(sync.state.value.ready)
+                val before = pauses
+                store.record(60_000,false)
+                sync.syncNow()
+                assertTrue(store.pendingStudyUpload); assertEquals(190_000L,store.studyTotals().millis)
+                sync.syncNow()
+                assertFalse(store.pendingStudyUpload); assertEquals(2,writes)
+                assertEquals(before,pauses); assertTrue(timer.state.value.running)
+            } finally { sync.close() }
+        }
+    }
+
 }

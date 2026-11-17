@@ -8,10 +8,11 @@ import java.util.concurrent.ConcurrentHashMap
 
 data class ChatState(val connected: Boolean = false,val authenticated: Boolean = false,val online: Int = 0,
     val adminOnline: Boolean = false,val messages: List<ChatMessage> = emptyList(),val hasMore: Boolean = false,
-    val loadingHistory: Boolean = false,val error: String? = null)
+    val loadingHistory: Boolean = false,val error: String? = null,
+    val pending: List<ChatDraft> = emptyList(),val drafts: List<ChatDraft> = emptyList())
 data class UserProfile(val username: String = "",val avatar: String = "")
 class ChatClient(private val auth: StudySyncAccount,private val api: StudyApi,
-    private val client: WebSocket.Factory = StudyNetwork.client,private val wsUrl: String = STUDY_WS) {
+    private val client: WebSocket.Factory = StudyNetwork.client,private val wsUrl: String = STUDY_WS,private val outbox: ChatOutbox = ChatOutbox()) {
     private val scope = CoroutineScope(SupervisorJob()+Dispatchers.Main.immediate)
     private val _state = MutableStateFlow(ChatState())
     val state = _state.asStateFlow()
@@ -25,17 +26,32 @@ class ChatClient(private val auth: StudySyncAccount,private val api: StudyApi,
     private var retry: Job? = null
     private var heartbeat: Job? = null
     private var historyTimeout: Job? = null
-    private var backoff = 3000L
+    private var backoff = 1000L
+    private var reliable = false
+    private var lastInbound = 0L
     init {
         scope.launch { auth.state.map { Triple(it.userId,it.expiresAt,it.expired) }.distinctUntilChanged().collect {
+            outbox.disconnect(); publishOutbox()
             if (active) { disconnect(); connect() }
             if (auth.state.value.userId.isNotBlank()) ensureProfiles(listOf(auth.state.value.userId))
         } }
+    }
+    private fun publishOutbox() {
+        val user = auth.state.value.userId
+        _state.value = _state.value.copy(pending = outbox.pending(user),drafts = outbox.failed(user),error = outbox.error ?: _state.value.error)
+    }
+    fun discardDraft(id: String): Boolean = outbox.discard(auth.state.value.userId,id).also { publishOutbox() }
+    private fun pump() {
+        outbox.pump(auth.state.value.userId,active && state.value.connected && state.value.authenticated && auth.token().isNotBlank(),reliable) {
+            send(JSONObject().put("type","chat").put("content",it.content).put("location",it.location).put("clientId",it.clientId))
+        }
+        publishOutbox()
     }
     fun start() { if (!active) { active = true; connect() } }
     fun stop() { active = false; disconnect() }
     internal fun close() { stop(); scope.cancel() }
     private fun disconnect() {
+        reliable = false; outbox.disconnect()
         generation++; retry?.cancel(); heartbeat?.cancel(); historyTimeout?.cancel()
         socket?.close(1000,"screen inactive"); socket = null
         _state.value = _state.value.copy(connected = false,authenticated = false,online = 0,adminOnline = false,loadingHistory = false)
@@ -47,16 +63,26 @@ class ChatClient(private val auth: StudySyncAccount,private val api: StudyApi,
         socket = client.newWebSocket(request,object: WebSocketListener() {
             override fun onOpen(webSocket: WebSocket,response: Response) { scope.launch {
                 if (serial != generation || !active) { webSocket.close(1000,"inactive"); return@launch }
-                backoff = 3000L
+                backoff = 1000L; lastInbound = System.currentTimeMillis()
                 _state.value = _state.value.copy(connected = true,error = null)
                 val token = auth.token()
                 if (token.isNotEmpty()) webSocket.send(JSONObject().put("type","auth").put("token",token).toString())
                 webSocket.send(JSONObject().put("type","username").put("username",auth.state.value.username).toString())
                 heartbeat?.cancel()
-                heartbeat = scope.launch { while (isActive) { delay(30_000); send(JSONObject().put("type","ping")) } }
+                heartbeat = scope.launch {
+                    var lastPing = System.currentTimeMillis()
+                    while (isActive) {
+                        delay(500)
+                        val now = System.currentTimeMillis()
+                        if (now-lastInbound > 45_000) { webSocket.cancel(); lost(serial,"连接超时，正在重连…"); return@launch }
+                        if (now-lastPing >= 25_000) { send(JSONObject().put("type","ping")); lastPing = now }
+                        pump()
+                    }
+                }
             } }
             override fun onMessage(webSocket: WebSocket,text: String) { scope.launch {
                 if (serial != generation || !active) return@launch
+                lastInbound = System.currentTimeMillis()
                 runCatching { receive(JSONObject(text)) }.onFailure { _state.value = _state.value.copy(error = "聊天消息格式异常，请重新连接") }
             } }
             override fun onClosing(webSocket: WebSocket,code: Int,reason: String) { webSocket.close(code,reason) }
@@ -68,9 +94,10 @@ class ChatClient(private val auth: StudySyncAccount,private val api: StudyApi,
     }
     private fun lost(serial: Int,error: String?) {
         if (serial != generation) return
+        generation++; reliable = false; outbox.disconnect()
         socket = null; heartbeat?.cancel(); historyTimeout?.cancel()
         _state.value = _state.value.copy(connected = false,authenticated = false,online = 0,adminOnline = false,loadingHistory = false,error = error)
-        if (active) { retry?.cancel(); retry = scope.launch { delay(backoff); backoff = (backoff*2).coerceAtMost(30_000); connect() } }
+        if (active) { retry?.cancel(); retry = scope.launch { delay(backoff); backoff = (backoff*2).coerceAtMost(15_000); connect() } }
     }
     fun reconnect() { disconnect(); if (active) connect() }
     private fun send(o: JSONObject) = socket?.send(o.toString()) == true
@@ -80,12 +107,10 @@ class ChatClient(private val auth: StudySyncAccount,private val api: StudyApi,
         if (auth.token().isBlank()) {
             _state.value = _state.value.copy(error = "登录并连接聊天室后才能发送"); return false
         }
-        if (!_state.value.connected) { _state.value = _state.value.copy(error = "发送失败：连接已断开，请稍后重试"); return false }
-        if (!_state.value.authenticated) { _state.value = _state.value.copy(error = "正在验证聊天身份，请稍后重试"); return false }
         _state.value = _state.value.copy(error = null)
-        val sent = send(JSONObject().put("type","chat").put("content",text).put("location",location))
-        if (!sent) _state.value = _state.value.copy(error = "发送失败：连接已断开，请稍后重试")
-        return sent
+        val queued = outbox.enqueue(auth.state.value.userId,auth.state.value.username,text,location)
+        pump()
+        return queued
     }
     fun history() {
         val s = _state.value
@@ -100,19 +125,49 @@ class ChatClient(private val auth: StudySyncAccount,private val api: StudyApi,
         val s = _state.value
         when (o.optString("type")) {
             "count" -> _state.value = s.copy(online = o.optInt("count").coerceAtLeast(0),adminOnline = o.optBoolean("adminOnline"))
-            "auth" -> _state.value = s.copy(authenticated = o.optBoolean("ok"),error = if (o.optBoolean("ok")) null else "聊天身份验证失败，请重新登录")
+            "hello","auth" -> {
+                if (o.optString("type") == "hello" || o.optBoolean("ok")) {
+                    o.optJSONArray("caps")?.let { caps ->
+                        val names = (0 until caps.length()).map { caps.optString(it) }
+                        reliable = "client_id_v1" in names && "chat_ack_v1" in names
+                    }
+                }
+                if (o.optString("type") == "auth") _state.value = s.copy(authenticated = o.optBoolean("ok"),error = if (o.optBoolean("ok")) null else "聊天身份验证失败，请重新登录")
+                pump()
+            }
+            "chat_ack" -> {
+                val id = o.optString("id")
+                if (id.isNotBlank()) outbox.confirm(auth.state.value.userId,o.optString("clientId"))?.let { draft ->
+                    if (s.messages.none { it.id == id }) _state.value = s.copy(messages = StudyProtocol.mergeMessages(s.messages,listOf(draft.message(id))))
+                }
+                publishOutbox()
+            }
             "history","history_chunk" -> {
                 val incoming = o.optJSONArray("messages")?.objects()?.mapNotNull(StudyProtocol::chat) ?: emptyList()
                 val messages = StudyProtocol.mergeMessages(incoming,s.messages)
                 historyTimeout?.cancel()
                 _state.value = s.copy(messages = messages,hasMore = o.optBoolean("hasMore"),loadingHistory = false)
+                incoming.filter { it.userId == auth.state.value.userId && it.clientId.isNotBlank() }.forEach { outbox.confirm(it.userId,it.clientId) }
+                publishOutbox()
                 ensureProfiles(messages.map { it.userId })
             }
             "chat" -> o.optJSONObject("message")?.let(StudyProtocol::chat)?.let { message ->
                 _state.value = s.copy(messages = StudyProtocol.mergeMessages(s.messages,listOf(message)))
+                if (message.userId == auth.state.value.userId && message.clientId.isNotBlank()) outbox.confirm(message.userId,message.clientId)
+                publishOutbox()
                 ensureProfiles(listOf(message.userId))
             }
-            "error" -> { historyTimeout?.cancel(); _state.value = s.copy(error = o.optString("message","连接异常"),loadingHistory = false) }
+            "error" -> {
+                historyTimeout?.cancel()
+                outbox.rejected(auth.state.value.userId,o.optString("clientId"),o.optString("code"))
+                _state.value = s.copy(error = o.optString("message","连接异常"),loadingHistory = false)
+                if (o.optString("code") == "unauthorized") {
+                    _state.value = _state.value.copy(authenticated = false)
+                    val token = auth.token()
+                    if (token.isNotBlank()) send(JSONObject().put("type","auth").put("token",token))
+                }
+                publishOutbox()
+            }
         }
     }
     fun ensureProfiles(ids: List<String>) {

@@ -13,7 +13,7 @@ internal class PlaybackCrossfade(
     private val enabled: () -> Boolean,private val allowed: () -> Boolean,
     private val gains: (Float,Float) -> Unit
 ) {
-    private enum class Stage { IDLE, PRELOAD, MANUAL_WAIT, MANUAL_FADE, AUTO_FADE, HANDOFF_WAIT, HANDOFF }
+    private enum class Stage { IDLE, PRELOAD, MANUAL_OUT, MANUAL_WAIT, MANUAL_IN, AUTO_FADE, HANDOFF_WAIT, HANDOFF }
     private var stage = Stage.IDLE
     private var target: MediaItem? = null
     private var targetIndex = C.INDEX_UNSET
@@ -25,10 +25,11 @@ internal class PlaybackCrossfade(
     private var changing = false
     private var primaryGain = 1f
     private var secondaryGain = 0f
-    private val manual get() = stage == Stage.MANUAL_WAIT || stage == Stage.MANUAL_FADE
+    private val manual get() = stage in listOf(Stage.MANUAL_OUT,Stage.MANUAL_WAIT,Stage.MANUAL_IN)
+    val fading get() = stage !in listOf(Stage.IDLE,Stage.PRELOAD)
     private val listener = object : Player.Listener {
         override fun onMediaItemTransition(mediaItem: MediaItem?,reason: Int) {
-            if (changing || stage == Stage.IDLE) return
+            if (changing || stage == Stage.IDLE || manual && same(mediaItem,target)) return
             if (reason == Player.MEDIA_ITEM_TRANSITION_REASON_AUTO && same(mediaItem,target) && secondary.isPlaying) {
                 handoff()
             } else if (manual) cancel(finishManual = true) else cancel()
@@ -38,7 +39,7 @@ internal class PlaybackCrossfade(
         }
         override fun onPositionDiscontinuity(oldPosition: Player.PositionInfo,newPosition: Player.PositionInfo,reason: Int) {
             // ExoPlayer may deliver our handoff seek after the transition callback returns.
-            if (!changing && reason == Player.DISCONTINUITY_REASON_SEEK && stage != Stage.HANDOFF_WAIT && stage != Stage.HANDOFF) cancel()
+            if (!changing && !manual && reason == Player.DISCONTINUITY_REASON_SEEK && stage != Stage.HANDOFF_WAIT && stage != Stage.HANDOFF) cancel()
         }
     }
     init { primary.addListener(listener) }
@@ -48,7 +49,7 @@ internal class PlaybackCrossfade(
     }
     fun refreshGains() = gains(primaryGain,secondaryGain)
     fun cancel(finishManual: Boolean = false) {
-        if (finishManual && manual) commit(0)
+        if (finishManual && stage == Stage.MANUAL_OUT) commit(0)
         stage = Stage.IDLE; target = null; replacement = null; targetIndex = C.INDEX_UNSET
         secondary.stop(); secondary.clearMediaItems(); mix(1f,0f)
     }
@@ -77,10 +78,9 @@ internal class PlaybackCrossfade(
     }
     private fun request(item: MediaItem,index: Int,items: List<MediaItem>?) {
         autoRetryAt = 0
-        val reuse = stage == Stage.PRELOAD && same(target,item) && secondary.playerError == null
-        if (!reuse) { cancel(); secondary.setMediaItem(item); secondary.prepare() }
+        cancel(finishManual = true)
         target = item; targetIndex = index; replacement = items
-        stage = Stage.MANUAL_WAIT; started = SystemClock.elapsedRealtime(); mix(1f,0f)
+        stage = Stage.MANUAL_OUT; started = SystemClock.elapsedRealtime(); mix(1f,0f)
     }
     private fun commit(position: Long) {
         changing = true
@@ -94,7 +94,7 @@ internal class PlaybackCrossfade(
         changing = true
         try { primary.seekTo(secondary.currentPosition) } finally { changing = false }
         replacement = null; stage = Stage.HANDOFF_WAIT; started = SystemClock.elapsedRealtime()
-        handoffDeadline = started+7000
+        handoffDeadline = started+5000
         handoffAligned = false
     }
     fun tick() {
@@ -110,22 +110,22 @@ internal class PlaybackCrossfade(
             cancel(finishManual = true); return
         }
         when (stage) {
-            Stage.MANUAL_WAIT -> {
-                if (now-started > 8000) { cancel(finishManual = true); return }
-                if (secondary.playbackState == Player.STATE_READY) {
-                    if (secondary.duration in 1..2000) { cancel(finishManual = true); return }
-                    secondary.play()
-                    if (secondary.isPlaying) { stage = Stage.MANUAL_FADE; started = now }
+            Stage.MANUAL_OUT -> {
+                val progress = ((now-started)/250f).coerceIn(0f,1f)
+                mix(1f-progress,0f)
+                if (progress >= 1f) {
+                    commit(0); stage = Stage.MANUAL_WAIT; started = now
                 }
             }
-            Stage.MANUAL_FADE -> {
-                if (!secondary.isPlaying) {
-                    if (now-started > 8000 || secondary.playbackState == Player.STATE_ENDED) { cancel(finishManual = true); return }
-                    secondary.play(); mix(1f,0f); return
-                }
-                val progress = ((now-started)/1500f).coerceIn(0f,1f)
-                val fade = fadeCurve(progress); mix(1f-fade,fade)
-                if (progress >= 1f) { commit(secondary.currentPosition); handoff() }
+            Stage.MANUAL_WAIT -> {
+                mix(0f,0f)
+                if (primary.isPlaying) { stage = Stage.MANUAL_IN; started = now }
+                else if (now-started >= 3000) cancel()
+            }
+            Stage.MANUAL_IN -> {
+                val progress = ((now-started)/400f).coerceIn(0f,1f)
+                mix(progress,0f)
+                if (progress >= 1f) cancel()
             }
             Stage.HANDOFF_WAIT -> {
                 if (now > handoffDeadline || !same(primary.currentMediaItem,target)) { cancel(); return }

@@ -12,7 +12,7 @@ internal object StudyComparison {
     fun same(a: CloudStudy,b: CloudStudy) = StudyProtocol.sameStudy(normalized(a),normalized(b))
 
     private fun normalized(study: CloudStudy): CloudStudy {
-        val data = StudyProtocol.deepCopy(study.data)
+        val data = StudyProtocol.deepCopy(study.data).apply { remove("revision") }
         val calendar = StudyProtocol.deepCopy(study.calendar)
         fun JSONObject.objectAt(key: String) = optJSONObject(key) ?: JSONObject().also { put(key,it) }
         fun JSONObject.defaults(vararg values: Pair<String,Any>) {

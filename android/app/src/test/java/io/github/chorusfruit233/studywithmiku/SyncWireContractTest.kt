@@ -58,8 +58,8 @@ class SyncWireContractTest {
 
     @Test fun secondWriteFailureNamesCalendarAndDoesNotPretendUploadSucceeded() = mock { server,api ->
         server.enqueue(MockResponse().setResponseCode(204)); server.enqueue(MockResponse().setResponseCode(500))
-        val error = assertThrows(StudyApiException::class.java) { api.push("fixture-token",CloudStudy()) }
-        assertEquals(500,error.status); assertTrue(error.message!!.contains("上传日历"))
+        val error = assertThrows(StudyPartialUploadException::class.java) { api.push("fixture-token",CloudStudy()) }
+        assertEquals(500,(error.cause as StudyApiException).status); assertTrue(error.message!!.contains("上传日历"))
         assertEquals(2,server.requestCount)
         assertEquals("/api/study/data",server.takeRequest().path)
         assertEquals("/api/study/calendar",server.takeRequest().path)

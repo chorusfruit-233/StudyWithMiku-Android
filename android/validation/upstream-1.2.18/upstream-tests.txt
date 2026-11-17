@@ -1,0 +1,42 @@
+
+> study-with-miku@0.0.1 test
+> node --test workers/online-counter.test.js src/composables/useChatOutbox.test.js src/composables/studyDataMerge.test.js
+
+✔ 只改一侧的字段直接采用改动侧 (3.861695ms)
+✔ 双端累计统计都增长时合并增量而不是覆盖 (0.274451ms)
+✔ 没有基线时不会把两端总量重复相加 (0.384877ms)
+✔ 待办按 ID 三方合并，不同字段的并发修改都保留 (0.279119ms)
+✔ 本地删除未被远端修改的待办时保留删除 (0.460785ms)
+✔ 本地删除但远端修改同一条待办时保留远端数据 (0.193931ms)
+✔ 两级设置对象按字段合并 (0.225195ms)
+✔ 远端新增待办排在本地列表之后 (0.279472ms)
+✔ 传入响应式对象（Proxy）不会抛错 (0.4723ms)
+✔ a message leaves the outbox only after the server confirms it (10.247775ms)
+✔ a lost ack resends the same message instead of a second one (0.636996ms)
+✔ an unsent message survives a reload (0.819651ms)
+✔ a message that never gets confirmed goes back to the input (0.561478ms)
+✔ a rate limited message waits and is sent again (0.818547ms)
+✔ a server without ack support gets a single send and no retry (0.641632ms)
+✔ missing CHAT_DB reports a persistence error without broadcasting (70.658455ms)
+✔ D1 batch rejection reports a persistence error without broadcasting (1.584576ms)
+✔ a chat broadcast follows successful D1 persistence (1.067109ms)
+✔ a second message is rate limited while its D1 save is in flight (1.511623ms)
+✔ a failed D1 save can be retried immediately (2.428304ms)
+✔ a client id becomes the message id and is confirmed with an ack (3.574876ms)
+✔ a resent client id is acknowledged without a second write (0.793081ms)
+✔ a rejected message names the client id so the sender can retry it (1.314629ms)
+✔ an expired session cannot send messages (1.141636ms)
+✔ a session revoked on another device cannot send messages (0.797573ms)
+✔ a failed revocation lookup rejects the message (0.74103ms)
+✔ a failed dedupe lookup rejects the message instead of writing again (0.556012ms)
+✔ a primary key collision acknowledges without a second broadcast (0.604318ms)
+✔ 未配置 Supabase 时不阻断发言 (0.646124ms)
+✔ 服务端不再按贴纸清单拦截，新增贴纸无需重新部署 (0.939006ms)
+ℹ tests 30
+ℹ suites 0
+ℹ pass 30
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 485.231869
