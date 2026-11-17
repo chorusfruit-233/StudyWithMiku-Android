@@ -1,0 +1,10 @@
+{
+  "run": 44120838859,
+  "attempt": 1,
+  "source": "416c4235e808863e5274dbecc598a3318764510b",
+  "buildUnitAndLint": "success",
+  "deviceTests": "not started",
+  "reason": "Failed to download package archive for emulator: closed",
+  "time": "2026-11-17T16:04:28Z",
+  "resolution": "Rerun the failed job on the same source commit; no application change."
+}

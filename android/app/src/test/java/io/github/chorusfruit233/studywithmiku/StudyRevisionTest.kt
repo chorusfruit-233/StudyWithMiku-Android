@@ -74,4 +74,19 @@ class StudyRevisionTest {
         server.enqueue(MockResponse().setResponseCode(500))
         assertEquals(500,assertThrows(StudyApiException::class.java) { api.logout("token") }.status)
     }
+    @Test fun writableProjectionDoesNotDropReadOnlyMetadataFromSavedLocalSnapshot() = mock { server,api ->
+        for (versioned in listOf(false,true)) {
+            val study = CloudStudy(data(1,60).put("serverOnly","retain locally"),JSONObject().put("updated_at","retain calendar metadata"))
+            val base = CloudStudy(data(1,60).apply { if (!versioned) remove("revision") })
+            server.enqueue(if (versioned) response(data(2,60).put("serverStamp","new")) else MockResponse().setResponseCode(204))
+            server.enqueue(MockResponse().setResponseCode(204))
+            val saved = api.push("token",study,base)
+            assertEquals("retain locally",saved.data.getString("serverOnly"))
+            assertEquals("retain calendar metadata",saved.calendar.getString("updated_at"))
+            if (versioned) assertEquals("new",saved.data.getString("serverStamp"))
+            assertFalse(JSONObject(server.takeRequest().body.readUtf8()).has("serverOnly"))
+            assertFalse(JSONObject(server.takeRequest().body.readUtf8()).has("updated_at"))
+        }
+    }
+
 }

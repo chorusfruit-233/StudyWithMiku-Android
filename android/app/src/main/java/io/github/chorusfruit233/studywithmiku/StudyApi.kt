@@ -90,7 +90,11 @@ class StudyApi(private val baseUrl: String = ACCOUNT_API_SITE,client: OkHttpClie
         // Validate and encode both documents before the first write to avoid preventable partial uploads.
         val dataBody = encodeDocument(data)
         val calendarBody = encodeDocument(calendar)
-        var saved = data
+        fun retained(original: JSONObject,document: JSONObject) = StudyProtocol.deepCopy(original).apply {
+            document.keys().forEach { key -> put(key,document.get(key)) }
+        }
+        // Projection is a wire concern. Keep read-only/forward-compatible fields in the local shadow.
+        var saved = retained(study.data,data)
         var expected = revision(baseline?.data)
         if (expected == null) execute("/api/study/data",token,dataBody)
         else {
@@ -102,7 +106,7 @@ class StudyApi(private val baseUrl: String = ACCOUNT_API_SITE,client: OkHttpClie
                     val result = response.optJSONObject("data") ?: throw IOException("账号服务返回了不完整的保存结果")
                     val next = revision(result) ?: throw IOException("账号服务返回了无效的资料版本")
                     if (next <= expected!!) throw IOException("账号服务返回的资料版本未递增")
-                    saved = result
+                    saved = retained(study.data,result)
                     break
                 } catch (e: StudyApiException) {
                     if (e.status != 409) throw e
@@ -116,7 +120,7 @@ class StudyApi(private val baseUrl: String = ACCOUNT_API_SITE,client: OkHttpClie
         }
         try { execute("/api/study/calendar",token,calendarBody) }
         catch (e: Exception) { throw StudyPartialUploadException(CloudStudy(saved,baseline?.calendar ?: JSONObject()),e) }
-        return CloudStudy(saved,calendar)
+        return CloudStudy(saved,retained(study.calendar,calendar))
     }
     private fun encodeDocument(document: JSONObject): ByteArray {
         fun validate(value: Any?) {

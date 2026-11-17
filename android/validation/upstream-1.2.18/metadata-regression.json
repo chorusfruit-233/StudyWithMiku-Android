@@ -1,0 +1,27 @@
+{
+  "run": 44120838859,
+  "attempt": 2,
+  "source": "416c4235e808863e5274dbecc598a3318764510b",
+  "totals": {
+    "tests": "59",
+    "failures": "2",
+    "errors": "0",
+    "skipped": "0",
+    "time": "0.000",
+    "timestamp": "2026-11-17T16:11:06",
+    "hostname": "localhost"
+  },
+  "failures": [
+    {
+      "class": "io.github.chorusfruit233.studywithmiku.SparseSyncUiTest",
+      "test": "mergeOfOneSidedDatesUploadsOriginalWireFormatAndSurvivesRecreation",
+      "message": "org.json.JSONException: No value for serverOnly"
+    },
+    {
+      "class": "io.github.chorusfruit233.studywithmiku.SparseSyncUiTest",
+      "test": "failedCalendarUploadNamesTheStepPreservesLocalDataAndAllowsRetry",
+      "message": "org.json.JSONException: No value for serverOnly"
+    }
+  ],
+  "fix": "Keep read-only top-level metadata in saved native snapshots, while projecting only writable fields into HTTP bodies."
+}

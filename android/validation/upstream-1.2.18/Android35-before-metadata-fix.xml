@@ -1,0 +1,354 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<testsuites tests="59" failures="2" errors="0" skipped="0" time="0.000" timestamp="2026-11-17T16:11:06" hostname="localhost">
+  <testsuite name="io.github.chorusfruit233.studywithmiku.AudioCacheTest" tests="5" failures="0" errors="0" skipped="0" time="10.225" timestamp="2026-11-17T16:11:06" hostname="localhost">
+    <properties>
+      <property name="device" value="emulator-5554" />
+    </properties>
+    <testcase name="productionDownloadServiceAndMediaControllerPlayOffline" classname="io.github.chorusfruit233.studywithmiku.AudioCacheTest" time="1.700" />
+    <testcase name="errorResponseCannotBecomeAnOfflineSong" classname="io.github.chorusfruit233.studywithmiku.AudioCacheTest" time="1.100" />
+    <testcase name="interruptedDownloadIsNotOfflineReadyAndResumesFromPersistedBytes" classname="io.github.chorusfruit233.studywithmiku.AudioCacheTest" time="5.267" />
+    <testcase name="moduleOffPausesDownloadsRejectsResumeAndPreservesCompletedCacheAcrossRestart" classname="io.github.chorusfruit233.studywithmiku.AudioCacheTest" time="1.159" />
+    <testcase name="completeAudioSurvivesRecreationAndPlaysWithServerGoneAndRenewedUrl" classname="io.github.chorusfruit233.studywithmiku.AudioCacheTest" time="0.999" />
+  </testsuite>
+  <testsuite name="io.github.chorusfruit233.studywithmiku.BackgroundAccessTest" tests="3" failures="0" errors="0" skipped="0" time="0.045" timestamp="2026-11-17T16:11:06" hostname="localhost">
+    <properties>
+      <property name="device" value="emulator-5554" />
+    </properties>
+    <testcase name="alreadyExemptInstallShowsGuidanceOnceAndCanRequestAfterExemptionIsRevoked" classname="io.github.chorusfruit233.studywithmiku.BackgroundAccessTest" time="0.010" />
+    <testcase name="unsupportedVendorScreensFallBackAndNeverRepeatedlyInterruptTimer" classname="io.github.chorusfruit233.studywithmiku.BackgroundAccessTest" time="0.034" />
+    <testcase name="declinedRequestSurvivesRecreationAndManualRetryRemainsAvailable" classname="io.github.chorusfruit233.studywithmiku.BackgroundAccessTest" time="0.001" />
+  </testsuite>
+  <testsuite name="io.github.chorusfruit233.studywithmiku.BackgroundSettingsUiTest" tests="2" failures="0" errors="0" skipped="0" time="4.420" timestamp="2026-11-17T16:11:06" hostname="localhost">
+    <properties>
+      <property name="device" value="emulator-5554" />
+    </properties>
+    <testcase name="unrestrictedGuidanceCanBeDeferredWithoutOpeningSettings" classname="io.github.chorusfruit233.studywithmiku.BackgroundSettingsUiTest" time="2.108" />
+    <testcase name="manualPermissionAndSystemSettingsAreSeparateActionsAndStatusRefreshes" classname="io.github.chorusfruit233.studywithmiku.BackgroundSettingsUiTest" time="2.312" />
+  </testsuite>
+  <testsuite name="io.github.chorusfruit233.studywithmiku.ChatSheetGestureTest" tests="2" failures="0" errors="0" skipped="0" time="5.572" timestamp="2026-11-17T16:11:06" hostname="localhost">
+    <properties>
+      <property name="device" value="emulator-5554" />
+    </properties>
+    <testcase name="repeatedUpwardSwipesAtLastMessageKeepSheetStillAndHistoryScrollable" classname="io.github.chorusfruit233.studywithmiku.ChatSheetGestureTest" time="4.165" />
+    <testcase name="downwardSwipeAtFirstMessageStillDismissesSheet" classname="io.github.chorusfruit233.studywithmiku.ChatSheetGestureTest" time="1.407" />
+  </testsuite>
+  <testsuite name="io.github.chorusfruit233.studywithmiku.CloudChoiceUiTest" tests="1" failures="0" errors="0" skipped="0" time="2.088" timestamp="2026-11-17T16:11:06" hostname="localhost">
+    <properties>
+      <property name="device" value="emulator-5554" />
+    </properties>
+    <testcase name="useCloudButtonImportsLatestDataAndRecreatedSessionDoesNotPrompt" classname="io.github.chorusfruit233.studywithmiku.CloudChoiceUiTest" time="2.088" />
+  </testsuite>
+  <testsuite name="io.github.chorusfruit233.studywithmiku.FocusWakeLockTest" tests="1" failures="0" errors="0" skipped="0" time="0.930" timestamp="2026-11-17T16:11:06" hostname="localhost">
+    <properties>
+      <property name="device" value="emulator-5554" />
+    </properties>
+    <testcase name="timerWithoutMusicAutomaticallyAcquiresAndReleasesWakeLock" classname="io.github.chorusfruit233.studywithmiku.FocusWakeLockTest" time="0.930" />
+  </testsuite>
+  <testsuite name="io.github.chorusfruit233.studywithmiku.ImageLoadingTest" tests="2" failures="0" errors="0" skipped="0" time="0.611" timestamp="2026-11-17T16:11:06" hostname="localhost">
+    <properties>
+      <property name="device" value="emulator-5554" />
+    </properties>
+    <testcase name="productionImageLoaderFetchesAndDecodesNetworkCover" classname="io.github.chorusfruit233.studywithmiku.ImageLoadingTest" time="0.244" />
+    <testcase name="productionImageLoaderKeepsBundledStickersAnimated" classname="io.github.chorusfruit233.studywithmiku.ImageLoadingTest" time="0.367" />
+  </testsuite>
+  <testsuite name="io.github.chorusfruit233.studywithmiku.LandscapeLayoutTest" tests="8" failures="0" errors="0" skipped="0" time="41.989" timestamp="2026-11-17T16:11:06" hostname="localhost">
+    <properties>
+      <property name="device" value="emulator-5554" />
+    </properties>
+    <testcase name="chatComposerStaysAccessibleWithLandscapeKeyboard" classname="io.github.chorusfruit233.studywithmiku.LandscapeLayoutTest" time="6.145" />
+    <testcase name="taskEditorKeepsTextAcrossRotationAndCanSaveInLandscape" classname="io.github.chorusfruit233.studywithmiku.LandscapeLayoutTest" time="6.707" />
+    <testcase name="landscapeFocusHasVisibleTimerAndNavigationAndRotationKeepsSelection" classname="io.github.chorusfruit233.studywithmiku.LandscapeLayoutTest" time="5.200" />
+    <testcase name="recordsShowCalendarBesideDayDetails" classname="io.github.chorusfruit233.studywithmiku.LandscapeLayoutTest" time="3.878" />
+    <testcase name="playerControlsAreVisibleAndQueueSurvivesRotation" classname="io.github.chorusfruit233.studywithmiku.LandscapeLayoutTest" time="6.401" />
+    <testcase name="settingsAndCalendarRemainScrollableInLandscape" classname="io.github.chorusfruit233.studywithmiku.LandscapeLayoutTest" time="5.597" />
+    <testcase name="syncChoiceOptionsScrollWhileConfirmationRemainsVisible" classname="io.github.chorusfruit233.studywithmiku.LandscapeLayoutTest" time="4.445" />
+    <testcase name="narrowWindowWithLargeFontStacksPanelsAndKeepsActionsReachable" classname="io.github.chorusfruit233.studywithmiku.LandscapeLayoutTest" time="3.616" />
+  </testsuite>
+  <testsuite name="io.github.chorusfruit233.studywithmiku.MusicModuleUiTest" tests="2" failures="0" errors="0" skipped="0" time="7.341" timestamp="2026-11-17T16:11:06" hostname="localhost">
+    <properties>
+      <property name="device" value="emulator-5554" />
+    </properties>
+    <testcase name="settingsDisableMusicFromItsPageAndBothNavigationLayoutsThenAllowReenabling" classname="io.github.chorusfruit233.studywithmiku.MusicModuleUiTest" time="6.302" />
+    <testcase name="sharedSongsRemainReadableWithoutPlaybackOrCoverRequestsWhenDisabled" classname="io.github.chorusfruit233.studywithmiku.MusicModuleUiTest" time="1.039" />
+  </testsuite>
+  <testsuite name="io.github.chorusfruit233.studywithmiku.NetworkPlaylistPersistenceTest" tests="4" failures="0" errors="0" skipped="0" time="0.261" timestamp="2026-11-17T16:11:06" hostname="localhost">
+    <properties>
+      <property name="device" value="emulator-5554" />
+    </properties>
+    <testcase name="successfulLoadSavesRemoteNameButFailureKeepsPreviousPlaylist" classname="io.github.chorusfruit233.studywithmiku.NetworkPlaylistPersistenceTest" time="0.208" />
+    <testcase name="savedBookmarksSurviveRecreationAndRemainSeparateFromNativePlaylists" classname="io.github.chorusfruit233.studywithmiku.NetworkPlaylistPersistenceTest" time="0.005" />
+    <testcase name="nameLookupFailureStillSavesPlayablePlaylistWithIdFallback" classname="io.github.chorusfruit233.studywithmiku.NetworkPlaylistPersistenceTest" time="0.039" />
+    <testcase name="switchingCachedPlaylistsOfflinePreservesSharedMembershipAndAudioQuality" classname="io.github.chorusfruit233.studywithmiku.NetworkPlaylistPersistenceTest" time="0.009" />
+  </testsuite>
+  <testsuite name="io.github.chorusfruit233.studywithmiku.OfflineCacheUiTest" tests="1" failures="0" errors="0" skipped="0" time="2.205" timestamp="2026-11-17T16:11:06" hostname="localhost">
+    <properties>
+      <property name="device" value="emulator-5554" />
+    </properties>
+    <testcase name="partialPlaylistPlaysOnlyCompleteSongsAndClearRequiresConfirmation" classname="io.github.chorusfruit233.studywithmiku.OfflineCacheUiTest" time="2.205" />
+  </testsuite>
+  <testsuite name="io.github.chorusfruit233.studywithmiku.PartialPreferencesTest" tests="3" failures="0" errors="0" skipped="0" time="0.255" timestamp="2026-11-17T16:11:06" hostname="localhost">
+    <properties>
+      <property name="device" value="emulator-5554" />
+    </properties>
+    <testcase name="malformedRootPreferencesFallBackToCompleteDefaults" classname="io.github.chorusfruit233.studywithmiku.PartialPreferencesTest" time="0.023" />
+    <testcase name="musicModuleIsDeviceLocalAndSurvivesRestartCloudImportAndAccountSwitches" classname="io.github.chorusfruit233.studywithmiku.PartialPreferencesTest" time="0.116" />
+    <testcase name="partialSavedPreferencesFillDefaultsAndKeepMusicQueueIndependent" classname="io.github.chorusfruit233.studywithmiku.PartialPreferencesTest" time="0.116" />
+  </testsuite>
+  <testsuite name="io.github.chorusfruit233.studywithmiku.PlaybackCrossfadeTest" tests="5" failures="0" errors="0" skipped="0" time="14.134" timestamp="2026-11-17T16:11:06" hostname="localhost">
+    <properties>
+      <property name="device" value="emulator-5554" />
+    </properties>
+    <testcase name="naturalAdvanceKeepsIncomingPositionAndFinishesSecondaryDecoder" classname="io.github.chorusfruit233.studywithmiku.PlaybackCrossfadeTest" time="7.991" />
+    <testcase name="productionMediaControllerKeepsUserVolumeAndMuteAcrossQueueSwitches" classname="io.github.chorusfruit233.studywithmiku.PlaybackCrossfadeTest" time="2.405" />
+    <testcase name="manualSwitchFadesOutThenInWithoutOverlappingTracks" classname="io.github.chorusfruit233.studywithmiku.PlaybackCrossfadeTest" time="1.868" />
+    <testcase name="disablingModuleDisconnectsPlayingServiceRejectsControllersAndRestoresPausedQueue" classname="io.github.chorusfruit233.studywithmiku.PlaybackCrossfadeTest" time="1.036" />
+    <testcase name="rapidNextThenPauseCommitsLatestChoiceAndStopsBothVoices" classname="io.github.chorusfruit233.studywithmiku.PlaybackCrossfadeTest" time="0.834" />
+  </testsuite>
+  <testsuite name="io.github.chorusfruit233.studywithmiku.PlaylistRaceTest" tests="3" failures="0" errors="0" skipped="0" time="1.978" timestamp="2026-11-17T16:11:06" hostname="localhost">
+    <properties>
+      <property name="device" value="emulator-5554" />
+    </properties>
+    <testcase name="lateFailureCannotReplaceOfflineSelectionOrItsSavedConfig" classname="io.github.chorusfruit233.studywithmiku.PlaylistRaceTest" time="0.396" />
+    <testcase name="lateSuccessCannotReplaceNewRemoteSelectionOrRunOldPlaybackCallback" classname="io.github.chorusfruit233.studywithmiku.PlaylistRaceTest" time="0.319" />
+    <testcase name="disablingModuleCancelsPendingPlaylistAndBlocksNewLoadsUntilEnabled" classname="io.github.chorusfruit233.studywithmiku.PlaylistRaceTest" time="1.263" />
+  </testsuite>
+  <testsuite name="io.github.chorusfruit233.studywithmiku.SparseSyncUiTest" tests="2" failures="2" errors="0" skipped="0" time="3.369" timestamp="2026-11-17T16:11:06" hostname="localhost">
+    <properties>
+      <property name="device" value="emulator-5554" />
+    </properties>
+    <testcase name="mergeOfOneSidedDatesUploadsOriginalWireFormatAndSurvivesRecreation" classname="io.github.chorusfruit233.studywithmiku.SparseSyncUiTest" time="1.615">
+      <failure>org.json.JSONException: No value for serverOnly
+	at org.json.JSONObject.get(JSONObject.java:398)
+	at org.json.JSONObject.getString(JSONObject.java:559)
+	at io.github.chorusfruit233.studywithmiku.SparseSyncUiTest.scenario$lambda$0$5(SparseSyncUiTest.kt:113)
+	at io.github.chorusfruit233.studywithmiku.SparseSyncUiTest.$r8$lambda$LqEaF6FMDVeTnGisGS92wVlm2ss(Unknown Source:0)
+	at io.github.chorusfruit233.studywithmiku.SparseSyncUiTest$$ExternalSyntheticLambda5.invoke(D8$$SyntheticClass:0)
+	at androidx.compose.ui.test.AndroidSynchronization_androidKt.runOnUiThread$lambda$0(AndroidSynchronization.android.kt:39)
+	at androidx.compose.ui.test.AndroidSynchronization_androidKt$$ExternalSyntheticLambda0.call(D8$$SyntheticClass:0)
+	at java.util.concurrent.FutureTask.run(FutureTask.java:264)
+	at java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:487)
+	at java.util.concurrent.FutureTask.run(FutureTask.java:264)
+	at android.app.Instrumentation$SyncRunnable.run(Instrumentation.java:2612)
+	at android.os.Handler.handleCallback(Handler.java:959)
+	at android.os.Handler.dispatchMessage(Handler.java:100)
+	at android.os.Looper.loopOnce(Looper.java:232)
+	at android.os.Looper.loop(Looper.java:317)
+	at android.app.ActivityThread.main(ActivityThread.java:8705)
+	at java.lang.reflect.Method.invoke(Native Method)
+	at com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run(RuntimeInit.java:580)
+	at com.android.internal.os.ZygoteInit.main(ZygoteInit.java:886)
+	Suppressed: java.util.concurrent.ExecutionException: An Exception occurred on the UI thread during runOnUiThread()
+		at androidx.compose.ui.test.AndroidSynchronization_androidKt.runOnUiThread(AndroidSynchronization.android.kt:50)
+		at androidx.compose.ui.test.AndroidComposeUiTestEnvironment$AndroidComposeUiTestImpl.runOnUiThread(ComposeUiTest.android.kt:844)
+		at androidx.compose.ui.test.AndroidComposeUiTestEnvironment$AndroidComposeUiTestImpl.runOnIdle(ComposeUiTest.android.kt:851)
+		at androidx.compose.ui.test.junit4.AndroidComposeTestRule.runOnIdle(AndroidComposeTestRule.android.kt:489)
+		at io.github.chorusfruit233.studywithmiku.SparseSyncUiTest.scenario(SparseSyncUiTest.kt:105)
+		at io.github.chorusfruit233.studywithmiku.SparseSyncUiTest.mergeOfOneSidedDatesUploadsOriginalWireFormatAndSurvivesRecreation(SparseSyncUiTest.kt:141)
+		at java.lang.reflect.Method.invoke(Native Method)
+		at org.junit.runners.model.FrameworkMethod$1.runReflectiveCall(FrameworkMethod.java:59)
+		at org.junit.internal.runners.model.ReflectiveCallable.run(ReflectiveCallable.java:12)
+		at org.junit.runners.model.FrameworkMethod.invokeExplosively(FrameworkMethod.java:56)
+		at org.junit.internal.runners.statements.InvokeMethod.evaluate(InvokeMethod.java:17)
+		at androidx.compose.ui.test.junit4.AndroidComposeTestRule$apply$testWithDisposal$1.evaluate(AndroidComposeTestRule.android.kt:426)
+		at org.junit.rules.ExternalResource$1.evaluate(ExternalResource.java:54)
+		at androidx.compose.ui.test.junit4.AndroidComposeTestRule$apply$1$evaluate$1.invokeSuspend(AndroidComposeTestRule.android.kt:448)
+		at androidx.compose.ui.test.junit4.AndroidComposeTestRule$apply$1$evaluate$1.invoke(Unknown Source:8)
+		at androidx.compose.ui.test.junit4.AndroidComposeTestRule$apply$1$evaluate$1.invoke(Unknown Source:4)
+		at androidx.compose.ui.test.AndroidComposeUiTestEnvironment$runTest$1$1$1$1$1.invokeSuspend(ComposeUiTest.android.kt:689)
+		at androidx.compose.ui.test.AndroidComposeUiTestEnvironment$runTest$1$1$1$1$1.invoke(Unknown Source:8)
+		at androidx.compose.ui.test.AndroidComposeUiTestEnvironment$runTest$1$1$1$1$1.invoke(Unknown Source:2)
+		at androidx.compose.ui.test.EspressoLink.withStrategy(EspressoLink.android.kt:69)
+		at androidx.compose.ui.test.AndroidComposeUiTestEnvironment$runTest$1$1.invokeSuspend(ComposeUiTest.android.kt:686)
+		at androidx.compose.ui.test.AndroidComposeUiTestEnvironment$runTest$1$1.invoke(Unknown Source:8)
+		at androidx.compose.ui.test.AndroidComposeUiTestEnvironment$runTest$1$1.invoke(Unknown Source:4)
+		at kotlinx.coroutines.test.TestBuildersKt__TestBuildersKt$runTest$2$1$1.invokeSuspend(TestBuilders.kt:317)
+		at kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith(ContinuationImpl.kt:34)
+		at kotlinx.coroutines.DispatchedTask.run(DispatchedTask.kt:100)
+		at kotlinx.coroutines.test.TestDispatcher.processEvent$kotlinx_coroutines_test(TestDispatcher.kt:24)
+		at kotlinx.coroutines.test.TestCoroutineScheduler.tryRunNextTaskUnless$kotlinx_coroutines_test(TestCoroutineScheduler.kt:98)
+		at kotlinx.coroutines.test.TestBuildersKt__TestBuildersKt$runTest$2$1$workRunner$1.invokeSuspend(TestBuilders.kt:326)
+		at kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith(ContinuationImpl.kt:34)
+		at kotlinx.coroutines.DispatchedTask.run(DispatchedTask.kt:100)
+		at kotlinx.coroutines.EventLoopImplBase.processNextEvent(EventLoop.common.kt:256)
+		at kotlinx.coroutines.BlockingCoroutine.joinBlocking(Builders.kt:54)
+		at kotlinx.coroutines.BuildersKt__BuildersKt.runBlockingImpl(Builders.kt:30)
+		at kotlinx.coroutines.BuildersKt.runBlockingImpl(Unknown Source:1)
+		at kotlinx.coroutines.BuildersKt__Builders_concurrentKt.runBlockingK(Builders.concurrent.kt:172)
+		at kotlinx.coroutines.BuildersKt.runBlockingK(Unknown Source:1)
+		at kotlinx.coroutines.BuildersKt__Builders_concurrentKt.runBlockingK$default(Builders.concurrent.kt:157)
+		at kotlinx.coroutines.BuildersKt.runBlockingK$default(Unknown Source:1)
+		at kotlinx.coroutines.test.TestBuildersJvmKt.createTestResult(TestBuildersJvm.kt:10)
+		at kotlinx.coroutines.test.TestBuildersKt__TestBuildersKt.runTest-8Mi8wO0(TestBuilders.kt:309)
+		at kotlinx.coroutines.test.TestBuildersKt.runTest-8Mi8wO0(TestBuilders.kt:1)
+		at kotlinx.coroutines.test.TestBuildersKt__TestBuildersKt.runTest-8Mi8wO0(TestBuilders.kt:167)
+		at kotlinx.coroutines.test.TestBuildersKt.runTest-8Mi8wO0(TestBuilders.kt:1)
+		at androidx.compose.ui.test.AndroidComposeUiTestEnvironment.runTest(ComposeUiTest.android.kt:665)
+		at androidx.compose.ui.test.junit4.AndroidComposeTestRule$apply$1.evaluate(AndroidComposeTestRule.android.kt:447)
+		at org.junit.runners.ParentRunner$3.evaluate(ParentRunner.java:306)
+		at org.junit.runners.BlockJUnit4ClassRunner$1.evaluate(BlockJUnit4ClassRunner.java:100)
+		at org.junit.runners.ParentRunner.runLeaf(ParentRunner.java:366)
+		at org.junit.runners.BlockJUnit4ClassRunner.runChild(BlockJUnit4ClassRunner.java:103)
+		at org.junit.runners.BlockJUnit4ClassRunner.runChild(BlockJUnit4ClassRunner.java:63)
+		at org.junit.runners.ParentRunner$4.run(ParentRunner.java:331)
+		at org.junit.runners.ParentRunner$1.schedule(ParentRunner.java:79)
+		at org.junit.runners.ParentRunner.runChildren(ParentRunner.java:329)
+		at org.junit.runners.ParentRunner.access$100(ParentRunner.java:66)
+		at org.junit.runners.ParentRunner$2.evaluate(ParentRunner.java:293)
+		at org.junit.runners.ParentRunner$3.evaluate(ParentRunner.java:306)
+		at org.junit.runners.ParentRunner.run(ParentRunner.java:413)
+		at org.junit.runners.Suite.runChild(Suite.java:128)
+		at org.junit.runners.Suite.runChild(Suite.java:27)
+		at org.junit.runners.ParentRunner$4.run(ParentRunner.java:331)
+		at org.junit.runners.ParentRunner$1.schedule(ParentRunner.java:79)
+		at org.junit.runners.ParentRunner.runChildren(ParentRunner.java:329)
+		at org.junit.runners.ParentRunner.access$100(ParentRunner.java:66)
+		at org.junit.runners.ParentRunner$2.evaluate(ParentRunner.java:293)
+		at org.junit.runners.ParentRunner$3.evaluate(ParentRunner.java:306)
+		at org.junit.runners.ParentRunner.run(ParentRunner.java:413)
+		at org.junit.runner.JUnitCore.run(JUnitCore.java:137)
+		at org.junit.runner.JUnitCore.run(JUnitCore.java:115)
+		at androidx.test.internal.runner.TestExecutor.execute(TestExecutor.java:68)
+		at androidx.test.internal.runner.TestExecutor.execute(TestExecutor.java:59)
+		at androidx.test.runner.AndroidJUnitRunner.onStart(AndroidJUnitRunner.java:467)
+		at android.app.Instrumentation$InstrumentationThread.run(Instrumentation.java:2594)
+</failure>
+    </testcase>
+    <testcase name="failedCalendarUploadNamesTheStepPreservesLocalDataAndAllowsRetry" classname="io.github.chorusfruit233.studywithmiku.SparseSyncUiTest" time="1.754">
+      <failure>org.json.JSONException: No value for serverOnly
+	at org.json.JSONObject.get(JSONObject.java:398)
+	at org.json.JSONObject.getString(JSONObject.java:559)
+	at io.github.chorusfruit233.studywithmiku.SparseSyncUiTest.scenario$lambda$0$5(SparseSyncUiTest.kt:113)
+	at io.github.chorusfruit233.studywithmiku.SparseSyncUiTest.$r8$lambda$LqEaF6FMDVeTnGisGS92wVlm2ss(Unknown Source:0)
+	at io.github.chorusfruit233.studywithmiku.SparseSyncUiTest$$ExternalSyntheticLambda5.invoke(D8$$SyntheticClass:0)
+	at androidx.compose.ui.test.AndroidSynchronization_androidKt.runOnUiThread$lambda$0(AndroidSynchronization.android.kt:39)
+	at androidx.compose.ui.test.AndroidSynchronization_androidKt$$ExternalSyntheticLambda0.call(D8$$SyntheticClass:0)
+	at java.util.concurrent.FutureTask.run(FutureTask.java:264)
+	at java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:487)
+	at java.util.concurrent.FutureTask.run(FutureTask.java:264)
+	at android.app.Instrumentation$SyncRunnable.run(Instrumentation.java:2612)
+	at android.os.Handler.handleCallback(Handler.java:959)
+	at android.os.Handler.dispatchMessage(Handler.java:100)
+	at android.os.Looper.loopOnce(Looper.java:232)
+	at android.os.Looper.loop(Looper.java:317)
+	at android.app.ActivityThread.main(ActivityThread.java:8705)
+	at java.lang.reflect.Method.invoke(Native Method)
+	at com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run(RuntimeInit.java:580)
+	at com.android.internal.os.ZygoteInit.main(ZygoteInit.java:886)
+	Suppressed: java.util.concurrent.ExecutionException: An Exception occurred on the UI thread during runOnUiThread()
+		at androidx.compose.ui.test.AndroidSynchronization_androidKt.runOnUiThread(AndroidSynchronization.android.kt:50)
+		at androidx.compose.ui.test.AndroidComposeUiTestEnvironment$AndroidComposeUiTestImpl.runOnUiThread(ComposeUiTest.android.kt:844)
+		at androidx.compose.ui.test.AndroidComposeUiTestEnvironment$AndroidComposeUiTestImpl.runOnIdle(ComposeUiTest.android.kt:851)
+		at androidx.compose.ui.test.junit4.AndroidComposeTestRule.runOnIdle(AndroidComposeTestRule.android.kt:489)
+		at io.github.chorusfruit233.studywithmiku.SparseSyncUiTest.scenario(SparseSyncUiTest.kt:105)
+		at io.github.chorusfruit233.studywithmiku.SparseSyncUiTest.failedCalendarUploadNamesTheStepPreservesLocalDataAndAllowsRetry(SparseSyncUiTest.kt:142)
+		at java.lang.reflect.Method.invoke(Native Method)
+		at org.junit.runners.model.FrameworkMethod$1.runReflectiveCall(FrameworkMethod.java:59)
+		at org.junit.internal.runners.model.ReflectiveCallable.run(ReflectiveCallable.java:12)
+		at org.junit.runners.model.FrameworkMethod.invokeExplosively(FrameworkMethod.java:56)
+		at org.junit.internal.runners.statements.InvokeMethod.evaluate(InvokeMethod.java:17)
+		at androidx.compose.ui.test.junit4.AndroidComposeTestRule$apply$testWithDisposal$1.evaluate(AndroidComposeTestRule.android.kt:426)
+		at org.junit.rules.ExternalResource$1.evaluate(ExternalResource.java:54)
+		at androidx.compose.ui.test.junit4.AndroidComposeTestRule$apply$1$evaluate$1.invokeSuspend(AndroidComposeTestRule.android.kt:448)
+		at androidx.compose.ui.test.junit4.AndroidComposeTestRule$apply$1$evaluate$1.invoke(Unknown Source:8)
+		at androidx.compose.ui.test.junit4.AndroidComposeTestRule$apply$1$evaluate$1.invoke(Unknown Source:4)
+		at androidx.compose.ui.test.AndroidComposeUiTestEnvironment$runTest$1$1$1$1$1.invokeSuspend(ComposeUiTest.android.kt:689)
+		at androidx.compose.ui.test.AndroidComposeUiTestEnvironment$runTest$1$1$1$1$1.invoke(Unknown Source:8)
+		at androidx.compose.ui.test.AndroidComposeUiTestEnvironment$runTest$1$1$1$1$1.invoke(Unknown Source:2)
+		at androidx.compose.ui.test.EspressoLink.withStrategy(EspressoLink.android.kt:69)
+		at androidx.compose.ui.test.AndroidComposeUiTestEnvironment$runTest$1$1.invokeSuspend(ComposeUiTest.android.kt:686)
+		at androidx.compose.ui.test.AndroidComposeUiTestEnvironment$runTest$1$1.invoke(Unknown Source:8)
+		at androidx.compose.ui.test.AndroidComposeUiTestEnvironment$runTest$1$1.invoke(Unknown Source:4)
+		at kotlinx.coroutines.test.TestBuildersKt__TestBuildersKt$runTest$2$1$1.invokeSuspend(TestBuilders.kt:317)
+		at kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith(ContinuationImpl.kt:34)
+		at kotlinx.coroutines.DispatchedTask.run(DispatchedTask.kt:100)
+		at kotlinx.coroutines.test.TestDispatcher.processEvent$kotlinx_coroutines_test(TestDispatcher.kt:24)
+		at kotlinx.coroutines.test.TestCoroutineScheduler.tryRunNextTaskUnless$kotlinx_coroutines_test(TestCoroutineScheduler.kt:98)
+		at kotlinx.coroutines.test.TestBuildersKt__TestBuildersKt$runTest$2$1$workRunner$1.invokeSuspend(TestBuilders.kt:326)
+		at kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith(ContinuationImpl.kt:34)
+		at kotlinx.coroutines.DispatchedTask.run(DispatchedTask.kt:100)
+		at kotlinx.coroutines.EventLoopImplBase.processNextEvent(EventLoop.common.kt:256)
+		at kotlinx.coroutines.BlockingCoroutine.joinBlocking(Builders.kt:54)
+		at kotlinx.coroutines.BuildersKt__BuildersKt.runBlockingImpl(Builders.kt:30)
+		at kotlinx.coroutines.BuildersKt.runBlockingImpl(Unknown Source:1)
+		at kotlinx.coroutines.BuildersKt__Builders_concurrentKt.runBlockingK(Builders.concurrent.kt:172)
+		at kotlinx.coroutines.BuildersKt.runBlockingK(Unknown Source:1)
+		at kotlinx.coroutines.BuildersKt__Builders_concurrentKt.runBlockingK$default(Builders.concurrent.kt:157)
+		at kotlinx.coroutines.BuildersKt.runBlockingK$default(Unknown Source:1)
+		at kotlinx.coroutines.test.TestBuildersJvmKt.createTestResult(TestBuildersJvm.kt:10)
+		at kotlinx.coroutines.test.TestBuildersKt__TestBuildersKt.runTest-8Mi8wO0(TestBuilders.kt:309)
+		at kotlinx.coroutines.test.TestBuildersKt.runTest-8Mi8wO0(TestBuilders.kt:1)
+		at kotlinx.coroutines.test.TestBuildersKt__TestBuildersKt.runTest-8Mi8wO0(TestBuilders.kt:167)
+		at kotlinx.coroutines.test.TestBuildersKt.runTest-8Mi8wO0(TestBuilders.kt:1)
+		at androidx.compose.ui.test.AndroidComposeUiTestEnvironment.runTest(ComposeUiTest.android.kt:665)
+		at androidx.compose.ui.test.junit4.AndroidComposeTestRule$apply$1.evaluate(AndroidComposeTestRule.android.kt:447)
+		at org.junit.runners.ParentRunner$3.evaluate(ParentRunner.java:306)
+		at org.junit.runners.BlockJUnit4ClassRunner$1.evaluate(BlockJUnit4ClassRunner.java:100)
+		at org.junit.runners.ParentRunner.runLeaf(ParentRunner.java:366)
+		at org.junit.runners.BlockJUnit4ClassRunner.runChild(BlockJUnit4ClassRunner.java:103)
+		at org.junit.runners.BlockJUnit4ClassRunner.runChild(BlockJUnit4ClassRunner.java:63)
+		at org.junit.runners.ParentRunner$4.run(ParentRunner.java:331)
+		at org.junit.runners.ParentRunner$1.schedule(ParentRunner.java:79)
+		at org.junit.runners.ParentRunner.runChildren(ParentRunner.java:329)
+		at org.junit.runners.ParentRunner.access$100(ParentRunner.java:66)
+		at org.junit.runners.ParentRunner$2.evaluate(ParentRunner.java:293)
+		at org.junit.runners.ParentRunner$3.evaluate(ParentRunner.java:306)
+		at org.junit.runners.ParentRunner.run(ParentRunner.java:413)
+		at org.junit.runners.Suite.runChild(Suite.java:128)
+		at org.junit.runners.Suite.runChild(Suite.java:27)
+		at org.junit.runners.ParentRunner$4.run(ParentRunner.java:331)
+		at org.junit.runners.ParentRunner$1.schedule(ParentRunner.java:79)
+		at org.junit.runners.ParentRunner.runChildren(ParentRunner.java:329)
+		at org.junit.runners.ParentRunner.access$100(ParentRunner.java:66)
+		at org.junit.runners.ParentRunner$2.evaluate(ParentRunner.java:293)
+		at org.junit.runners.ParentRunner$3.evaluate(ParentRunner.java:306)
+		at org.junit.runners.ParentRunner.run(ParentRunner.java:413)
+		at org.junit.runner.JUnitCore.run(JUnitCore.java:137)
+		at org.junit.runner.JUnitCore.run(JUnitCore.java:115)
+		at androidx.test.internal.runner.TestExecutor.execute(TestExecutor.java:68)
+		at androidx.test.internal.runner.TestExecutor.execute(TestExecutor.java:59)
+		at androidx.test.runner.AndroidJUnitRunner.onStart(AndroidJUnitRunner.java:467)
+		at android.app.Instrumentation$InstrumentationThread.run(Instrumentation.java:2594)
+</failure>
+    </testcase>
+  </testsuite>
+  <testsuite name="io.github.chorusfruit233.studywithmiku.StudyPersistenceTest" tests="6" failures="0" errors="0" skipped="0" time="0.447" timestamp="2026-11-17T16:11:06" hostname="localhost">
+    <properties>
+      <property name="device" value="emulator-5554" />
+    </properties>
+    <testcase name="decimalCreditAndUnknownItemFieldsSurviveNativeRoundTrip" classname="io.github.chorusfruit233.studywithmiku.StudyPersistenceTest" time="0.045" />
+    <testcase name="acceptedSnapshotIsBackedUpAndRestoredForEachAccount" classname="io.github.chorusfruit233.studywithmiku.StudyPersistenceTest" time="0.073" />
+    <testcase name="cloudStatsTasksCalendarAndSettingsSurviveStoreRecreation" classname="io.github.chorusfruit233.studywithmiku.StudyPersistenceTest" time="0.116" />
+    <testcase name="applyingUploadedMergePreservesRunningClockAndRevisionAcrossRecreation" classname="io.github.chorusfruit233.studywithmiku.StudyPersistenceTest" time="0.094" />
+    <testcase name="mergedTodayCreditSchedulesCalendarFollowupWithoutPausingRunningTimer" classname="io.github.chorusfruit233.studywithmiku.StudyPersistenceTest" time="0.095" />
+    <testcase name="nonFiniteLegacySettingsCannotPoisonNativePreferenceStorage" classname="io.github.chorusfruit233.studywithmiku.StudyPersistenceTest" time="0.024" />
+  </testsuite>
+  <testsuite name="io.github.chorusfruit233.studywithmiku.TaskActionsUiTest" tests="3" failures="0" errors="0" skipped="0" time="4.629" timestamp="2026-11-17T16:11:06" hostname="localhost">
+    <properties>
+      <property name="device" value="emulator-5554" />
+    </properties>
+    <testcase name="deletingTaskRequiresConfirmationAndKeepsStudyCredit" classname="io.github.chorusfruit233.studywithmiku.TaskActionsUiTest" time="1.416" />
+    <testcase name="deletingCountdownRequiresConfirmationAndKeepsOtherTasks" classname="io.github.chorusfruit233.studywithmiku.TaskActionsUiTest" time="1.426" />
+    <testcase name="editingGlobalTaskUpdatesSameUndatedTaskWithoutAddingAnother" classname="io.github.chorusfruit233.studywithmiku.TaskActionsUiTest" time="1.787" />
+  </testsuite>
+  <testsuite name="io.github.chorusfruit233.studywithmiku.TaskPersistenceTest" tests="1" failures="0" errors="0" skipped="0" time="0.075" timestamp="2026-11-17T16:11:06" hostname="localhost">
+    <properties>
+      <property name="device" value="emulator-5554" />
+    </properties>
+    <testcase name="fullDateRejectsNewPlanWithoutChangingExistingPlans" classname="io.github.chorusfruit233.studywithmiku.TaskPersistenceTest" time="0.075" />
+  </testsuite>
+  <testsuite name="io.github.chorusfruit233.studywithmiku.UpstreamNovemberUiTest" tests="2" failures="0" errors="0" skipped="0" time="2.701" timestamp="2026-11-17T16:11:06" hostname="localhost">
+    <properties>
+      <property name="device" value="emulator-5554" />
+    </properties>
+    <testcase name="pendingBubbleCannotBeRepliedToAndFailedDraftDoesNotOverwriteInput" classname="io.github.chorusfruit233.studywithmiku.UpstreamNovemberUiTest" time="1.764" />
+    <testcase name="actualPreferencesPreserveUnacknowledgedMessagesAcrossRecreationAndAccounts" classname="io.github.chorusfruit233.studywithmiku.UpstreamNovemberUiTest" time="0.937" />
+  </testsuite>
+  <testsuite name="io.github.chorusfruit233.studywithmiku.UpstreamOctoberUiTest" tests="3" failures="0" errors="0" skipped="0" time="4.203" timestamp="2026-11-17T16:11:06" hostname="localhost">
+    <properties>
+      <property name="device" value="emulator-5554" />
+    </properties>
+    <testcase name="deletingSavedNetworkPlaylistRequiresConfirmationWithoutLoadingIt" classname="io.github.chorusfruit233.studywithmiku.UpstreamOctoberUiTest" time="2.027" />
+    <testcase name="quotedReplyDisplaysReferenceAndBodyAndAllowsCancelingAnotherReply" classname="io.github.chorusfruit233.studywithmiku.UpstreamOctoberUiTest" time="1.123" />
+    <testcase name="unloadedReferenceDoesNotHideReplyBodyOrSticker" classname="io.github.chorusfruit233.studywithmiku.UpstreamOctoberUiTest" time="1.053" />
+  </testsuite>
+</testsuites>

@@ -157,7 +157,8 @@ class CloudSync(private val store: StudySyncStore,private val timer: StudySyncTi
         val old = StudyDataMerge.merge(null,current.data,current.data)
         if (!StudyProtocol.sameJson(old,merged)) store.applyUploadedStudy(CloudStudy(merged,current.calendar))
         remoteBaseline = saved
-        store.rememberCloud(saved)
+        // A failed calendar write must retain its local shadow, including unknown fields on pending dates.
+        store.rememberCloud(if (partial) CloudStudy(saved.data,current.calendar) else saved)
         val projected = store.studySnapshot()
         // Importing merged today counters may also update the native daily log; upload that calendar change next.
         val pending = partial || changedWhileUploading || !StudyComparison.same(projected,saved) ||
