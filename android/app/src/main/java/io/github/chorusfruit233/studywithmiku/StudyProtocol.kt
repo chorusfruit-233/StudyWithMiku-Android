@@ -8,6 +8,7 @@ import java.net.URLEncoder
 import java.time.Instant
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
+import java.time.format.ResolverStyle
 import java.util.Base64
 import java.util.Locale
 import kotlin.math.roundToInt
@@ -31,6 +32,11 @@ data class CloudStudy(val data: JSONObject = JSONObject(), val calendar: JSONObj
 internal fun JSONObject.finiteDouble(key: String,fallback: Double = 0.0) = optDouble(key,fallback).takeIf { it.isFinite() } ?: fallback
 
 object StudyProtocol {
+    private val isoDay = Regex("[0-9]{4}-[0-9]{2}-[0-9]{2}")
+    private val legacyDay = Regex("(?:Mon|Tue|Wed|Thu|Fri|Sat|Sun) ([A-Z][a-z]{2} [0-9]{1,2} [0-9]{4})")
+    private val legacyDayFormat = DateTimeFormatter.ofPattern("MMM d uuuu",Locale.US)
+        .withResolverStyle(ResolverStyle.STRICT)
+
     fun callbackToken(url: String): String? {
         val uri = runCatching { URI(url) }.getOrNull() ?: return null
         if (uri.scheme != "https" || uri.host != "study.mikumod.com" || uri.port !in listOf(-1,443) || uri.userInfo != null || uri.path !in listOf("","/")) return null
@@ -121,9 +127,17 @@ object StudyProtocol {
         return CountdownDay("shared",title,date)
     }
     fun countdownShare(day: CountdownDay) = "[countdown:${JSONObject().put("t",day.title.take(40)).put("d",day.date)}]"
-    fun validDate(value: String) = value.matches(Regex("[0-9]{4}-[0-9]{2}-[0-9]{2}")) && runCatching { LocalDate.parse(value) }.isSuccess
+    private fun isoDate(value: String): LocalDate? =
+        if (isoDay.matches(value)) runCatching { LocalDate.parse(value) }.getOrNull() else null
+    fun validDate(value: String) = isoDate(value) != null
+    internal fun studyDate(value: Any?): LocalDate? {
+        val text = (value as? String)?.trim() ?: return null
+        isoDate(text)?.let { return it }
+        // The weekday in old toDateString values is redundant. Both formats represent a local day.
+        val date = legacyDay.matchEntire(text)?.groupValues?.get(1) ?: return null
+        return runCatching { LocalDate.parse(date,legacyDayFormat) }.getOrNull()
+    }
     fun wireId(id: String): Any = id.toLongOrNull() ?: id
-    fun jsDate(day: LocalDate): String = day.format(DateTimeFormatter.ofPattern("EEE MMM dd yyyy",Locale.US))
     fun deepCopy(o: JSONObject) = JSONObject(o.toString())
     fun studyMillis(seconds: Double) = if (seconds.isFinite()) (seconds*1000).roundToLong() else 0L
     fun durationSeconds(minutes: Double) = (minutes*60).roundToInt()
@@ -160,11 +174,13 @@ object StudyProtocol {
         val localStats = local.data.optJSONObject("stats") ?: JSONObject()
         fun value(objectValue: JSONObject,key: String) = objectValue.finiteDouble(key).coerceAtLeast(0.0)
         listOf("totalStudyTime","totalPomodoros").forEach { stats.put(it,maxOf(value(stats,it),value(localStats,it))) }
-        val today = jsDate(LocalDate.now())
+        val today = LocalDate.now()
+        val remoteIsToday = studyDate(stats.opt("lastDate")) == today
+        val localIsToday = studyDate(localStats.opt("lastDate")) == today
         listOf("todayStudyTime","todayPomodoros").forEach { stats.put(it,maxOf(
-            if (stats.optString("lastDate") == today) value(stats,it) else 0.0,
-            if (localStats.optString("lastDate") == today) value(localStats,it) else 0.0)) }
-        stats.put("lastDate",today)
+            if (remoteIsToday) value(stats,it) else 0.0,
+            if (localIsToday) value(localStats,it) else 0.0)) }
+        stats.put("lastDate",today.toString())
         data.put("stats",stats)
         fun combined(a: JSONArray?,b: JSONArray?): JSONArray {
             val byId = linkedMapOf<String,JSONObject>()

@@ -2,9 +2,6 @@ package io.github.chorusfruit233.studywithmiku
 
 import org.json.JSONArray
 import org.json.JSONObject
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
-import java.util.Locale
 import kotlin.math.roundToLong
 
 /** Compare effective study data across web/native encodings, without mutating either document. */
@@ -36,8 +33,7 @@ internal object StudyComparison {
         val daily = calendar.objectAt("dailyLog")
         // A today's counter can contain credit not yet present in the separate calendar document.
         // Preserve that credit before ignoring the date/counters that otherwise only roll at midnight.
-        val date = runCatching { LocalDate.parse(stats.optString("lastDate"),
-            DateTimeFormatter.ofPattern("EEE MMM dd yyyy",Locale.US)).toString() }.getOrNull()
+        val date = StudyProtocol.studyDate(stats.opt("lastDate"))?.toString()
         if (date != null && (stats.finiteDouble("todayStudyTime") > 0 || stats.optInt("todayPomodoros",0) > 0)) {
             val day = daily.objectAt(date)
             day.put("studyTime",maxOf(day.finiteDouble("studyTime"),stats.finiteDouble("todayStudyTime")))

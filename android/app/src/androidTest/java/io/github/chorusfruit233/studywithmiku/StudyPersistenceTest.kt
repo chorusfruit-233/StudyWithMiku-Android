@@ -7,6 +7,9 @@ import org.json.JSONObject
 import org.junit.Assert.*
 import org.junit.Test
 import java.time.LocalDate
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+import java.util.Locale
 import java.util.UUID
 
 /** Real Android SharedPreferences and native data projection, with isolated synthetic profiles. */
@@ -19,10 +22,11 @@ class StudyPersistenceTest {
         }
         try { test(context) } finally { target.deleteSharedPreferences(name) }
     }
+    private fun legacyDate(day: LocalDate) = day.format(DateTimeFormatter.ofPattern("EEE MMM dd yyyy",Locale.US))
     private fun remote(): CloudStudy {
         val today = LocalDate.now()
         return CloudStudy(JSONObject("""{
-            "stats":{"totalStudyTime":2400.5,"totalPomodoros":4,"todayStudyTime":600.5,"todayPomodoros":1,"lastDate":"${StudyProtocol.jsDate(today)}"},
+            "stats":{"totalStudyTime":2400.5,"totalPomodoros":4,"todayStudyTime":600.5,"todayPomodoros":1,"lastDate":"${legacyDate(today)}"},
             "todos":[{"id":123,"text":"Cloud task","completed":true,"pinned":true}],
             "settings":{"focusDuration":40,"breakDuration":8,"countdowns":[{"id":7,"title":"Exam","date":"2027-01-01"}]},
             "futureField":"preserved"
@@ -117,13 +121,35 @@ class StudyPersistenceTest {
         assertEquals(2_500_500L,reopened.studyTotals().millis)
     }
 
+    @Test fun isoTodayCreditSurvivesSparseCalendarAndOvernightRecording() = isolated { context ->
+        val today = LocalDate.now()
+        val yesterday = today.minusDays(1)
+        val stats = JSONObject().put("totalStudyTime",300).put("totalPomodoros",2)
+            .put("todayStudyTime",90.5).put("todayPomodoros",1).put("lastDate",today.toString())
+        val store = MikuStore(context)
+        store.applyStudy(CloudStudy(JSONObject().put("stats",stats)))
+        assertEquals(DayLog(90_500L,1),store.logs.value[today.toString()])
+
+        val midnight = today.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
+        store.record(2_000L,completed = true,endingWallMs = midnight+1_000L)
+        store.saveClock(FocusClock(),0)
+        val reopened = MikuStore(context)
+        assertEquals(DayLog(1_000L,0),reopened.logs.value[yesterday.toString()])
+        assertEquals(DayLog(91_500L,2),reopened.logs.value[today.toString()])
+        assertEquals(DayLog(302_000L,3),reopened.studyTotals())
+        val saved = reopened.studySnapshot().data.getJSONObject("stats")
+        assertEquals(today.toString(),saved.getString("lastDate"))
+        assertEquals(91.5,saved.getDouble("todayStudyTime"),0.0)
+        assertEquals(2,saved.getInt("todayPomodoros"))
+    }
+
     @Test fun mergedTodayCreditSchedulesCalendarFollowupWithoutPausingRunningTimer() = isolated { context ->
         InstrumentationRegistry.getInstrumentation().runOnMainSync {
             val today = LocalDate.now()
-            fun document(time: Int,revision: Int) = CloudStudy(JSONObject().put("revision",revision)
-                .put("stats",JSONObject().put("totalStudyTime",time).put("todayStudyTime",time).put("lastDate",StudyProtocol.jsDate(today))),
+            fun document(time: Int,revision: Int,date: String = today.toString()) = CloudStudy(JSONObject().put("revision",revision)
+                .put("stats",JSONObject().put("totalStudyTime",time).put("todayStudyTime",time).put("lastDate",date)),
                 JSONObject().put("dailyLog",JSONObject().put(today.toString(),JSONObject().put("studyTime",time))))
-            val base = document(100,1)
+            val base = document(100,1,legacyDate(today))
             val store = MikuStore(context).apply { autoSync = false; switchStudyOwner("fixture"); applyStudy(base) }
             var pauses = 0
             val timer = object : StudySyncTimer {

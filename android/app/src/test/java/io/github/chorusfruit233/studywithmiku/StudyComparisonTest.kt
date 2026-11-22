@@ -55,9 +55,16 @@ class StudyComparisonTest {
     }
     @Test fun todayCountersWithUnrecordedCreditAreNotSilentlyIgnored() {
         val web = fixture(); val native = copy(web)
-        native.data.getJSONObject("stats").put("todayStudyTime",601)
+        native.data.getJSONObject("stats").put("lastDate","2026-10-08").put("todayStudyTime",601)
         assertFalse(StudyComparison.same(web,native))
         assertEquals(listOf("每日学习记录"),StudyComparison.differences(web,native))
+    }
+    @Test fun bothDateFormatsRecoverTheSameCreditWhenCalendarLags() {
+        val web = fixture()
+        web.calendar.getJSONObject("dailyLog").remove("2026-10-08")
+        val native = copy(web)
+        native.data.getJSONObject("stats").put("lastDate","2026-10-08")
+        assertTrue(StudyComparison.same(web,native))
     }
     @Test fun absentEmptySectionsAreEquivalentButUnknownFieldsAreNotDiscarded() {
         val first = CloudStudy(); val second = CloudStudy(JSONObject("""{"todos":[],"settings":{"countdowns":[]}}"""),
@@ -91,7 +98,7 @@ class StudyComparisonTest {
 
     @Test fun invalidDerivedTodayTimeDoesNotPoisonCalendarComparison() {
         val today = LocalDate.now()
-        val first = CloudStudy(JSONObject("""{"stats":{"totalPomodoros":1,"lastDate":"${StudyProtocol.jsDate(today)}","todayStudyTime":"NaN","todayPomodoros":1}}"""),
+        val first = CloudStudy(JSONObject("""{"stats":{"totalPomodoros":1,"lastDate":"$today","todayStudyTime":"NaN","todayPomodoros":1}}"""),
             JSONObject("""{"dailyLog":{"$today":{"studyTime":0,"pomodoros":1}}}"""))
         val second = copy(first)
         second.data.getJSONObject("stats").put("todayStudyTime",0)

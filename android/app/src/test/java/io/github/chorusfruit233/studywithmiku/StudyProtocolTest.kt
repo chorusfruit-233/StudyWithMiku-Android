@@ -69,11 +69,10 @@ class StudyProtocolTest {
         assertEquals(day.copy(id = "shared"),StudyProtocol.countdown(StudyProtocol.countdownShare(day)))
         assertNull(StudyProtocol.countdown("[countdown:{\"t\":\"标题\",\"d\":\"2026-02-30\"}]"))
         assertFalse(StudyProtocol.validDate("2026-1-01"))
-        assertEquals("Wed Oct 07 2026",StudyProtocol.jsDate(LocalDate.of(2026,10,7)))
     }
     private fun study(time: Int,sessions: Int,todo: String,planDone: Boolean) = CloudStudy(
         JSONObject().put("stats",JSONObject().put("totalStudyTime",time).put("totalPomodoros",sessions)
-            .put("todayStudyTime",time).put("todayPomodoros",sessions).put("lastDate",StudyProtocol.jsDate(LocalDate.now())))
+            .put("todayStudyTime",time).put("todayPomodoros",sessions).put("lastDate",LocalDate.now().toString()))
             .put("todos",JSONArray().put(JSONObject().put("id",123L).put("text",todo).put("completed",planDone)))
             .put("settings",JSONObject().put("focusDuration",0.1).put("countdowns",JSONArray().put(JSONObject().put("id",time).put("title",todo).put("date","2027-01-01")))),
         JSONObject().put("dailyLog",JSONObject().put("2026-10-07",JSONObject().put("studyTime",time).put("pomodoros",sessions)))
@@ -82,7 +81,11 @@ class StudyProtocolTest {
         val local = study(60,1,"local",true)
         val remote = study(90,2,"remote",false)
         val merged = StudyProtocol.merged(local,remote)
-        assertEquals(90.0,merged.data.getJSONObject("stats").getDouble("totalStudyTime"),0.0)
+        val stats = merged.data.getJSONObject("stats")
+        assertEquals(90.0,stats.getDouble("totalStudyTime"),0.0)
+        assertEquals(90.0,stats.getDouble("todayStudyTime"),0.0)
+        assertEquals(2,stats.getInt("todayPomodoros"))
+        assertEquals(LocalDate.now().toString(),stats.getString("lastDate"))
         assertEquals(90.0,merged.calendar.getJSONObject("dailyLog").getJSONObject("2026-10-07").getDouble("studyTime"),0.0)
         assertEquals(2,merged.calendar.getJSONObject("dailyLog").getJSONObject("2026-10-07").getInt("pomodoros"))
         assertEquals(1,merged.data.getJSONArray("todos").length())

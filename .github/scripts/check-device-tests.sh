@@ -63,7 +63,7 @@ for report in reports:
     for suite in root.iter('testsuite'):
         for key in totals:
             totals[key] += int(suite.get(key, '0'))
-if totals['tests'] < 59 or any(totals[key] for key in ('failures', 'errors', 'skipped')):
+if totals['tests'] < 60 or any(totals[key] for key in ('failures', 'errors', 'skipped')):
     raise SystemExit(f"API {os.environ['MIKU_DEVICE_API']}: incomplete or failed device suite: {totals}")
 print(f"API {os.environ['MIKU_DEVICE_API']}: verified device test results: {totals}")
 PY

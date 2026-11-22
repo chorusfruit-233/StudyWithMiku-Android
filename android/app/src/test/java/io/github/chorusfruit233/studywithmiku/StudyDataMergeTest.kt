@@ -24,9 +24,17 @@ class StudyDataMergeTest {
     @Test fun resetCountersNeverSubtractRemoteProgressAndNewDayKeepsItsCounters() {
         val result = merge("""{"stats":{"totalStudyTime":100,"lastDate":"2026-11-08","todayStudyTime":30}}""",
             """{"stats":{"totalStudyTime":20,"lastDate":"2026-11-09","todayStudyTime":20}}""",
-            """{"stats":{"totalStudyTime":140,"lastDate":"2026-11-08","todayStudyTime":70}}""").getJSONObject("stats")
+            """{"stats":{"totalStudyTime":140,"lastDate":"Sun Nov 08 2026","todayStudyTime":70}}""").getJSONObject("stats")
         assertEquals(140,result.getInt("totalStudyTime")); assertEquals(20,result.getInt("todayStudyTime"))
         assertEquals("2026-11-09",result.getString("lastDate"))
+    }
+    @Test fun invalidLocalDateCannotReplaceValidTodayCounters() {
+        val result = merge("""{"stats":{"totalStudyTime":100,"lastDate":"2026-11-08","todayStudyTime":60}}""",
+            """{"stats":{"totalStudyTime":160,"lastDate":"bad date","todayStudyTime":120}}""",
+            """{"stats":{"totalStudyTime":130,"lastDate":"2026-11-08","todayStudyTime":90}}""").getJSONObject("stats")
+        assertEquals(190,result.getInt("totalStudyTime"))
+        assertEquals(90,result.getInt("todayStudyTime"))
+        assertEquals("2026-11-08",result.getString("lastDate"))
     }
     @Test fun deletionWinsAgainstUnchangedButConcurrentEditSurvivesOnEitherSide() {
         val base = """{"todos":[{"id":1,"text":"a"},{"id":2,"text":"b"}]}"""

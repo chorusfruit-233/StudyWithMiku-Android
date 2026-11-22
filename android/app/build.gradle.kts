@@ -24,8 +24,8 @@ android {
         applicationId = "io.github.chorusfruit233.studywithmiku"
         minSdk = 26
         targetSdk = 37
-        versionCode = 21
-        versionName = "1.2.18"
+        versionCode = 22
+        versionName = "1.2.19"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
     buildFeatures { compose = true; buildConfig = true }

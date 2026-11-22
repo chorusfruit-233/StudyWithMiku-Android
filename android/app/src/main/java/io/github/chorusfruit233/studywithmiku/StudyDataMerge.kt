@@ -38,13 +38,16 @@ object StudyDataMerge {
             val b = number(base,key); val l = number(local,key); val r = number(remote,key)
             if (l != null && r != null) result.put(key,if (b == null) maxOf(l,r) else r+maxOf(0.0,l-b))
         }
-        val ld = local.optString("lastDate"); val rd = remote.optString("lastDate"); val bd = base?.optString("lastDate") ?: ""
-        if (maxOf(ld,rd).isNotEmpty()) result.put("lastDate",maxOf(ld,rd))
+        val localDate = StudyProtocol.studyDate(local.opt("lastDate"))
+        val remoteDate = StudyProtocol.studyDate(remote.opt("lastDate"))
+        val baseDate = StudyProtocol.studyDate(base?.opt("lastDate"))
+        val latestDate = listOfNotNull(localDate,remoteDate).maxOrNull()
+        if (latestDate != null) result.put("lastDate",latestDate.toString())
         for (key in listOf("todayStudyTime","todayPomodoros")) {
             val b = number(base,key); val l = number(local,key); val r = number(remote,key)
             if (l != null && r != null) result.put(key,when {
-                ld == rd -> if (bd == ld && b != null) r+maxOf(0.0,l-b) else maxOf(l,r)
-                ld > rd -> l
+                localDate == remoteDate -> if (localDate != null && baseDate == localDate && b != null) r+maxOf(0.0,l-b) else maxOf(l,r)
+                localDate == latestDate -> l
                 else -> r
             })
         }

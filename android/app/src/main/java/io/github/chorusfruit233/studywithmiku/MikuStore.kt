@@ -268,10 +268,10 @@ class MikuStore(private val context: Context) : StudySyncStore {
         val data = shadow.optJSONObject("data")?.let(StudyProtocol::deepCopy) ?: JSONObject()
         val calendar = shadow.optJSONObject("calendar")?.let(StudyProtocol::deepCopy) ?: JSONObject()
         val total = studyTotals()
-        val today = LocalDate.now()
-        val day = _logs.value[today.toString()] ?: DayLog()
+        val today = LocalDate.now().toString()
+        val day = _logs.value[today] ?: DayLog()
         data.put("stats",(data.optJSONObject("stats") ?: JSONObject()).put("totalStudyTime",total.millis / 1000.0)
-            .put("totalPomodoros",total.sessions).put("todayStudyTime",day.millis / 1000.0).put("todayPomodoros",day.sessions).put("lastDate",StudyProtocol.jsDate(today)))
+            .put("totalPomodoros",total.sessions).put("todayStudyTime",day.millis / 1000.0).put("todayPomodoros",day.sessions).put("lastDate",today))
         fun original(array: JSONArray?,id: String): JSONObject = array?.objects()?.firstOrNull { it.optString("id") == id }
             ?.let(StudyProtocol::deepCopy) ?: JSONObject()
         fun todoJson(t: Todo,plan: Boolean) = original(if (plan) calendar.optJSONObject("plans")?.optJSONArray(t.date) else data.optJSONArray("todos"),t.id)
@@ -322,7 +322,7 @@ class MikuStore(private val context: Context) : StudySyncStore {
             } }
             val stats = study.data.optJSONObject("stats") ?: JSONObject()
             val today = LocalDate.now()
-            if (stats.optString("lastDate") == StudyProtocol.jsDate(today)) {
+            if (StudyProtocol.studyDate(stats.opt("lastDate")) == today) {
                 val old = logs[today.toString()] ?: DayLog()
                 logs[today.toString()] = DayLog(maxOf(old.millis,StudyProtocol.studyMillis(stats.optDouble("todayStudyTime").coerceAtLeast(0.0))),maxOf(old.sessions,stats.optInt("todayPomodoros")))
             }

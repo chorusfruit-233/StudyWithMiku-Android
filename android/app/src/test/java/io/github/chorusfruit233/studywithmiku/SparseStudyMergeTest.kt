@@ -46,7 +46,7 @@ class SparseStudyMergeTest {
     }
 
     @Test fun nonFiniteLegacyNumericStringsNeverDestroyFiniteCreditOrMutateInputs() {
-        val today = StudyProtocol.jsDate(LocalDate.now())
+        val today = LocalDate.now()
         val local = CloudStudy(JSONObject("""{"stats":{"totalStudyTime":1.001,"totalPomodoros":2,"lastDate":"$today","todayStudyTime":"NaN"}}"""),
             JSONObject("""{"dailyLog":{"2026-10-10":{"studyTime":1.001,"pomodoros":1}}}"""))
         val remote = CloudStudy(JSONObject("""{"stats":{"totalStudyTime":"Infinity","totalPomodoros":null,"lastDate":"$today","todayPomodoros":"NaN"}}"""),
