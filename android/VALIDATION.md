@@ -1,10 +1,17 @@
 # 验证记录
 
-## 公开发布状态（2026-11-17 核对）
+## 公开发布状态（2026-11-22 核对）
 
-仓库已公开，当前正式版为 [v1.2.18](https://github.com/chorusfruit-233/StudyWithMiku-Android/releases/tag/v1.2.18)。GitHub 元数据确认 `draft=false`、`prerelease=false`，发布时间为 `2026-11-17T16:36:52Z`，Latest 指向此版本。Release 提供固定签名 APK、文件校验值、公开证书资料和 Release 检查报告。
+GitHub 已于 `2026-11-22T11:55:25Z` 将 v1.2.19 公开发布并设为 Latest。Release 附有固定签名 APK、校验值、公开证书资料和构建报告。[GitHub Release](https://github.com/chorusfruit-233/StudyWithMiku-Android/releases/tag/v1.2.19)
 
 下文保留各版本真实构建、测试结果与验收范围。历史 Debug 草稿未公开发布；回归报告与截图可随源码公开查看。
+
+## 1.2.19 今日学习统计
+
+- 对齐上游 `8d7c20b`，原作 33 项测试通过，APK 内的 34 条原作更新日志与上游一致。Android 单元测试覆盖旧版日期与 ISO 日期的等价比较、冲突重试时的同日增量合并，以及跨日或无效日期的处理。[上游适配记录](UPSTREAM.md)
+- 构建源码为 `12b1bf71f191beee3ee336df22cfe29a2a96560a`，版本号 1.2.19，versionCode=22。Debug 和签名 Release 各 136 项单元测试通过，Lint 无错误。[Debug 构建](https://github.com/chorusfruit-233/StudyWithMiku-Android/actions/runs/45018577639) · [签名构建](https://github.com/chorusfruit-233/StudyWithMiku-Android/actions/runs/45018577755)
+- Android 15 和 17 模拟器各通过 60 项测试。原始报告确认覆盖今日统计补齐缺失的日历行、跨午夜切分时长、重启后保留记录和恢复暂停的播放队列。设备回归使用 Debug APK、合成资料与本地服务。
+- 已重新下载 APK 并验证原证书、包名、版本、调试状态和 ZIP 对齐。APK 的 SHA-256 为 `169fc472d87936b3148d0fbfcd6e5ce851cf630c8d3c692f8d3ee96ec06eb154`。公开标签指向上述源码，四项附件摘要与构建产物一致。[发布工作流](https://github.com/chorusfruit-233/StudyWithMiku-Android/actions/runs/45019651252)
 
 ## 1.2.18 上游 main 协议与内容适配
 

@@ -8,4 +8,4 @@ Study With Miku 非官方原生 Android 移植，支持 Android 8.0 及以上。
 
 [更新记录](https://github.com/chorusfruit-233/StudyWithMiku-Android/blob/main/CHANGELOG.md) · [验证记录](https://github.com/chorusfruit-233/StudyWithMiku-Android/blob/main/android/VALIDATION.md)
 
-设备回归使用 Debug APK、合成资料与本地服务。移植遵循 GPL-3.0。感谢原作者 [SHSHOUSE](https://github.com/shshouse/StudyWithMiku)。
+Debug 和 Release 各通过 136 项单元测试，Android 15 和 17 各通过 60 项设备回归。设备回归使用 Debug APK、合成资料与本地服务。移植遵循 GPL-3.0。感谢原作者 [SHSHOUSE](https://github.com/shshouse/StudyWithMiku)。
